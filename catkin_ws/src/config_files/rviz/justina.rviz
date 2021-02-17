@@ -108,11 +108,15 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        kinect_link:
+        kinect_base:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        kinect_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         laser_link:
           Alpha: 1
           Show Axes: false
@@ -163,6 +167,11 @@ Visualization Manager:
           Show Trail: false
           Value: true
         left_arm_link7:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        neck_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -281,12 +290,12 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: map
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: InflatedMap
       Topic: /inflated_map
       Unreliable: false
       Use Timestamp: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -334,7 +343,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -351,89 +360,21 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_footprint:
-          Value: true
-        base_link:
-          Value: false
-        head_link1:
-          Value: false
-        head_link2:
-          Value: false
-        kinect_link:
-          Value: false
-        laser_link:
-          Value: false
-        left_arm_grip_center:
-          Value: true
-        left_arm_link7:
-          Value: true
-        map:
-          Value: true
-        odom:
-          Value: true
-        right_arm_grip_center:
-          Value: true
-        right_arm_link7:
-          Value: true
-        shoulders_left_link:
-          Value: true
-        shoulders_link:
-          Value: true
-        shoulders_right_link:
-          Value: true
-        spine_link:
-          Value: false
-        waist_link:
-          Value: false
-        wheel_back:
-          Value: false
-        wheel_front:
-          Value: false
-        wheel_left:
-          Value: false
-        wheel_right:
-          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: false
       Tree:
-        base_link:
-          laser_link:
-            {}
-          spine_link:
-            waist_link:
-              shoulders_link:
-                head_link1:
-                  head_link2:
-                    kinect_link:
-                      {}
-                shoulders_left_link:
-                  {}
-                shoulders_right_link:
-                  {}
-          wheel_back:
-            {}
-          wheel_front:
-            {}
-          wheel_left:
-            {}
-          wheel_right:
-            {}
-        map:
-          {}
-        odom:
-          base_footprint:
-            {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
