@@ -32,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->navBtnCalcPath, SIGNAL(clicked()), this, SLOT(navBtnCalcPath_pressed()));
     QObject::connect(ui->navBtnExecPath, SIGNAL(clicked()), this, SLOT(navBtnExecPath_pressed()));
 
+    QObject::connect(ui->torTxtPos, SIGNAL(valueChanged(double)), this, SLOT(torSbPosValueChanged(double)));
     QObject::connect(ui->laTxtAngles1, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
     QObject::connect(ui->laTxtAngles2, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
     QObject::connect(ui->laTxtAngles3, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
@@ -50,6 +51,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->raTxtAnglesG, SIGNAL(valueChanged(double)), this, SLOT(raSbGripperValueChanged(double)));
     QObject::connect(ui->laTxtPredefined, SIGNAL(returnPressed()), this, SLOT(laTxtPredefinedReturnPressed()));
     QObject::connect(ui->raTxtPredefined, SIGNAL(returnPressed()), this, SLOT(raTxtPredefinedReturnPressed()));
+    QObject::connect(ui->hdTxtPan, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
+    QObject::connect(ui->hdTxtTilt, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
 }
 
 MainWindow::~MainWindow()
@@ -256,6 +259,11 @@ void MainWindow::navBtnExecPath_pressed()
     }
 }
 
+void MainWindow::torSbPosValueChanged(double d)
+{
+    qtRosNode->publish_torso_position(ui->torTxtPos->value());
+}
+
 void MainWindow::laSbAnglesValueChanged(double d)
 {
     qtRosNode->publish_la_goal_angles(ui->laTxtAngles1->value(), ui->laTxtAngles2->value(), ui->laTxtAngles3->value(),
@@ -302,4 +310,9 @@ void MainWindow::laSbGripperValueChanged(double d)
 void MainWindow::raSbGripperValueChanged(double d)
 {
     qtRosNode->publish_ra_grip_angles(ui->raTxtAnglesG->value(), ui->raTxtAnglesG->value()); 
+}
+
+void MainWindow::hdSbHeadValueChanged(double d)
+{
+    qtRosNode->publish_head_angles(ui->hdTxtPan->value(), ui->hdTxtTilt->value());
 }

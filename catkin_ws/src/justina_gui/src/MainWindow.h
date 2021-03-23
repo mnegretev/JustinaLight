@@ -50,12 +50,14 @@ public slots:
     void navBtnCalcPath_pressed();
     void navBtnExecPath_pressed();
 
+    void torSbPosValueChanged(double d);
     void laSbAnglesValueChanged(double d);
     void raSbAnglesValueChanged(double d);
     void laTxtPredefinedReturnPressed();
     void raTxtPredefinedReturnPressed();
     void laSbGripperValueChanged(double d);
     void raSbGripperValueChanged(double d);
+    void hdSbHeadValueChanged(double d);
 
 private:
     Ui::MainWindow *ui;
