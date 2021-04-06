@@ -1,11 +1,12 @@
 <launch>
+  <arg name="world" default="appartment"/>
   <env name="GAZEBO_MODEL_PATH" value="$(find gazebo_envs)/models:$(optenv GAZEBO_MODEL_PATH)"/>
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="true"/>
     <arg name="debug" value="false"/>
-    <arg name="world_name" value="$(find gazebo_envs)/worlds/appartment.world"/>
+    <arg name="world_name" value="$(find gazebo_envs)/worlds/$(arg world).world"/>
   </include>
   
   <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find justina_description)/urdf/justina.xacro'"/>
@@ -17,7 +18,11 @@
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find config_files)/rviz/justina.rviz"/>
   <node name="map_server" pkg="map_server" type="map_server" output="screen" args="$(find config_files)/maps/appartment.yaml"/>
-  <node name="amcl" pkg="amcl" type="amcl" output="screen"/>
+  <node name="amcl" pkg="amcl" type="amcl" output="screen">
+    <param name="initial_pose_x" value="3.0"/>
+    <param name="initial_pose_y" value="6.50"/>
+    <param name="initial_pose_a" value="-1.57"/>
+  </node>
   <node name="justina_gui" pkg="justina_gui" type="justina_gui_node" output="screen">
     <param name="la_predefined" value="$(find config_files)/manipulation/la_predefined.yaml"/>
     <param name="ra_predefined" value="$(find config_files)/manipulation/ra_predefined.yaml"/>
