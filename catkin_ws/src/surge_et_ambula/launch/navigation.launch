@@ -1,0 +1,55 @@
+<launch>
+  <!--rosparam file="$(find roomiebot_description_pkg)/param/costmap_common_params.yaml" command="load" ns="local_costmap" /-->
+  <arg name="static_map_file"  default="$(find navig_config_pkg)/maps/ilsp4_edited.yaml"/>
+  <arg name="prohibition_map_file"  default="$(find navig_config_pkg)/prohibition_maps/ilsp4_edited_prohibition.yaml"/>
+
+  <node name="path_planner" pkg="path_planner_pkg" type="path_planner_node" output="screen">
+  </node>
+  
+  <node name="simple_move"  pkg="simple_move_pkg"  type="simple_move_node"  output="screen">
+    <remap from="/cmd_vel" to="/roomie_bot/devices/roboclaw/cmd_vel"/>
+  </node>
+
+  <node name="obs_detector"  pkg="obs_detect_pkg"  type="obs_detect_node"  output="screen">
+    <remap from="/cmd_vel" to="/roomie_bot/devices/roboclaw/cmd_vel"/>
+  </node>
+
+  <node name="map_augmenter"  pkg="map_augmenter_pkg"  type="map_augmenter_node"  output="screen">
+    <param name="use_lidar" value="True"/>
+    <param name="use_sonars" value="False"/>
+    <param name="use_point_cloud" value="False"/>
+    <param name="use_point_cloud2" value="False"/>
+    <param name="point_cloud_topic" value="/points"/>
+    <param name="point_cloud_frame" value="/points_frame"/>
+    <param name="laser_scan_topic" value="/scan"/>
+    <param name="laser_scan_frame" value="laser"/>
+  </node>
+
+  <node name="mvn_pln"  pkg="mvn_pln_pkg"  type="mvn_pln_node"  output="screen">
+    <remap from="/nav_control/goal" to="/move_base_simple/goal"/>
+    <param name="patience" value="True"/>
+  </node>
+
+
+  <node name="map_server" pkg="map_server" type="map_server" output="log" args="$(arg static_map_file)">
+  </node>
+  <node name="prohibition_map_server" pkg="map_server" type="map_server" output="screen"
+        args="$(arg prohibition_map_file)">
+    <remap from="/static_map" to="/prohibition_map"/>
+    <remap from="/map" to="/prohibition_layer_map"/>
+  </node>
+
+  
+  <node name="loc_amcl" pkg="amcl" type="amcl" output="log" args="scan:=/scan">
+    <param name="initial_pose_x" value="6.0"/>
+    <param name="odom_alpha1" value="0.2"/>
+    <param name="odom_alpha2" value="0.2"/>
+    <param name="odom_alpha3" value="0.2"/>
+    <param name="odom_alpha4" value="0.2"/>
+    <param name="odom_alpha5" value="0.2"/>
+    <param name="recovery_alpha_slow" value="0.0"/>
+    <param name="recovery_alpha_fast" value="0.0"/>
+  </node>
+  
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find navig_config_pkg)/rviz/roomie_navig.rviz"/>
+</launch>
