@@ -42,7 +42,7 @@ bool PathPlanner::AStar(nav_msgs::OccupancyGrid& map, nav_msgs::OccupancyGrid& c
 	nodes[i].index = i;
 
     current_node = &nodes[idx_start];
-    current_node->distance     = 0;
+    current_node->g_value      = 0;
     current_node->in_open_list = true;    
     open_list.push(current_node);
     
@@ -71,7 +71,8 @@ bool PathPlanner::AStar(nav_msgs::OccupancyGrid& map, nav_msgs::OccupancyGrid& c
                     continue;
            
                 Node* neighbor = &nodes[node_neighbors[i]];
-                int   g_value = current_node->distance + 1 + cost_map.data[node_neighbors[i]];
+                float delta_g = i < 4 ? 1.0 : 1.414213562;
+                float g_value = current_node->g_value + (i < 4 ? 1.0 : 1.414213562) + cost_map.data[node_neighbors[i]];
                 float h_value;
                 int   h_value_x = node_neighbors[i]%map.info.width - idx_goal_x;
                 int   h_value_y = node_neighbors[i]/map.info.width - idx_goal_y;
@@ -80,11 +81,11 @@ bool PathPlanner::AStar(nav_msgs::OccupancyGrid& map, nav_msgs::OccupancyGrid& c
                 else
                     h_value = fabs(h_value_x) + fabs(h_value_y);
                 
-                if(g_value < neighbor->distance)
+                if(g_value < neighbor->g_value)
                 {
-                    neighbor->distance = g_value;
-                    neighbor->f_value  = g_value + h_value;
-                    neighbor->parent   = current_node;
+                    neighbor->g_value = g_value;
+                    neighbor->f_value = g_value + h_value;
+                    neighbor->parent  = current_node;
                 }
 
                 if(!neighbor->in_open_list)
@@ -152,7 +153,7 @@ nav_msgs::Path PathPlanner::SmoothPath(nav_msgs::Path& path, float weight_data, 
 Node::Node()
 {
     this->index            = -1;
-    this->distance         = INT_MAX;
+    this->g_value          = INT_MAX;
     this->f_value          = INT_MAX;
     this->in_open_list     = false;
     this->in_closed_list   = false;

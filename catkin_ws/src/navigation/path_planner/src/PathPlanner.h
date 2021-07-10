@@ -23,7 +23,7 @@ public:
     ~Node();
 
     int   index;           //The index of the corresponding cell in the occupancy grid.
-    int   distance;        //The accumulated distance of this node.
+    float g_value;        //The accumulated distance of this node.
     float f_value;         //The f-value, used only in the A* algorithm.
     bool  in_open_list;    //A value indicating whether this node is in the open list or not.
     bool  in_closed_list;  //A value indicating whether this node is in the closed list or not.
@@ -33,7 +33,7 @@ public:
 class CompareByDistance
 {
 public:
-    bool operator()(Node* n1, Node* n2) { return n1->distance > n2->distance; }
+    bool operator()(Node* n1, Node* n2) { return n1->g_value > n2->g_value; }
 };
 
 class CompareByFValue
