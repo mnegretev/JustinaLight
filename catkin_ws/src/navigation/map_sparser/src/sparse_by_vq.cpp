@@ -1,6 +1,9 @@
 #include "ros/ros.h"
+#include "graph_msgs/Edges.h"
+#include "graph_msgs/GeometryGraph.h"
 #include "nav_msgs/GetMap.h"
 #include "nav_msgs/OccupancyGrid.h"
+#include "visualization_msgs/Marker.h"
 #include "random_numbers/random_numbers.h"
 
 random_numbers::RandomNumberGenerator rnd;
@@ -49,10 +52,10 @@ std::vector<geometry_msgs::Point> disturb_centroids(std::vector<geometry_msgs::P
     {
         float a = rnd.uniformReal(-M_PI, M_PI);
         geometry_msgs::Point p1,p2;
-        p1.x =  epsilon*cos(a);
-        p1.y =  epsilon*sin(a);
-        p2.x = -epsilon*cos(a);
-        p2.y = -epsilon*sin(a);
+        p1.x = centroids[i].x + epsilon*cos(a);
+        p1.y = centroids[i].y + epsilon*sin(a);
+        p2.x = centroids[i].x - epsilon*cos(a);
+        p2.y = centroids[i].y -epsilon*sin(a);
         new_centroids.push_back(p1);
         new_centroids.push_back(p2);
     }
@@ -124,6 +127,77 @@ std::vector<geometry_msgs::Point> get_centroids(std::vector<geometry_msgs::Point
     return centroids;
 }
 
+bool are_visible(geometry_msgs::Point a, geometry_msgs::Point b, nav_msgs::OccupancyGrid& map)
+{
+    float dx = (b.x - a.x)/sqrt((b.x - a.x)*(b.x - a.x) + (b.y - a.y)*(b.y - a.y))*map.info.resolution;
+    float dy = (b.y - a.y)/sqrt((b.x - a.x)*(b.x - a.x) + (b.y - a.y)*(b.y - a.y))*map.info.resolution;
+    for(float x=a.x, y=a.y; x<=b.x && y<=b.y; x+=dx, y+=dy)
+    {
+        int ix = (int)((x - map.info.origin.position.x)/map.info.resolution);
+        int iy = (int)((y - map.info.origin.position.y)/map.info.resolution);
+        int ic = iy*map.info.width + ix;
+        if(map.data[ic] != 0)
+            return false;
+    }
+    return true;
+}
+
+graph_msgs::GeometryGraph build_graph(std::vector<geometry_msgs::Point>& centroids, nav_msgs::OccupancyGrid& map)
+{
+    graph_msgs::GeometryGraph graph;
+    graph.nodes = centroids;
+    graph.edges.resize(graph.nodes.size());
+    for(size_t i=0; i<centroids.size(); i++)
+        for(size_t j=0; j<centroids.size(); j++)
+        {
+            if(i==j) continue;
+            if(are_visible(centroids[i], centroids[j], map))
+            {
+                graph.edges[i].node_ids.push_back(j);
+                graph.edges[i].weights.push_back(sqrt(pow(centroids[i].x - centroids[j].x,2)+pow(centroids[i].y - centroids[j].y,2)));
+            }
+        }
+    graph.header.frame_id = "map";
+    graph.header.stamp    = ros::Time::now();
+    return graph;
+}
+
+visualization_msgs::Marker get_nodes_marker(std::vector<geometry_msgs::Point>& centroids)
+{
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "map";
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "sparse_map";
+    marker.id = 0;
+    marker.type = visualization_msgs::Marker::SPHERE_LIST;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.pose.position.x = 0;
+    marker.pose.position.y = 0;
+    marker.pose.position.z = 0;
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
+    marker.scale.x = 0.25;
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.1;
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 1.0;
+    marker.color.b = 0.0;
+    for(size_t i=0; i < centroids.size(); i++)
+    {
+        try{
+            geometry_msgs::Point p;
+            p.x = centroids[i].x;
+            p.y = centroids[i].y;
+            p.z = 0.13;
+            marker.points.push_back(p);
+        }catch(...){}
+    }
+    return marker;
+}
+
 int main(int argc, char** argv)
 {
     std::cout << "MapSparser.->INITIALIZING MAP SPARSER..." << std::endl;
@@ -143,8 +217,6 @@ int main(int argc, char** argv)
     if(ros::param::has("~inflation_radius"))
         ros::param::get("~inflation_radius", inflation_radius);
     
-    ros::Rate loop(1);
-
     std::cout << "MapSparser.->Waiting for static map topic..." << std::endl;
     ros::service::waitForService("/static_map", ros::Duration(1000.0));
     ros::ServiceClient cltGetStaticMap = n.serviceClient<nav_msgs::GetMap>("/static_map");
@@ -156,5 +228,13 @@ int main(int argc, char** argv)
     std::vector<geometry_msgs::Point> points = get_free_points(map);
     std::cout << "MapSparser.->Inflated map with " << points.size() << " free cells" << std::endl;
     std::vector<geometry_msgs::Point> centroids = get_centroids(points, num_centroids, epsilon, tolerance);
+
+    ros::Rate loop(1);
+    ros::Publisher pub_marker = n.advertise<visualization_msgs::Marker>("/sparse_map", 10);
+    while(ros::ok())
+    {
+        pub_marker.publish(get_nodes_marker(centroids));
+        loop.sleep();
+    }
     return 0;
 }
