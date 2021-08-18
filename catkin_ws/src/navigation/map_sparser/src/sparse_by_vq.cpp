@@ -129,10 +129,14 @@ std::vector<geometry_msgs::Point> get_centroids(std::vector<geometry_msgs::Point
 
 bool are_visible(geometry_msgs::Point a, geometry_msgs::Point b, nav_msgs::OccupancyGrid& map)
 {
-    float dx = (b.x - a.x)/sqrt((b.x - a.x)*(b.x - a.x) + (b.y - a.y)*(b.y - a.y))*map.info.resolution;
-    float dy = (b.y - a.y)/sqrt((b.x - a.x)*(b.x - a.x) + (b.y - a.y)*(b.y - a.y))*map.info.resolution;
-    for(float x=a.x, y=a.y; x<=b.x && y<=b.y; x+=dx, y+=dy)
+    float m  = sqrt((b.x - a.x)*(b.x - a.x) + (b.y - a.y)*(b.y - a.y));
+    float dx = (b.x - a.x)/m*map.info.resolution/2;
+    float dy = (b.y - a.y)/m*map.info.resolution/2;
+    int   n  = (int)(m/map.info.resolution*2);
+    for(int i=0; i < n; i++)
     {
+        float x = a.x + dx*i;
+        float y = a.y + dy*i;
         int ix = (int)((x - map.info.origin.position.x)/map.info.resolution);
         int iy = (int)((y - map.info.origin.position.y)/map.info.resolution);
         int ic = iy*map.info.width + ix;
@@ -145,6 +149,9 @@ bool are_visible(geometry_msgs::Point a, geometry_msgs::Point b, nav_msgs::Occup
 graph_msgs::GeometryGraph build_graph(std::vector<geometry_msgs::Point>& centroids, nav_msgs::OccupancyGrid& map)
 {
     graph_msgs::GeometryGraph graph;
+    
+
+    
     graph.nodes = centroids;
     graph.edges.resize(graph.nodes.size());
     for(size_t i=0; i<centroids.size(); i++)
@@ -179,8 +186,8 @@ visualization_msgs::Marker get_nodes_marker(std::vector<geometry_msgs::Point>& c
     marker.pose.orientation.z = 0.0;
     marker.pose.orientation.w = 1.0;
     marker.scale.x = 0.25;
-    marker.scale.y = 0.1;
-    marker.scale.z = 0.1;
+    marker.scale.y = 0.25;
+    marker.scale.z = 0.25;
     marker.color.a = 1.0;
     marker.color.r = 0.0;
     marker.color.g = 1.0;
@@ -198,16 +205,46 @@ visualization_msgs::Marker get_nodes_marker(std::vector<geometry_msgs::Point>& c
     return marker;
 }
 
+visualization_msgs::Marker get_edges_marker(graph_msgs::GeometryGraph& graph)
+{
+    visualization_msgs::Marker marker;
+    marker.header.frame_id = "map";
+    marker.header.stamp = ros::Time::now();
+    marker.ns = "sparse_map";
+    marker.id = 1;
+    marker.type = visualization_msgs::Marker::LINE_LIST;
+    marker.action = visualization_msgs::Marker::ADD;
+    marker.pose.position.x = 0;
+    marker.pose.position.y = 0;
+    marker.pose.position.z = 0;
+    marker.pose.orientation.x = 0.0;
+    marker.pose.orientation.y = 0.0;
+    marker.pose.orientation.z = 0.0;
+    marker.pose.orientation.w = 1.0;
+    marker.scale.x = 0.01;
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 1.0;
+    marker.color.b = 0.0;
+    for(size_t i=0; i < graph.edges.size(); i++)
+        for(size_t j=0; j < graph.edges[i].node_ids.size(); j++)
+        {
+            marker.points.push_back(graph.nodes[i]);
+            marker.points.push_back(graph.nodes[graph.edges[i].node_ids[j]]);
+        }
+    return marker;
+}
+
 int main(int argc, char** argv)
 {
     std::cout << "MapSparser.->INITIALIZING MAP SPARSER..." << std::endl;
     ros::init(argc, argv, "map_sparser");
     ros::NodeHandle n;
 
-    int   num_centroids = 4;
+    int   num_centroids = 256;
     float epsilon       = 0.1;
-    float tolerance     = 0.1;
-    float inflation_radius = 0.3;
+    float tolerance     = 0.05;
+    float inflation_radius = 0.25;
     if(ros::param::has("~centroids"))
         ros::param::get("~centroids", num_centroids);
     if(ros::param::has("~epsilon"))
@@ -227,13 +264,19 @@ int main(int argc, char** argv)
     nav_msgs::OccupancyGrid map = get_inflated_map(srvStaticMap.response.map, inflation_radius);
     std::vector<geometry_msgs::Point> points = get_free_points(map);
     std::cout << "MapSparser.->Inflated map with " << points.size() << " free cells" << std::endl;
+    std::cout << "MapSparser.->Calculating centroids by vector quantization..." << std::endl;
     std::vector<geometry_msgs::Point> centroids = get_centroids(points, num_centroids, epsilon, tolerance);
+    std::cout << "MapSparser.->Building graph from centroids and map..." << std::endl;
+    graph_msgs::GeometryGraph graph = build_graph(centroids, map);
+    
 
     ros::Rate loop(1);
     ros::Publisher pub_marker = n.advertise<visualization_msgs::Marker>("/sparse_map", 10);
+    
     while(ros::ok())
     {
         pub_marker.publish(get_nodes_marker(centroids));
+        pub_marker.publish(get_edges_marker(graph));
         loop.sleep();
     }
     return 0;
