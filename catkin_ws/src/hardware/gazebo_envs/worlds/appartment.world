@@ -12,8 +12,8 @@
       <background>0.7 0.7 0.7 1</background>
     </scene>
     <physics type="ode">
-      <real_time_update_rate>333.0</real_time_update_rate>
-      <max_step_size>0.003</max_step_size>
+      <real_time_update_rate>250.0</real_time_update_rate>
+      <max_step_size>0.004</max_step_size>
       <ode>
         <solver>
           <type>quick</type>
@@ -142,7 +142,7 @@
       <uri>model://full_outside_wall</uri>
       <name>outside_wall</name>
     </include>
-    <include>
+    <!--include>
       <static>0</static>
       <pose>10.1025 10.8 0 0 0 1.5708</pose>
       <uri>model://openable_hinged_door_z_normally</uri>
@@ -213,7 +213,7 @@
       <pose>8.13 9.23 0 0 0 1.5708</pose>
       <uri>model://hinged_door_stopper</uri>
       <name>door_stopper_x10y11</name>
-    </include>
+    </include -->
     <!--End of wall models-->
     <!-- Start of object models -->
     <include>
