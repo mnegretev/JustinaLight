@@ -9,6 +9,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/GetPlan.h"
 #include "tf/transform_listener.h"
+#include "custom_msgs/InverseKinematicsForPose.h"
 
 class QtRosNode : public QThread
 {
@@ -40,6 +41,8 @@ public:
     ros::Publisher pubRaAngleGr;
     ros::Publisher pubHdPan;
     ros::Publisher pubHdTilt;
+    ros::ServiceClient    cltLaInverseKinematics;
+    ros::ServiceClient    cltRaInverseKinematics;
     tf::TransformListener tf_listener;
     
     geometry_msgs::Twist cmd_vel;
@@ -60,6 +63,8 @@ public:
     void publish_la_grip_angles(float a1, float a2);
     void publish_ra_grip_angles(float a1, float a2);
     void publish_head_angles(float pan, float tilt);
+    bool call_la_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
+    bool call_ra_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
     
 signals:
     void updateGraphics();

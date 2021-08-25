@@ -280,6 +280,27 @@ void MainWindow::raSbAnglesValueChanged(double d)
 
 void MainWindow::laTxtPredefinedReturnPressed()
 {
+    std::vector<std::string> parts;
+    std::string str = this->ui->laTxtPredefined->text().toStdString();
+    boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
+    std::vector<float> cartesian;
+    cartesian.resize(parts.size());
+    bool is_cartesian = true;
+    for(size_t i=0; i<parts.size() && is_cartesian; i++)
+    {
+        std::stringstream ss(parts[i]);
+        if(!(ss >> cartesian[i]))
+            is_cartesian = false;
+    }
+    if(is_cartesian && cartesian.size() == 6)
+    {
+        std::vector<float> articular;
+        if(!qtRosNode->call_la_inverse_kinematics(cartesian, articular))
+            return;
+        qtRosNode->publish_la_goal_angles(articular[0], articular[1], articular[2], articular[3], articular[4], articular[5], articular[6]);
+        return;
+    }
+    
     YAML::Node n = yamlParser->nodeLaPredefined[ui->laTxtPredefined->text().toStdString()];
     if(!n)
     {
@@ -292,6 +313,27 @@ void MainWindow::laTxtPredefinedReturnPressed()
 
 void MainWindow::raTxtPredefinedReturnPressed()
 {
+    std::vector<std::string> parts;
+    std::string str = this->ui->raTxtPredefined->text().toStdString();
+    boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
+    std::vector<float> cartesian;
+    cartesian.resize(parts.size());
+    bool is_cartesian = true;
+    for(size_t i=0; i<parts.size() && is_cartesian; i++)
+    {
+        std::stringstream ss(parts[i]);
+        if(!(ss >> cartesian[i]))
+            is_cartesian = false;
+    }
+    if(is_cartesian && cartesian.size() == 6)
+    {
+        std::vector<float> articular;
+        if(!qtRosNode->call_ra_inverse_kinematics(cartesian, articular))
+            return;
+        qtRosNode->publish_ra_goal_angles(articular[0], articular[1], articular[2], articular[3], articular[4], articular[5], articular[6]);
+        return;
+    }
+    
     YAML::Node n = yamlParser->nodeRaPredefined[ui->raTxtPredefined->text().toStdString()];
     if(!n)
     {

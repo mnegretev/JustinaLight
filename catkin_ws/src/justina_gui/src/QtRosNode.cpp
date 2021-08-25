@@ -41,7 +41,9 @@ void QtRosNode::run()
     pubRaAngleGr = n->advertise<std_msgs::Float64>("/ra_grip_right_controller/command", 10);
     pubHdPan     = n->advertise<std_msgs::Float64>("/head_pan_controller/command",  10);
     pubHdTilt    = n->advertise<std_msgs::Float64>("/head_tilt_controller/command", 10);
-
+    cltLaInverseKinematics = n->serviceClient<custom_msgs::InverseKinematicsForPose>("/manipulation/la_inverse_kinematics");
+    cltRaInverseKinematics = n->serviceClient<custom_msgs::InverseKinematicsForPose>("/manipulation/ra_inverse_kinematics");
+    
     int pub_zero_counter = 5;
     while(ros::ok() && !this->gui_closed)
     {
@@ -174,4 +176,48 @@ void QtRosNode::publish_head_angles(float pan, float tilt)
     pubHdPan.publish(msg);
     msg.data = tilt;
     pubHdTilt.publish(msg);
+}
+
+bool QtRosNode::call_la_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular)
+{
+    custom_msgs::InverseKinematicsForPose srv;
+    srv.request.x = cartesian[0];
+    srv.request.y = cartesian[1];
+    srv.request.z = cartesian[2];
+    srv.request.roll  = cartesian[3];
+    srv.request.pitch = cartesian[4];
+    srv.request.yaw   = cartesian[5];
+    if(!cltLaInverseKinematics.call(srv))
+        return false;
+    articular.clear();
+    articular.push_back(srv.response.q1);
+    articular.push_back(srv.response.q2);
+    articular.push_back(srv.response.q3);
+    articular.push_back(srv.response.q4);
+    articular.push_back(srv.response.q5);
+    articular.push_back(srv.response.q6);
+    articular.push_back(srv.response.q7);
+    return true;
+}
+
+bool QtRosNode::call_ra_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular)
+{
+    custom_msgs::InverseKinematicsForPose srv;
+    srv.request.x = cartesian[0];
+    srv.request.y = cartesian[1];
+    srv.request.z = cartesian[2];
+    srv.request.roll  = cartesian[3];
+    srv.request.pitch = cartesian[4];
+    srv.request.yaw   = cartesian[5];
+    if(!cltRaInverseKinematics.call(srv))
+        return false;
+    articular.clear();
+    articular.push_back(srv.response.q1);
+    articular.push_back(srv.response.q2);
+    articular.push_back(srv.response.q3);
+    articular.push_back(srv.response.q4);
+    articular.push_back(srv.response.q5);
+    articular.push_back(srv.response.q6);
+    articular.push_back(srv.response.q7);
+    return true;
 }
