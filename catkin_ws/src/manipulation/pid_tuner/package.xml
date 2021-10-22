@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pid_tuner</name>
+  <version>1.0.0</version>
+  <description>The pid_tuner package</description>
+  <maintainer email="lgmarin02@hotmail.com">sr-gus</maintainer>
+
+  <license>TODO</license>
+
+  <author email="lgmarin02@hotmail.com">Gustavo Marin</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  
+	<build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>rospy</build_depend>
+	<build_depend>std_msgs</build_depend>
+  
+	<build_export_depend>dynamic_reconfigure</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
+	<build_depend>std_msgs</build_depend>
+  
+  <exec_depend>dynamic_reconfigure</exec_depend>
+	<exec_depend>python-rospkg</exec_depend>
+	<exec_depend>python-yaml</exec_depend>
+  <exec_depend>rospy</exec_depend>
+	<exec_depend>std_msgs</exec_depend>
+
+  <export>
+  </export>
+</package>
