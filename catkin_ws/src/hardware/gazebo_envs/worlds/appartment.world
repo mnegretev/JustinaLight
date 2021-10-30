@@ -350,19 +350,19 @@
     </include>
     <include>
       <static>0</static>
-      <pose>4.6797 13.0506 1.2740 0 0 1</pose>
+      <pose>4.6797 13.0506 1.05 0 0 1</pose>
       <uri>model://apple</uri>
       <name>apple_01</name>
     </include>
     <include>
       <static>0</static>
-      <pose>3.7459 12.9849 0.3794 0.0185 0.2284 -1.0179</pose>
+      <pose>3.7459 12.9549 0.75 0.0185 0.2284 -1.0179</pose>
       <uri>model://banana</uri>
       <name>banana_01</name>
     </include>
     <include>
       <static>0</static>
-      <pose>3.8116 13.0323 1.2990 0.00 0.00 0.00</pose>
+      <pose>3.8116 13.0323 1.05 0.00 0.00 0.00</pose>
       <uri>model://pear</uri>
       <name>pear_01</name>
     </include>
