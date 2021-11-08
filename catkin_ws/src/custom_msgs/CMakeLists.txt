@@ -63,6 +63,7 @@ add_message_files(
 add_service_files(
   FILES
   InverseKinematicsForPose.srv
+  DirectKinematics.srv
 )
 
 ## Generate actions in the 'action' folder

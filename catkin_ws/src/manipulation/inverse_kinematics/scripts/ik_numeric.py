@@ -7,9 +7,7 @@ import numpy
 import urdf_parser_py.urdf
 from geometry_msgs.msg import PointStamped
 from custom_msgs.msg import ArmConfiguration
-from custom_msgs.srv import InverseKinematicsForPose
-from custom_msgs.srv import InverseKinematicsForPoseRequest
-from custom_msgs.srv import InverseKinematicsForPoseResponse
+from custom_msgs.srv import *
 
 def get_model_info():
     global joints, transforms
@@ -31,13 +29,12 @@ def get_model_info():
         R = tft.euler_matrix(joint.origin.rpy[0], joint.origin.rpy[1], joint.origin.rpy[2])
         transforms['right'].append(tft.concatenate_matrices(T,R))
 
-def are_valid_angles(q, arm):
+def validate_angles(q, arm):
     for i in range(len(q)):
         if q[i] < joints[arm][i].limit.lower or q[i] > joints[arm][i].limit.upper:
-            print("InverseKinematics.->Candidate solution out of angle bounds")
+            print("InverseKinematics.->Articular position out of joint bounds")
             return False
     return True
-        
     
 def direct_kinematics(q, arm):
     global transforms, joints
@@ -93,7 +90,7 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm):
         if iterations < 20:
             for i in range(len(q)):
                 q[i] = q[i] - 2*math.pi if q[i] > math.pi else q[i]
-            solved = are_valid_angles(q, arm)
+            solved = validate_angles(q, arm)
         attempts+=1
     if solved:
         print("InverseKinematics.->IK for " + arm + " arm solved after " + str((attempts-1)*50 + iterations) + " iterations: " + str(q))
@@ -121,7 +118,7 @@ def inverse_kinematics_xyz(x, y, z, arm):
         if iterations < 20:
             for i in range(len(q)):
                 q[i] = q[i] - 2*math.pi if q[i] > math.pi else q[i]
-            solved = are_valid_angles(q, arm)
+            solved = validate_angles(q, arm)
         attempts+=1
     if solved:
         print("InverseKinematics.->IK for " + arm + " arm solved after " + str((attempts-1)*50 + iterations) + " iterations: " + str(q))
@@ -148,12 +145,26 @@ def callback_ra_ik_for_pose(req):
     [resp.q1, resp.q2, resp.q3, resp.q4, resp.q5, resp.q6, resp.q7] = [q[0], q[1], q[2], q[3], q[4], q[5], q[6]]
     return resp
 
+def callback_la_dk(req):
+    x = direct_kinematics([req.q1, req.q2, req.q3, req.q4, req.q5, req.q6, req.q7], 'left')
+    resp = DirectKinematicsResponse()
+    [resp.x, resp.y, resp.z, resp.roll, resp.pitch, resp.yaw] = x
+    return resp
+
+def callback_ra_dk(req):
+    x = direct_kinematics([req.q1, req.q2, req.q3, req.q4, req.q5, req.q6, req.q7], 'left')
+    resp = DirectKinematicsResponse()
+    [resp.x, resp.y, resp.z, resp.roll, resp.pitch, resp.yaw] = x
+    return resp
+
 def main():
     print("INITIALIZING INVERSE KINEMATIC NODE BY MARCOSOFT...")
     rospy.init_node("ik_geometric")
     get_model_info()
     rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematicsForPose, callback_la_ik_for_pose)
     rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematicsForPose, callback_ra_ik_for_pose)
+    rospy.Service("/manipulation/la_direct_kinematics", DirectKinematics, callback_la_dk)
+    rospy.Service("/manipulation/ra_direct_kinematics", DirectKinematics, callback_ra_dk)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         loop.sleep()
