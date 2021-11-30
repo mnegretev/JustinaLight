@@ -11,4 +11,6 @@
 
   <include file="$(find surge_et_ambula)/launch/justina_controllers.launch"/>
   <include file="$(find surge_et_ambula)/launch/navigation.launch"/>
+
+  <node name="arms_kinematics" pkg="inverse_kinematics" type="ik_numeric.py" output="screen"/>
 </launch>
