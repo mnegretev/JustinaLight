@@ -29,7 +29,7 @@ def get_model_info():
         R = tft.euler_matrix(joint.origin.rpy[0], joint.origin.rpy[1], joint.origin.rpy[2])
         transforms['right'].append(tft.concatenate_matrices(T,R))
 
-def validate_angles(q, arm):
+def angles_in_joint_limits(q, arm):
     for i in range(len(q)):
         if q[i] < joints[arm][i].limit.lower or q[i] > joints[arm][i].limit.upper:
             print("InverseKinematics.->Articular position out of joint bounds")
@@ -53,80 +53,24 @@ def jacobian(q, arm):
         J[:,i] = (direct_kinematics(qn[i], arm) - direct_kinematics(qp[i], arm))/delta_q/2.0
     return J
 
-def _inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm):
+def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm):
     pd = numpy.asarray([x,y,z,roll,pitch,yaw])
-    q  = numpy.zeros(7)
-    #q  = numpy.asarray([numpy.random.uniform(joints[arm][i].limit.lower, joints[arm][i].limit.upper) for i in range(7)])
+    q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
     p  = direct_kinematics(q, arm)
     iterations = 0
-    while numpy.linalg.norm(p - pd) > 0.01 and iterations < 100:
+    while numpy.linalg.norm(p - pd) > 0.01 and iterations < 20:
         J = jacobian(q, arm)
-        q = (q - numpy.dot(numpy.linalg.pinv(J), (p - pd)))%(2*math.pi)
+        err = p - pd
+        err[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
+        q = (q - numpy.dot(numpy.linalg.pinv(J), err) + math.pi)%(2*math.pi) - math.pi
         p = direct_kinematics(q, arm)
         iterations +=1
-    for i in range(len(q)):
-        q[i] = q[i] - 2*math.pi if q[i] > math.pi else q[i]
-    if iterations < 100:
+    if iterations < 20 and angles_in_joint_limits(q, arm):
         print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q))
         return q
     else:
         print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
-        return None
-
-def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm):
-    pd = numpy.asarray([x,y,z,roll,pitch,yaw])
-    attempts = 0
-    solved = False
-    while not solved and attempts < 50:
-        q  = numpy.asarray([numpy.random.uniform(joints[arm][i].limit.lower, joints[arm][i].limit.upper) for i in range(7)])*(attempts/20.0)
-        p  = direct_kinematics(q, arm)
-        iterations = 0
-        print("Current attempt: " + str(attempts))
-        while numpy.linalg.norm(p - pd) > 0.01 and iterations < 20:
-            J = jacobian(q, arm)
-            q = (q - numpy.dot(numpy.linalg.pinv(J), (p - pd)))%(2*math.pi)
-            p = direct_kinematics(q, arm)
-            iterations +=1
-        if iterations < 20:
-            for i in range(len(q)):
-                q[i] = q[i] - 2*math.pi if q[i] > math.pi else q[i]
-            solved = validate_angles(q, arm)
-        attempts+=1
-    if solved:
-        print("InverseKinematics.->IK for " + arm + " arm solved after " + str((attempts-1)*50 + iterations) + " iterations: " + str(q))
-        return q
-    else:
-        print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
-        print("Last q: " + str(q))
-        return None
-
-def inverse_kinematics_xyz(x, y, z, arm):
-    pd = numpy.asarray([x,y,z])
-    attempts = 0
-    solved = False
-    while not solved and attempts < 50:
-        #q  = numpy.asarray([numpy.random.uniform(joints[arm][i].limit.lower, joints[arm][i].limit.upper) for i in range(7)])*(attempts/20.0)
-        q  = numpy.zeros(7)
-        p  = direct_kinematics(q, arm)[0:3]
-        iterations = 0
-        print("Current attempt: " + str(attempts))
-        while numpy.linalg.norm(p - pd) > 0.01 and iterations < 20:
-            J = jacobian(q, arm)[0:3,:]
-            q = (q - numpy.dot(numpy.linalg.pinv(J), (p - pd)))%(2*math.pi)
-            p = direct_kinematics(q, arm)[0:3]
-            iterations +=1
-        if iterations < 20:
-            for i in range(len(q)):
-                q[i] = q[i] - 2*math.pi if q[i] > math.pi else q[i]
-            solved = validate_angles(q, arm)
-        attempts+=1
-    if solved:
-        print("InverseKinematics.->IK for " + arm + " arm solved after " + str((attempts-1)*50 + iterations) + " iterations: " + str(q))
-        return q
-    else:
-        print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
-        print("Last q: " + str(q))
-        return None
+        return False
 
 def callback_la_ik_for_pose(req):
     q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, 'left')
