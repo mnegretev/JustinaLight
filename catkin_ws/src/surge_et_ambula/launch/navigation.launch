@@ -1,5 +1,4 @@
 <launch>
-  <!--rosparam file="$(find roomiebot_description_pkg)/param/costmap_common_params.yaml" command="load" ns="local_costmap" /-->
   <arg name="static_map_file"  default="$(find config_files)/maps/appartment.yaml"/>
   <arg name="prohibition_map_file"  default="$(find config_files)/prohibition_maps/appartment.yaml"/>
 

@@ -1,5 +1,5 @@
 <launch>
-  <include file="$(find surge_et_ambula)/launch/justina_hardware.launch"/>
+  <include file="$(find surge_et_ambula)/launch/justina_hardware_gazebo.launch"/>
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find config_files)/rviz/justina.rviz"/>
   
