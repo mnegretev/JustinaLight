@@ -1,0 +1,34 @@
+<launch>
+  <group ns="hardware">
+    <node name="right_arm" pkg="arms" type="right_arm_real_simul_node" output="screen" respawn="true">
+      <param name="port" value="/dev/justinaRightArm"/>
+      <param name="baud" value="1000000"/>
+      <param name="bulk_enable" value="true"/>
+      <param name="sync_write_enable" value="false"/>
+      <param name="simul" value="$(arg simul)"/>
+      <param name="enable_torque" value="$(arg enable_torque)"/>
+    </node>
+    <node name="left_arm" pkg="arms" type="left_arm_real_simul_node" output="screen" respawn="false">
+      <param name="port" value="/dev/justinaLeftArm"/>
+      <param name="baud" value="1000000"/>
+      <param name="bulk_enable" value="true"/>
+      <param name="sync_write_enable" value="false"/>
+      <param name="simul" value="$(arg simul)"/>
+      <param name="enable_torque" value="$(arg enable_torque)"/>
+    </node>
+    <node name="head" pkg="head" type="head_node" output="screen">
+      <param name="port" value="/dev/justinaHead"/>
+      <param name="baud" value="1000000"/>
+      <param name="bulk_enable" value="true"/>
+      <param name="sync_write_enable" value="true"/>
+      <param name="read_simul" value="false"/>
+      <param name="simul" value="$(arg simul)"/>
+      <param name="head_offset" value="$(arg head_offset)"/>
+    </node>
+    <node name="torso" pkg="torso" type="torso_node_pololu" output="screen">
+      <param name="simul" value="$(arg simul)"/>
+      <param name="port" value="/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Jrk_12v12_Motor_Controller_00191339-if00"/>
+      <param name="baud" value="9600"/>
+    </node>
+  </group>
+</launch>

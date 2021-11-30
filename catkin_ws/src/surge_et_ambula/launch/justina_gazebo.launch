@@ -1,5 +1,5 @@
 <launch>
-  <include file="$(find surge_et_ambula)/launch/justina_hardware_gazebo.launch"/>
+  <include file="$(find surge_et_ambula)/launch/gazebo_simul/justina_hardware_gazebo.launch"/>
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find config_files)/rviz/justina.rviz"/>
   
@@ -9,7 +9,7 @@
     <param name="hd_predefined" value="$(find config_files)/manipulation/hd_predefined.yaml"/>
   </node>
 
-  <include file="$(find surge_et_ambula)/launch/justina_controllers.launch"/>
+  <include file="$(find surge_et_ambula)/launch/gazebo_simul/justina_controllers.launch"/>
   <include file="$(find surge_et_ambula)/launch/navigation.launch"/>
 
   <node name="arms_kinematics" pkg="inverse_kinematics" type="ik_numeric.py" output="screen"/>
