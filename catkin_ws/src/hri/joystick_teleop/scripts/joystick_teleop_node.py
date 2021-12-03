@@ -78,8 +78,8 @@ def callbackJoy(msg):
     rightStickX = msg.axes[3]
     rightStickY = msg.axes[4]
     magnitudRight = math.sqrt(rightStickX*rightStickX + rightStickY*rightStickY)
-    if magnitudRight > 0.15:
-        speedX = rightStickY
+    if magnitudRight > 0.1:
+        speedX = 0.5*rightStickY
         yaw = rightStickX
     else:
         speedX = 0
@@ -87,10 +87,10 @@ def callbackJoy(msg):
 
     #spine_button = msg.axes[7]
     spine_button = 0
-    if msg.buttons[13]:
-        spine_button = 1
-    elif msg.buttons[14]:
-        spine_button = -1
+    #if msg.buttons[13]:
+    #    spine_button = 1
+    #elif msg.buttons[14]:
+    #    spine_button = -1
 
     if(spine_button == 1 or spine_button ==-1):
 	mov_spine=True
@@ -100,10 +100,10 @@ def callbackJoy(msg):
 
     #waist_button = msg.axes[6]
     waist_button = 0
-    if msg.buttons[12]:
-        waist_button = 1
-    elif msg.buttons[11]:
-        waist_button = -1
+    #if msg.buttons[12]:
+    #    waist_button = 1
+    #elif msg.buttons[11]:
+    #    waist_button = -1
 
     if(waist_button == 1 or waist_button ==-1):
         mov_waist=True
@@ -179,7 +179,7 @@ def main():
     pubWaist = rospy.Publisher("/hardware/torso/goal_waist", Float32, queue_size=1)
     pubShoulders = rospy.Publisher("/hardware/torso/goal_shoulders", Float32, queue_size=1)
 
-    pubStop = rospy.Publisher("/hardware/robot_state/stop", Empty, queue_size = 1)
+    pubStop = rospy.Publisher("/stop", Empty, queue_size = 1)
     pubSkipState = rospy.Publisher("/hardware/robot_state/skip_state", Empty, queue_size = 1)
     pubTwist = rospy.Publisher("/hardware/mobile_base/cmd_vel", Twist, queue_size =1)
     #pubHeadTorque = rospy.Publisher("/hardware/head/torque", Float32MultiArray, queue_size=1)

@@ -195,18 +195,24 @@ class EncoderOdom
 
 void checkSpeedRanges(float &sLeft, float &sRight, float &sFront, float &sRear)
 {
-    float maxValueFrontal = std::max(fabs(sLeft), fabs(sRight));
-    float maxValueLateral = std::max(fabs(sFront), fabs(sRear));
-    if(maxValueFrontal > 1.0)
-    {
-        sLeft /= maxValueFrontal;
-        sRight /= maxValueFrontal;
-    }
-    if(maxValueLateral > 1.0)
-    {
-        sFront /= maxValueLateral;
-        sRear /= maxValueLateral;
-    }
+    float max_left  = QPPS_LEFT /TICKS_PER_METER_FRONTAL;
+    float max_right = QPPS_RIGHT/TICKS_PER_METER_FRONTAL;
+    float max_front = QPPS_FRONT/TICKS_PER_METER_LATERAL;
+    float max_rear  = QPPS_REAR /TICKS_PER_METER_LATERAL;
+    float factor = 1.0;
+    if(fabs(sLeft ) > max_left)
+        factor = std::max(factor, fabs(sLeft )/max_left );
+    if(fabs(sRight) > max_right)
+        factor = std::max(factor, fabs(sRight)/max_right);
+    if(fabs(sFront) > max_front)
+        factor = std::max(factor, fabs(sFront)/max_front);
+    if(fabs(sRear ) > max_rear)
+        factor = std::max(factor, fabs(sRear )/max_rear );
+    
+    sLeft  /= factor;
+    sRight /= factor;
+    sFront /= factor;
+    sRear  /= factor;
 }
 
 void callbackCmdVel(const geometry_msgs::Twist::ConstPtr &msg)
@@ -225,14 +231,14 @@ void callbackCmdVel(const geometry_msgs::Twist::ConstPtr &msg)
     {
         checkSpeedRanges(leftSpeed, rightSpeed, frontSpeed, rearSpeed);
 
-        leftSpeed   =  (leftSpeed     * QPPS_LEFT  );// * 16.0 / 35.0);
-        rightSpeed  =  (rightSpeed    * QPPS_RIGHT );// * 16.0 / 35.0);
-        frontSpeed  = -(frontSpeed    * QPPS_FRONT );// * 16.0 / 35.0);
-        rearSpeed   = -(rearSpeed     * QPPS_REAR  );// * 16.0 / 35.0);
+        leftSpeed   =  (leftSpeed  * TICKS_PER_METER_FRONTAL);// * 16.0 / 35.0);
+        rightSpeed  =  (rightSpeed * TICKS_PER_METER_FRONTAL);// * 16.0 / 35.0);
+        frontSpeed  = -(frontSpeed * TICKS_PER_METER_LATERAL);// * 16.0 / 35.0);
+        rearSpeed   = -(rearSpeed  * TICKS_PER_METER_LATERAL);// * 16.0 / 35.0);
 
         try
         {
-            rcFrontal->SpeedM1M2(rcAddressFrontal, leftSpeed, rightSpeed); 
+            rcFrontal->SpeedAccelM1M2(rcAddressFrontal, QPPS_LEFT/2, leftSpeed, rightSpeed); 
         }
         catch(std::exception &e)
         {
@@ -241,7 +247,7 @@ void callbackCmdVel(const geometry_msgs::Twist::ConstPtr &msg)
         }
         try
         {
-            rcLateral->SpeedM1M2(rcAddressLateral, frontSpeed, rearSpeed); 
+            rcLateral->SpeedAccelM1M2(rcAddressLateral, QPPS_FRONT/2, frontSpeed, rearSpeed); 
         }
         catch(std::exception &e)
         {

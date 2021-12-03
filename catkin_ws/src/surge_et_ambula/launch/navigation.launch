@@ -1,16 +1,23 @@
 <launch>
   <arg name="static_map_file"  default="$(find config_files)/maps/appartment.yaml"/>
   <arg name="prohibition_map_file"  default="$(find config_files)/prohibition_maps/appartment.yaml"/>
+  <arg name="initial_pose_x" default="0.0"/>
+  <arg name="initial_pose_y" default="0.0"/>
+  <arg name="initial_pose_a" default="0.0"/>
+  <arg name="laser_scan_topic" default="/scan"/>
+  <arg name="point_cloud_topic" default="/kinect/points"/>
 
   <node name="path_planner" pkg="path_planner" type="path_planner_node" output="screen">
     <param name="diagonal_paths" value="True"/>
   </node>
   
   <node name="simple_move"  pkg="simple_move"  type="simple_move_node"  output="screen">
-    <param name="max_linear_speed" value="0.6"/>
+    <param name="max_linear_speed" value="0.4"/>
+    <param name="max_angular_speed" value="0.6"/>
   </node>
 
   <node name="obs_detector"  pkg="obstacle_detector"  type="obs_detect_node"  output="screen">
+    <param name="laser_scan_topic" value="/hardware/scan"/>
   </node>
 
   <node name="map_augmenter"  pkg="map_augmenter"  type="map_augmenter_node"  output="screen">
@@ -18,8 +25,8 @@
     <param name="use_sonars" value="False"/>
     <param name="use_point_cloud" value="False"/>
     <param name="use_point_cloud2" value="False"/>
-    <param name="point_cloud_topic" value="/kinect/points"/>
-    <param name="laser_scan_topic" value="/scan"/>
+    <param name="point_cloud_topic" value="$(arg point_cloud_topic)"/>
+    <param name="laser_scan_topic" value="$(arg laser_scan_topic)"/>
   </node>
 
   <node name="mvn_pln"  pkg="mvn_pln"  type="mvn_pln_node"  output="screen">
@@ -34,9 +41,9 @@
  
   <node name="map_server" pkg="map_server" type="map_server" output="screen" args="$(arg static_map_file)"/>
 
-  <node name="amcl" pkg="amcl" type="amcl" output="screen">
-    <param name="initial_pose_x" value="3.0"/>
-    <param name="initial_pose_y" value="6.50"/>
-    <param name="initial_pose_a" value="-1.57"/>
+  <node name="amcl" pkg="amcl" type="amcl" output="screen" args="scan:=$(arg laser_scan_topic)">
+    <param name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <param name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <param name="initial_pose_a" value="$(arg initial_pose_a)"/>
   </node>
 </launch>
