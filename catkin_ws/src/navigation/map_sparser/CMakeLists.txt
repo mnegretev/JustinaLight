@@ -10,12 +10,12 @@ project(map_sparser)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
+  navig_msgs
   roscpp
   rospy
   std_msgs
   visualization_msgs
   random_numbers
-  graph_msgs
 )
 
 ## System dependencies are found with CMake's conventions

@@ -48,10 +48,8 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>visualization_msgs</build_depend>
   <build_depend>map_server</build_depend>
-  <build_depend>hri_msgs</build_depend>
-  <build_depend>justina_tools</build_depend>
   <build_depend>roslib</build_depend>
-  <build_depend>custom_msgs</build_depend>
+  <build_depend>manip_msgs</build_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>nav_msgs</run_depend>
   <run_depend>roscpp</run_depend>
@@ -60,10 +58,8 @@
   <run_depend>std_msgs</run_depend>
   <run_depend>visualization_msgs</run_depend>
   <run_depend>map_server</run_depend>
-  <run_depend>hri_msgs</run_depend>
-  <run_depend>justina_tools</run_depend>
   <run_depend>roslib</run_depend>
-  <run_depend>custom_msgs</run_depend>
+  <run_depend>manip_msgs</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

@@ -14,8 +14,8 @@
 //#define TICKS_PER_METER_FRONTAL 158891.2
 //#define TICKS_PER_METER_LATERAL 164352.1
 
-#define TICKS_PER_METER_FRONTAL  365063.24 //420920.958 //367735.5 
-#define TICKS_PER_METER_LATERAL  365063.24 //413641.555 //372277.4  
+#define TICKS_PER_METER_FRONTAL  365063.24f //420920.958 //367735.5 
+#define TICKS_PER_METER_LATERAL  365063.24f //413641.555 //372277.4  
 
 bool newData = false;
 int noNewDataCounter = 5;
@@ -201,13 +201,13 @@ void checkSpeedRanges(float &sLeft, float &sRight, float &sFront, float &sRear)
     float max_rear  = QPPS_REAR /TICKS_PER_METER_LATERAL;
     float factor = 1.0;
     if(fabs(sLeft ) > max_left)
-        factor = std::max(factor, fabs(sLeft )/max_left );
+        factor = std::max(factor, (float)(fabs(sLeft )/max_left) );
     if(fabs(sRight) > max_right)
-        factor = std::max(factor, fabs(sRight)/max_right);
+        factor = std::max(factor, (float)(fabs(sRight)/max_right));
     if(fabs(sFront) > max_front)
-        factor = std::max(factor, fabs(sFront)/max_front);
+        factor = std::max(factor, (float)(fabs(sFront)/max_front));
     if(fabs(sRear ) > max_rear)
-        factor = std::max(factor, fabs(sRear )/max_rear );
+        factor = std::max(factor, (float)(fabs(sRear )/max_rear) );
     
     sLeft  /= factor;
     sRight /= factor;

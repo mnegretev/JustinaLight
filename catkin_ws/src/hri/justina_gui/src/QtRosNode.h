@@ -9,7 +9,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/GetPlan.h"
 #include "tf/transform_listener.h"
-#include "custom_msgs/InverseKinematicsForPose.h"
+#include "manip_msgs/InverseKinematicsForPose.h"
 
 class QtRosNode : public QThread
 {

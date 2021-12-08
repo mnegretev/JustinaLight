@@ -6,8 +6,7 @@ import tf.transformations as tft
 import numpy
 import urdf_parser_py.urdf
 from geometry_msgs.msg import PointStamped
-from custom_msgs.msg import ArmConfiguration
-from custom_msgs.srv import *
+from manip_msgs.srv import *
 
 def get_model_info():
     global joints, transforms

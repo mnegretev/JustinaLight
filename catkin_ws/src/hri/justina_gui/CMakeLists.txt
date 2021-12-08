@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   map_server
   tf
-  custom_msgs
+  manip_msgs
 )
 
 find_package(Qt5Widgets REQUIRED)
