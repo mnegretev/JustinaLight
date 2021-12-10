@@ -362,13 +362,18 @@ int main(int argc, char** argv)
 
     std::cout << "ObsDetector.->Starting obstacle detection using: "<< (use_lidar ? "lidar " : "") << (use_sonars ? "sonars " : "");
     std::cout << (use_cloud ? "point_cloud" : "") << (use_cloud2 ? "point_cloud2": "") << std::endl;
-    std::cout << "ObsDetector.->Using parameters: min_x="<<minX<<"  max_x="<<maxX<<"  min_y="<<minY<<"  max_y="<<maxY<<"  min_z=" <<minZ<<"  max_z="<<maxZ<<std::endl;
-    std::cout << "ObsDetector.->Point cloud topic: "<<point_cloud_topic<<"   Point cloud2 topic: " << point_cloud_topic2 << "   lidar topic name: " << laser_scan_topic << std::endl;
-    std::cout << "ObsDetector.->Using parameters: cloud_points_threshold="  << cloud_points_threshold  << "  cloud_downsampling="  << cloud_downsampling  << std::endl;
-    std::cout << "ObsDetector.->Using parameters: cloud_points_threshold2=" << cloud_points_threshold2 << "  cloud_downsampling2=" << cloud_downsampling2 << std::endl;
-    std::cout << "ObsDetector.->Using parameters: lidar_points_threshold=" << lidar_points_threshold << "  lidar_downsampling=" << lidar_downsampling << std::endl;
+    std::cout << "ObsDetector.->Using parameters: min_x=" << minX << "  max_x=" << maxX << "  min_y=" << minY << "  max_y=";
+    std::cout << maxY << "  min_z=" << minZ << "  max_z=" << maxZ << std::endl;
+    std::cout << "ObsDetector.->Point cloud topic: " << point_cloud_topic << "   Point cloud2 topic: " << point_cloud_topic2;
+    std::cout << "   lidar topic name: " << laser_scan_topic << std::endl;
+    std::cout << "ObsDetector.->Using parameters: cloud_points_threshold="  << cloud_points_threshold  << "  cloud_downsampling=";
+    std::cout << cloud_downsampling  << std::endl;
+    std::cout << "ObsDetector.->Using parameters: cloud_points_threshold2=" << cloud_points_threshold2 << "  cloud_downsampling2=";
+    std::cout << cloud_downsampling2 << std::endl;
+    std::cout << "ObsDetector.->Using parameters: lidar_points_threshold=" << lidar_points_threshold << "  lidar_downsampling=";
+    std::cout << lidar_downsampling << std::endl;
     std::cout << "ObsDetector.->Sonars topic prefix: " << sonars_topic_prefix << std::endl;
-
+    std::cout << "ObsDetector.->Base link frame: " << base_link_name << std::endl;
 
     std::cout << "ObsDetector.->Trying to get first messages from active sensor topics: " << (use_cloud ? point_cloud_topic : "") << "  ";
     std::cout << (use_cloud2?point_cloud_topic2 : "")<<" "<<(use_lidar?laser_scan_topic : "")<<" "<<(use_sonars ? sonars_topic_prefix:"") << std::endl;
