@@ -1,4 +1,5 @@
 <launch>
   <include file="$(find surge_et_ambula)/launch/hardware/justina_base.launch"/>
   <include file="$(find surge_et_ambula)/launch/hardware/justina_upper_actuators.launch"/>
+  <include file="$(find surge_et_ambula)/launch/hardware/justina_cameras.launch"/>
 </launch>

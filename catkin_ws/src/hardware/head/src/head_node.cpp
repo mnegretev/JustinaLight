@@ -144,7 +144,7 @@ int main(int argc, char ** argv){
 
     float bitsPerRadian = 4095.0/360.0*180.0/M_PI;
 
-    std::string names[2] = {"pan_connect", "tilt_connect"};
+    std::string names[2] = {"head_pan", "head_tilt"};
     float positions[2] = {0, 0};
     
     sensor_msgs::JointState jointStates;
@@ -208,7 +208,7 @@ int main(int argc, char ** argv){
             jointStates.header.stamp = ros::Time::now();
             //std::cout << "head_node.->curr pose [0]:" << curr_position[0] << ", curr pose [1]:" << curr_position[1] << std::endl;
             jointStates.position[0] = (- (float) (zero_head[0]-curr_position[0]))/bitsPerRadian;
-            jointStates.position[1] = ((float) (zero_head[1]-curr_position[1]))/bitsPerRadian;
+            jointStates.position[1] = (-(float) (zero_head[1]-curr_position[1]))/bitsPerRadian;
             
             msgCurrPose.data[0] = jointStates.position[0]; 
             msgCurrPose.data[1] = -jointStates.position[1]; 
