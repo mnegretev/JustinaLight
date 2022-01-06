@@ -17,7 +17,7 @@
   </node>
 
   <node name="obs_detector"  pkg="obstacle_detector"  type="obs_detect_node"  output="screen">
-    <param name="laser_scan_topic" value="/hardware/scan"/>
+    <param name="laser_scan_topic" value="/scan"/>
   </node>
 
   <node name="map_augmenter"  pkg="map_augmenter"  type="map_augmenter_node"  output="screen">

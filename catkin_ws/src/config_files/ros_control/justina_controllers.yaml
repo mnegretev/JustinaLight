@@ -14,11 +14,11 @@
   head_pan_controller:
     type: effort_controllers/JointPositionController
     joint: head_pan
-    pid: {d: 0.45, i: 3.56, p: 9.86}
+    pid: {d: 0.045, i: 0.056, p: 5.0}
   head_tilt_controller:
     type: effort_controllers/JointPositionController
     joint: head_tilt
-    pid: {d: 0.45, i: 11.649999999999999, p: 19.189999999999998}
+    pid: {d: 0.045, i: 0.00011649999999999999, p: 5.189999999999998}
 
   # Left Arm Position Controllers ---------------------------------------
   la_1_controller:
