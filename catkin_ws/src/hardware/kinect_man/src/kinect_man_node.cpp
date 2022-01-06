@@ -4,11 +4,12 @@
 #include "sensor_msgs/Image.h"
 #include "hardware_msgs/GetRgbd.h"
 #include "tf/transform_listener.h"
-#include "tf_conversions/tf_eigen.h"
+#include "pcl_ros/transforms.h"
 
 cv::Mat img_depth;
 cv::Mat img_bgr  ;
 tf::TransformListener* tf_listener;
+int downsampling = 1;
 
 void initialize_rosmsg(sensor_msgs::PointCloud2& msg, int width, int height, std::string frame_id)
 {
@@ -46,65 +47,63 @@ void cvmat_2_rosmsg_buffer(cv::Mat& depth, cv::Mat& bgr, sensor_msgs::PointCloud
         memcpy(&msg.data[i*16], &depth.data[12*i], 12);
         memcpy(&msg.data[i*16 + 12], &bgr.data[3*i], 3);
         msg.data[16*i + 15] = 255;
-        unsigned char* p = (unsigned char*)(&msg.data[16*i + 7]);
+        char* p = (char*)(&msg.data[16*i + 7]);
         *p ^= 0b10000000; //Multiply by -1 the Y coordinate
     }
-}
-
-bool get_transform_to_baselink(Eigen::Affine3d& e)
-{
-    tf::StampedTransform tf;
-    try{
-        tf_listener->lookupTransform("base_link", "kinect_link", ros::Time(0), tf);
-    }
-    catch(...){
-        e = Eigen::Affine3d::Identity();
-        return false;
-    }
-    tf::transformTFToEigen(tf, e);
-    return true;
 }
 
 void downsamle_cloud(sensor_msgs::PointCloud2& src, sensor_msgs::PointCloud2& dst, int downsampling)
 {
     //This function ONLY COPIES POINT DATA. For all headers, use initialize_msg();
-    for(int i=0; i < dst.width; i++)
-        for(int j=0; j < dst.height; j++)
-            memcpy(&dst.data[16*(j*dst.width + i)], &src.data[16 * downsampling *(j*src.width + i)], 16);
-}
-
-void transform_cloud_to_base_link(sensor_msgs::PointCloud2& src, sensor_msgs::PointCloud2& dst)
-{
-    Eigen::Affine3d cam_to_robot;
-    get_transform_to_baselink(cam_to_robot);
-    unsigned char* p = (unsigned char*)(&src.data[0]);
-    unsigned char* q = (unsigned char*)(&dst.data[0]);
-    for(size_t i=0; i < src.width*src.height; i++)
-    {
-        Eigen::Vector3d v(*((float*)(p)), *((float*)(p+4)), *((float*)(p+8)));
-        v = cam_to_robot * v;
-        *(q    ) = v.x();
-        *(q + 4) = v.y();
-        *(q + 8) = v.z();
-        p += src.point_step;
-        q += dst.point_step;
-    }
+    void* p = (void*)&src.data[0];
+    void* q = (void*)&dst.data[0];
+    unsigned int k1 = 0;
+    unsigned int k2 = 0;
+    for(unsigned int i=0; i < dst.height; i++, k2+=src.row_step*(downsampling-1))
+        for(unsigned int j=0; j < dst.width; j++, k1+=16, k2+=16*downsampling)
+            memcpy((q + k1), (p + k2), 16);
 }
 
 bool callback_rgbd_wrt_kinect(hardware_msgs::GetRgbd::Request& req, hardware_msgs::GetRgbd::Response& resp)
 {
+    initialize_rosmsg(resp.point_cloud, 640, 480, "kinect_link");
+    cvmat_2_rosmsg_buffer(img_depth, img_bgr, resp.point_cloud);
+    resp.point_cloud.header.stamp = ros::Time::now();
+    return true;
 }
 
 bool callback_rgbd_wrt_robot (hardware_msgs::GetRgbd::Request& req, hardware_msgs::GetRgbd::Response& resp)
 {
+    initialize_rosmsg(resp.point_cloud, 640, 480, "kinect_link");
+    cvmat_2_rosmsg_buffer(img_depth, img_bgr, resp.point_cloud);
+    pcl_ros::transformPointCloud("base_link", resp.point_cloud, resp.point_cloud, *tf_listener);
+    resp.point_cloud.header.frame_id = "base_link";
+    resp.point_cloud.header.stamp = ros::Time::now();
+    return true;
 }
 
 bool callback_rgbd_kinect_downsampled(hardware_msgs::GetRgbd::Request& req, hardware_msgs::GetRgbd::Response& resp)
 {
+    sensor_msgs::PointCloud2 temp;
+    initialize_rosmsg(temp, 640, 480, "kinect_link");
+    cvmat_2_rosmsg_buffer(img_depth, img_bgr, temp);
+    initialize_rosmsg(resp.point_cloud, 640/downsampling, 480/downsampling, "kinect_link");
+    downsamle_cloud(temp, resp.point_cloud, downsampling);
+    resp.point_cloud.header.stamp = ros::Time::now();
+    return true;
 }
 
 bool callback_rgbd_robot_downsampled (hardware_msgs::GetRgbd::Request& req, hardware_msgs::GetRgbd::Response& resp)
 {
+    sensor_msgs::PointCloud2 temp;
+    initialize_rosmsg(temp, 640, 480, "kinect_link");
+    cvmat_2_rosmsg_buffer(img_depth, img_bgr, temp);
+    initialize_rosmsg(resp.point_cloud, 640/downsampling, 480/downsampling, "kinect_link");
+    downsamle_cloud(temp, resp.point_cloud, downsampling);
+    pcl_ros::transformPointCloud("base_link", resp.point_cloud, resp.point_cloud, *tf_listener);
+    resp.point_cloud.header.frame_id = "base_link";
+    resp.point_cloud.header.stamp = ros::Time::now();
+    return true;
 }
 
 int main(int argc, char** argv)
@@ -115,37 +114,38 @@ int main(int argc, char** argv)
     ros::Rate loop(30);
     tf_listener = new tf::TransformListener();
 
-    int  downsampling = 1;
+    std::string video_file_name = "";
     if(ros::param::has("~downsampling"))
         ros::param::get("~downsampling", downsampling);
+    if(ros::param::has("~video"))
+        ros::param::get("~video", video_file_name);
     
     std::cout << "KinectMan.->Waiting for transform from kinect link to base link for 15 seconds..." << std::endl;
-    tf_listener->waitForTransform("base_link", "kinect_link", ros::Time(0), ros::Duration(15.0));
-    Eigen::Affine3d tf_kinect_to_base;
-    if(!get_transform_to_baselink(tf_kinect_to_base))
-        std::cout << "KinectMan.->CANNOT FIND TRANSFORM FROM KINECT LINK TO BASE LINK. TRANSFORMING CLOUD WITH IDENTITY MATRIX!!!!" << std::endl;
+    tf_listener->waitForTransform("base_link", "kinect_link", ros::Time(0), ros::Duration(1.0));
     
-    ros::Publisher pubKinectFrame = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect",1);
-    ros::Publisher pubRobotFrame  = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot", 1);
-    ros::Publisher pubDownsampledKinect = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect_downsampled",1);
-    ros::Publisher pubDownsampledRobot  = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot_downsampled", 1);
-    ros::ServiceServer srvRgbdKinect = n.advertiseService("/hardware/kinect/get_rgbd_wrt_kinect", callback_rgbd_wrt_kinect);
-    ros::ServiceServer srvRgbdKinectDownsampled = n.advertiseService("/hardware/kinect/get_rgbd_wrt_kinect_downsampled", callback_rgbd_kinect_downsampled);
-    ros::ServiceServer srvRgbdRobot = n.advertiseService("/hardware/kinect/get_rgbd_wrt_robot" , callback_rgbd_wrt_robot );                              
-    ros::ServiceServer srvRgbdRobotDownsampled = n.advertiseService("/hardware/kinect/get_rgbd_wrt_robot_downsampled", callback_rgbd_robot_downsampled );
-    sensor_msgs::PointCloud2 msgCloudKinect;
-    sensor_msgs::PointCloud2 msgCloudKinectDownsampled;
-    sensor_msgs::PointCloud2 msgCloudRobot;           
-    sensor_msgs::PointCloud2 msgCloudRobotDownsampled;
+    ros::Publisher pub_cloud_kinect = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect",1);
+    ros::Publisher pub_cloud_robot  = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot", 1);
+    ros::Publisher pub_downsampled_kinect = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect_downsampled",1);
+    ros::Publisher pub_downsampled_robot  = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot_downsampled", 1);
+    n.advertiseService("/hardware/kinect/get_rgbd_wrt_kinect", callback_rgbd_wrt_kinect);
+    n.advertiseService("/hardware/kinect/get_rgbd_wrt_kinect_downsampled", callback_rgbd_kinect_downsampled);
+    n.advertiseService("/hardware/kinect/get_rgbd_wrt_robot" , callback_rgbd_wrt_robot );                              
+    n.advertiseService("/hardware/kinect/get_rgbd_wrt_robot_downsampled", callback_rgbd_robot_downsampled );
+    sensor_msgs::PointCloud2 msg_cloud_kinect;
+    sensor_msgs::PointCloud2 msg_cloud_kinect_downsampled;
+    sensor_msgs::PointCloud2 msg_cloud_robot;           
+    sensor_msgs::PointCloud2 msg_cloud_robot_downsampled;
 
-    initialize_rosmsg(msgCloudKinect, 640, 480, "kinect_link");
-    initialize_rosmsg(msgCloudKinectDownsampled, 640/downsampling, 480/downsampling, "kinect_link");
-    initialize_rosmsg(msgCloudRobot,  640, 480, "base_link");
-    initialize_rosmsg(msgCloudRobotDownsampled,  640/downsampling, 480/downsampling, "base_link"  );
+    initialize_rosmsg(msg_cloud_kinect, 640, 480, "kinect_link");
+    initialize_rosmsg(msg_cloud_kinect_downsampled, 640/downsampling, 480/downsampling, "kinect_link");
+    initialize_rosmsg(msg_cloud_robot,  640, 480, "base_link");
+    initialize_rosmsg(msg_cloud_robot_downsampled,  640/downsampling, 480/downsampling, "base_link"  );
     
     cv::VideoCapture capture;
     std::cout << "KinectMan.->Triying to initialize kinect sensor... " << std::endl;
-    capture.open(CV_CAP_OPENNI);
+    if(video_file_name == "")
+        capture.open(CV_CAP_OPENNI);
+    else capture.open(video_file_name);
     if(!capture.isOpened())
     {
         std::cout << "KinectMan.->Cannot open kinect :'(" << std::endl;
@@ -164,26 +164,28 @@ int main(int argc, char** argv)
         
         capture.retrieve(img_depth, CV_CAP_OPENNI_POINT_CLOUD_MAP);
         capture.retrieve(img_bgr  , CV_CAP_OPENNI_BGR_IMAGE);
-        if(pubKinectFrame.getNumSubscribers() > 0 || pubDownsampledKinect.getNumSubscribers() > 0 ||
-           pubRobotFrame.getNumSubscribers() > 0  || pubDownsampledRobot.getNumSubscribers() > 0)
-            cvmat_2_rosmsg_buffer(img_depth, img_bgr, msgCloudKinect);
-        if(pubDownsampledKinect.getNumSubscribers() > 0 || pubDownsampledRobot.getNumSubscribers() > 0)
-            downsamle_cloud(msgCloudKinect, msgCloudKinectDownsampled, downsampling);
+
+        if(pub_cloud_kinect.getNumSubscribers() > 0 || pub_downsampled_kinect.getNumSubscribers() > 0 ||
+           pub_cloud_robot.getNumSubscribers() > 0  || pub_downsampled_robot.getNumSubscribers() > 0)
+            cvmat_2_rosmsg_buffer(img_depth, img_bgr, msg_cloud_kinect);
         
-        if(pubKinectFrame.getNumSubscribers() > 0)
-            pubKinectFrame.publish(msgCloudKinect);
-        if(pubDownsampledKinect.getNumSubscribers() > 0)
-            pubDownsampledKinect.publish(msgCloudKinectDownsampled);
+        if(pub_downsampled_kinect.getNumSubscribers() > 0 || pub_downsampled_robot.getNumSubscribers() > 0)
+            downsamle_cloud(msg_cloud_kinect, msg_cloud_kinect_downsampled, downsampling);
         
-        if(pubRobotFrame.getNumSubscribers() > 0)
+        if(pub_cloud_kinect.getNumSubscribers() > 0)
+            pub_cloud_kinect.publish(msg_cloud_kinect);
+        if(pub_downsampled_kinect.getNumSubscribers() > 0)
+            pub_downsampled_kinect.publish(msg_cloud_kinect_downsampled);
+        
+        if(pub_cloud_robot.getNumSubscribers() > 0)
         {
-            transform_cloud_to_base_link(msgCloudKinect, msgCloudRobot);
-            pubRobotFrame.publish(msgCloudRobot);
+            pcl_ros::transformPointCloud("base_link", msg_cloud_kinect, msg_cloud_robot, *tf_listener);
+            pub_cloud_robot.publish(msg_cloud_robot);
         }
-        if(pubDownsampledRobot.getNumSubscribers() > 0)
+        if(pub_downsampled_robot.getNumSubscribers() > 0)
         {
-            transform_cloud_to_base_link(msgCloudKinectDownsampled, msgCloudRobotDownsampled);
-            pubDownsampledRobot.publish(msgCloudRobotDownsampled);
+            pcl_ros::transformPointCloud("base_link", msg_cloud_kinect_downsampled, msg_cloud_robot_downsampled, *tf_listener);
+            pub_downsampled_robot.publish(msg_cloud_robot_downsampled);
         }
         
         ros::spinOnce();
