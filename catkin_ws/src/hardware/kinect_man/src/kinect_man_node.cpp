@@ -121,7 +121,7 @@ int main(int argc, char** argv)
         ros::param::get("~video", video_file_name);
     
     std::cout << "KinectMan.->Waiting for transform from kinect link to base link for 15 seconds..." << std::endl;
-    tf_listener->waitForTransform("base_link", "kinect_link", ros::Time(0), ros::Duration(1.0));
+    tf_listener->waitForTransform("base_link", "kinect_link", ros::Time(0), ros::Duration(15.0));
     
     ros::Publisher pub_cloud_kinect = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect",1);
     ros::Publisher pub_cloud_robot  = n.advertise<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot", 1);
@@ -153,6 +153,7 @@ int main(int argc, char** argv)
     }
     capture.set(CV_CAP_OPENNI_DEPTH_GENERATOR_REGISTRATION, CV_CAP_OPENNI_DEPTH_GENERATOR_REGISTRATION_ON);
     std::cout << "KinectMan.->Kinect sensor started :D" << std::endl;
+    std::cout << "KinectMan.->Downsampling: " << downsampling << std::endl;
 
     while(ros::ok())
     {
