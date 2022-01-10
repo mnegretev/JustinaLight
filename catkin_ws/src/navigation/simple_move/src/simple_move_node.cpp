@@ -205,10 +205,18 @@ void get_next_goal_from_path(float robot_x, float robot_y, float robot_t, float&
     }while(error < 0.25 && ++next_pose_idx < goal_path.poses.size());
 }
 
+std_msgs::Float32MultiArray get_next_goal_head_angles(float robot_x, float robot_y, float robot_t, int next_pose_idx)
+{
+    std_msgs::Float32MultiArray msg;
+    float goal_x = goal_path.poses[next_pose_idx].pose.position.x;
+    float goal_y = goal_path.poses[next_pose_idx].pose.position.y;
+    msg.data.push_back(std::fmod(atan2(goal_y - robot_y, goal_x - robot_x) - robot_t + M_PI, 2*M_PI) - M_PI);
+    msg.data.push_back(-1.0);
+    return msg;
+}
 
 int main(int argc, char** argv)
 {
-    bool move_head = false;
     std::cout << "INITIALIZING SIMPLE MOVE NODE BY MARCO NEGRETE..." << std::endl;
     ros::init(argc, argv, "simple_move");
     ros::NodeHandle n("~");
@@ -232,6 +240,7 @@ int main(int argc, char** argv)
     float fine_dist_tolerance = 0.03;
     float coarse_dist_tolerance = 0.1;
     float angle_tolerance = 0.05;
+    bool  move_head = true;
 
     if(ros::param::has("~max_linear_speed"))
         ros::param::get("~max_linear_speed", max_linear_speed);
@@ -251,6 +260,8 @@ int main(int argc, char** argv)
         ros::param::get("~coarse_dist_tolerance", coarse_dist_tolerance);
     if(ros::param::has("~angle_tolerance"))
         ros::param::get("~angle_tolerance", angle_tolerance);
+    if(ros::param::has("~move_head"))
+        ros::param::get("~move_head", move_head);
     if(ros::param::has("/base_link_name"))
         ros::param::get("/base_link_name", base_link_name);
 
@@ -264,8 +275,9 @@ int main(int argc, char** argv)
     tf_listener.waitForTransform("map",  base_link_name, ros::Time(0), ros::Duration(1000.0));
     tf_listener.waitForTransform("odom", base_link_name, ros::Time(0), ros::Duration(1000.0));
 
-    ros::Publisher  pub_goal_reached     = n.advertise<actionlib_msgs::GoalStatus>("/simple_move/goal_reached", 1);                           
-    ros::Publisher  pub_cmd_vel          = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    ros::Publisher pub_goal_reached     = n.advertise<actionlib_msgs::GoalStatus>("/simple_move/goal_reached", 1);                           
+    ros::Publisher pub_cmd_vel          = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    ros::Publisher pub_head_goal_pose   = n.advertise<std_msgs::Float32MultiArray>("/hardware/head/goal_pose", 1);
 
     actionlib_msgs::GoalStatus msg_goal_reached;
     int state = SM_INIT;
@@ -282,6 +294,9 @@ int main(int argc, char** argv)
     float temp_k = 0;
     int attempts = 0;
     float error = 0;
+    std_msgs::Float32MultiArray zero_head;
+    zero_head.data.push_back(0);
+    zero_head.data.push_back(0);
     while(ros::ok())
     {
         if(stop)
@@ -290,6 +305,7 @@ int main(int argc, char** argv)
             state = SM_INIT;
             msg_goal_reached.status = actionlib_msgs::GoalStatus::ABORTED;
             pub_cmd_vel.publish(geometry_msgs::Twist());
+            if(move_head) pub_head_goal_pose.publish(zero_head);
             pub_goal_reached.publish(msg_goal_reached);
         }
         if(new_pose || new_path)
@@ -463,6 +479,7 @@ int main(int argc, char** argv)
                 }
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
                                                      max_angular_speed, alpha, beta, goal_distance < 0));
+                if(move_head) pub_head_goal_pose.publish(get_next_goal_head_angles(robot_x, robot_y, robot_t, next_pose_idx));
                 current_linear_speed += linear_acceleration/RATE;
             }
             break;
@@ -494,6 +511,7 @@ int main(int argc, char** argv)
                 }
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
                                                      max_angular_speed, alpha, beta, goal_distance < 0));
+                if(move_head) pub_head_goal_pose.publish(get_next_goal_head_angles(robot_x, robot_y, robot_t, next_pose_idx));
             }
             break;
 
@@ -521,6 +539,7 @@ int main(int argc, char** argv)
                 if(current_linear_speed < min_linear_speed) current_linear_speed = min_linear_speed;
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
                                                      max_angular_speed, alpha, beta, goal_distance < 0));
+                if(move_head) pub_head_goal_pose.publish(get_next_goal_head_angles(robot_x, robot_y, robot_t, next_pose_idx));
             }
             break;
 
@@ -531,6 +550,7 @@ int main(int argc, char** argv)
             msg_goal_reached.status = actionlib_msgs::GoalStatus::SUCCEEDED;
             pub_goal_reached.publish(msg_goal_reached);
             pub_cmd_vel.publish(geometry_msgs::Twist());
+            if(move_head) pub_head_goal_pose.publish(zero_head);
             current_linear_speed = 0;
             break;
 
@@ -541,6 +561,7 @@ int main(int argc, char** argv)
             msg_goal_reached.status = actionlib_msgs::GoalStatus::ABORTED;
             pub_goal_reached.publish(msg_goal_reached);
             pub_cmd_vel.publish(geometry_msgs::Twist());
+            if(move_head) pub_head_goal_pose.publish(zero_head);
             current_linear_speed = 0;
             break;
 
