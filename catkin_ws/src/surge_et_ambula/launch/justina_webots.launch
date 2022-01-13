@@ -6,8 +6,8 @@
   <include file="$(find webots_ros)/launch/webots.launch">
     <arg name="mode" value="realtime"/>
     <arg name="no_gui" value="$(arg no_gui)"/>
-    <arg name="world" value="$(find bring_up)/worlds/JustinaWebots.wbt"/>
+    <arg name="world" value="$(find webots_simul)/worlds/JustinaWebots.wbt"/>
   </include>
 
-  <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find bring_up)/rviz/JustinaWebots.rviz"/>
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find config_files)/rviz/justinaWebots.rviz"/>
 </launch>

@@ -3,8 +3,8 @@ WorldInfo {
   coordinateSystem "NUE"
 }
 Viewpoint {
-  orientation 0.1096113514258734 -0.9600901457467547 -0.2573174375719013 3.772061961136008
-  position 1.4102706964243328 2.4179793927643107 -1.239212779332308
+  orientation 0.05199247465274444 -0.9943285127273143 -0.09277710578031144 3.4301453479638324
+  position 3.2757279353256044 2.56930932618637 -8.904429521131956
 }
 TexturedBackground {
 }
@@ -17,6 +17,9 @@ RectangleArena {
     colorOverride 0 0 1
   }
   wallHeight 0.5
+}
+Oak {
+  translation 2 -1 4
 }
 Apple {
   translation -2.24 0.83 3.63
@@ -38,7 +41,7 @@ Chair {
   rotation 0 1 0 3.14159
 }
 Gnome {
-  translation 3.34506 0 -3.88717
+  translation 1.93678 0 -0.926369
   rotation 0 -1 0 -2.0943853071795866
 }
 PortraitPainting {
@@ -52,15 +55,19 @@ PottedTree {
   name "potted tree(2)"
 }
 Robot {
-  translation 0 0.235 0
+  translation 0 0.235 -3
   children [
     DEF LIDAR Solid {
       translation 0 0.2 0.1
       children [
         Lidar {
           rotation 0 1 0 3.141592653589793
-          horizontalResolution 128
-          fieldOfView 2.356
+          horizontalResolution 366
+          fieldOfView 2.8
+          verticalFieldOfView 0.7
+          numberOfLayers 64
+          near 0.001
+          minRange 0.001
           maxRange 10
         }
         Shape {
@@ -978,4 +985,8 @@ Robot {
   physics Physics {
   }
   controller "Drive_Justina"
+}
+Pedestrian {
+  translation -1.90192 1.27 2.01744
+  rotation 0 1 0 2.87979
 }
