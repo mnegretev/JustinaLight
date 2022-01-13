@@ -62,6 +62,7 @@ void downsamle_cloud(sensor_msgs::PointCloud2& src, sensor_msgs::PointCloud2& ds
     for(unsigned int i=0; i < dst.height; i++, k2+=src.row_step*(downsampling-1))
         for(unsigned int j=0; j < dst.width; j++, k1+=16, k2+=16*downsampling)
             memcpy((q + k1), (p + k2), 16);
+    dst.header.stamp = ros::Time::now();
 }
 
 bool callback_rgbd_wrt_kinect(hardware_msgs::GetRgbd::Request& req, hardware_msgs::GetRgbd::Response& resp)

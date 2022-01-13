@@ -72,7 +72,7 @@
   </link>
 
   <joint name="head_tilt" type="revolute">
-    <origin xyz="0.0 0 0.06" rpy="0 0 0" />
+    <origin xyz="0.0 0 0.06" rpy="0 -0.08 0"/>
     <parent link="head_link2"/>
     <child link="neck_link"/>
     <axis xyz="0 -1 0" />

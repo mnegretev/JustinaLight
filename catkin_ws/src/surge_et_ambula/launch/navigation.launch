@@ -6,6 +6,13 @@
   <arg name="initial_pose_a" default="0.0"/>
   <arg name="laser_scan_topic" default="/scan"/>
   <arg name="point_cloud_topic" default="/kinect/points"/>
+  <arg name="use_lidar" default="True"/>
+  <arg name="use_sonars" default="False"/>
+  <arg name="use_point_cloud" default="False"/>
+  <arg name="cloud_downsampling" default="9"/>
+  <arg name="lidar_downsampling" default="2"/>
+  <arg name="cloud_points_threshold" default="100"/>
+  <arg name="lidar_points_threshold" default="20"/>
 
   <node name="path_planner" pkg="path_planner" type="path_planner_node" output="screen">
     <param name="diagonal_paths" value="True"/>
@@ -18,16 +25,29 @@
 
   <node name="obs_detector"  pkg="obstacle_detector"  type="obs_detect_node"  output="screen">
     <param name="laser_scan_topic" value="$(arg laser_scan_topic)"/>
-  </node>
-
-  <node name="map_augmenter"  pkg="map_augmenter"  type="map_augmenter_node"  output="screen">
-    <param name="use_lidar" value="True"/>
-    <param name="use_sonars" value="False"/>
-    <param name="use_point_cloud" value="False"/>
+    <param name="use_lidar" value="$(arg use_lidar)"/>
+    <param name="use_sonars" value="$(arg use_sonars)"/>
+    <param name="use_point_cloud" value="$(arg use_point_cloud)"/>
     <param name="use_point_cloud2" value="False"/>
     <param name="point_cloud_topic" value="$(arg point_cloud_topic)"/>
     <param name="laser_scan_topic" value="$(arg laser_scan_topic)"/>
+    <param name="cloud_downsampling" value="$(arg cloud_downsampling)"/>
+    <param name="lidar_points_threshold" value="$(arg lidar_points_threshold)"/>
+    <param name="cloud_points_threshold" value="$(arg cloud_points_threshold)"/>
+    <param name="obs_detector_debug" value="False"/>
+    <param name="min_z" value="0.05"/>
+  </node>
+
+  <node name="map_augmenter"  pkg="map_augmenter"  type="map_augmenter_node"  output="screen">
+    <param name="use_lidar" value="$(arg use_lidar)"/>
+    <param name="use_sonars" value="$(arg use_sonars)"/>
+    <param name="use_point_cloud" value="$(arg use_point_cloud)"/>
+    <param name="use_point_cloud2" value="False"/>
+    <param name="point_cloud_topic" value="$(arg point_cloud_topic)"/>
+    <param name="laser_scan_topic" value="$(arg laser_scan_topic)"/>
+    <param name="cloud_downsampling" value="$(arg cloud_downsampling)"/>
     <param name="inflation_radius" value="0.2"/>
+    <param name="cost_radius" value="0.3"/>
   </node>
 
   <node name="mvn_pln"  pkg="mvn_pln"  type="mvn_pln_node"  output="screen">
