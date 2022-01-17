@@ -3,8 +3,8 @@ WorldInfo {
   coordinateSystem "NUE"
 }
 Viewpoint {
-  orientation 0.05199247465274444 -0.9943285127273143 -0.09277710578031144 3.4301453479638324
-  position 3.2757279353256044 2.56930932618637 -8.904429521131956
+  orientation 0.037601069069390855 -0.988718835695822 -0.14498697715704256 3.806881659507891
+  position 3.2142024266560676 2.358767976208023 -6.334363730182256
 }
 TexturedBackground {
 }
@@ -60,25 +60,8 @@ Robot {
     DEF LIDAR Solid {
       translation 0 0.2 0.1
       children [
-        Lidar {
-          rotation 0 1 0 3.141592653589793
-          horizontalResolution 366
-          fieldOfView 2.8
-          verticalFieldOfView 0.7
-          numberOfLayers 64
-          near 0.001
-          minRange 0.001
-          maxRange 10
-        }
-        Shape {
-          appearance PBRAppearance {
-            baseColor 0 0 0
-            roughness 1
-            metalness 0
-          }
-          geometry Box {
-            size 0.08 0.1 0.08
-          }
+        HokuyoUrg04lxug01 {
+          enablePhysics FALSE
         }
       ]
       name "solid(6)"
@@ -871,44 +854,11 @@ Robot {
                             name "tiltMotor"
                           }
                         ]
-                        endPoint DEF NeckLink Solid {
-                          translation 0 0.055 -2.6020852139652106e-18
-                          rotation -1 0 0 0
-                          children [
-                            DEF KinectBase Solid {
-                              translation 0 0.03 0
-                              rotation 1 0 0 0
-                              children [
-                                Camera {
-                                  rotation 0 1 0 3.14159
-                                  name "kinect"
-                                  fieldOfView 1.57
-                                  width 256
-                                  height 144
-                                }
-                                Shape {
-                                  appearance PBRAppearance {
-                                    baseColor 0 0 0
-                                    roughness 1
-                                    metalness 0
-                                  }
-                                  geometry Box {
-                                    size 0.207 0.04 0.058
-                                  }
-                                }
-                              ]
-                            }
-                            Shape {
-                              appearance PBRAppearance {
-                                baseColor 0 0 0
-                                roughness 1
-                                metalness 0
-                              }
-                              geometry Box {
-                                size 0.02 0.02 0.02
-                              }
-                            }
-                          ]
+                        endPoint Kinect {
+                          translation 0 0.05 0
+                          rotation 0 1 0 3.141592653589793
+                          name "kinect"
+                          maxRange 5
                         }
                       }
                       Shape {
@@ -987,6 +937,6 @@ Robot {
   controller "Drive_Justina"
 }
 Pedestrian {
-  translation -1.90192 1.27 2.01744
-  rotation 0 1 0 2.87979
+  translation -0.623538 1.27 -1.0367
+  rotation 0 -1 0 -2.6179953071795863
 }

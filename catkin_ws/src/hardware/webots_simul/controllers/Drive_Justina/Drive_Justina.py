@@ -3,7 +3,7 @@
 
 # You may need to import some classes of the controller module. Ex:
 #  from controller import Robot, Motor, DistanceSensor
-from controller import Robot, Camera, Lidar
+from controller import Robot, Camera, Lidar, RangeFinder
 #import rospy
 #from std_msgs.msg import Float64
 #from sensor_msgs.msg import Image, PointCloud2, PointField, NavSatFix, NavSatStatus, Imu
@@ -47,9 +47,11 @@ if __name__ == "__main__":
     max_speed=10
     
     #instancias de los sensores
-    camara = robot.getDevice('kinect')
-    camara.enable(timeStep)
-    lidar = robot.getDevice('lidar')
+    kinectRange = robot.getDevice('kinect range')
+    kinectRange.enable(timeStep)
+    kinectRange = robot.getDevice('kinect color')
+    kinectRange.enable(timeStep)
+    lidar = robot.getDevice('Hokuyo URG-04LX-UG01')
     lidar.enable(timeStep)
     lidar.enablePointCloud()
     
@@ -72,6 +74,10 @@ if __name__ == "__main__":
     
     right_motor.setPosition(float('inf'))
     right_motor.setVelocity(0.0)
+    
+    #actuadores de la cabeza
+    tiltMotor = robot.getDevice('tiltMotor')
+    panMotor = robot.getDevice('panMotor')
     
     """# PUBLISHERS
     pub_camera_data  = rospy.Publisher('/camera/rgb/raw', Image, queue_size=10)
