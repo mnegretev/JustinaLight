@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /TF1
+        - /TF1/Frames1
         - /PointCloud21
       Splitter Ratio: 0.5
     Tree Height: 744
@@ -375,91 +377,91 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         base_link:
-          Value: true
+          Value: false
         head_link1:
-          Value: true
+          Value: false
         head_link2:
-          Value: true
+          Value: false
         kinect_base:
-          Value: true
+          Value: false
         kinect_link:
-          Value: true
+          Value: false
         laser_link:
-          Value: true
+          Value: false
         laser_link_rear:
-          Value: true
+          Value: false
         left_arm_grip_center:
-          Value: true
+          Value: false
         left_arm_grip_left:
-          Value: true
+          Value: false
         left_arm_grip_right:
-          Value: true
+          Value: false
         left_arm_link1:
-          Value: true
+          Value: false
         left_arm_link2:
-          Value: true
+          Value: false
         left_arm_link3:
-          Value: true
+          Value: false
         left_arm_link4:
-          Value: true
+          Value: false
         left_arm_link5:
-          Value: true
+          Value: false
         left_arm_link6:
-          Value: true
+          Value: false
         left_arm_link7:
-          Value: true
+          Value: false
         map:
-          Value: true
+          Value: false
         neck_link:
-          Value: true
+          Value: false
         odom:
-          Value: true
+          Value: false
         right_arm_grip_center:
-          Value: true
+          Value: false
         right_arm_grip_left:
-          Value: true
+          Value: false
         right_arm_grip_right:
-          Value: true
+          Value: false
         right_arm_link1:
-          Value: true
+          Value: false
         right_arm_link2:
-          Value: true
+          Value: false
         right_arm_link3:
-          Value: true
+          Value: false
         right_arm_link4:
-          Value: true
+          Value: false
         right_arm_link5:
-          Value: true
+          Value: false
         right_arm_link6:
-          Value: true
+          Value: false
         right_arm_link7:
-          Value: true
+          Value: false
         shoulders_left_link:
-          Value: true
+          Value: false
         shoulders_right_link:
-          Value: true
+          Value: false
         spine_link:
-          Value: true
+          Value: false
         torso_link:
-          Value: true
+          Value: false
         wheel_back_x:
-          Value: true
+          Value: false
         wheel_back_y:
-          Value: true
+          Value: false
         wheel_back_z:
-          Value: true
+          Value: false
         wheel_front_x:
-          Value: true
+          Value: false
         wheel_front_y:
-          Value: true
+          Value: false
         wheel_front_z:
-          Value: true
+          Value: false
         wheel_left:
-          Value: true
+          Value: false
         wheel_right:
-          Value: true
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -548,7 +550,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.00499999989
       Style: Flat Squares
-      Topic: /hardware/kinect/rgbd_wrt_robot_downsampled
+      Topic: /hardware/kinect/rgbd_wrt_robot
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -577,26 +579,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
-      Distance: 7.72463465
+      Angle: 0
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: 3.8382895
-        Y: 0.593624175
-        Z: 0.102552705
-      Focal Shape Fixed Size: false
-      Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.230399445
+      Scale: 61.7693558
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
-      Yaw: 3.77857327
+      Value: TopDownOrtho (rviz)
+      X: 3.86923242
+      Y: 0.0485677719
     Saved: ~
 Window Geometry:
   Displays:
