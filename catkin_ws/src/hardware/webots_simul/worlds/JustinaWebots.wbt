@@ -59,6 +59,7 @@ Robot {
   children [
     DEF LIDAR Solid {
       translation 0 0.2 0.1
+      rotation 0 1 0 -3.14159
       children [
         HokuyoUrg04lxug01 {
           enablePhysics FALSE
