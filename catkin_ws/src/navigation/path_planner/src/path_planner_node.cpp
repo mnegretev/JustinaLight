@@ -84,13 +84,14 @@ int main(int argc, char** argv)
     ros::service::waitForService("/map_augmenter/get_augmented_cost_map", ros::Duration(1000.0));
     std::cout << "PathPlanner.->Augmented Map services are now available..." << std::endl;
 
-    cltGetStaticMap        = n.serviceClient<nav_msgs::GetMap>("/map_augmenter/get_static_map"        ); //This service gets the static map plus the prohibition layer
+    //The following service gets the static map plus the prohibition layer
+    cltGetStaticMap        = n.serviceClient<nav_msgs::GetMap>("/map_augmenter/get_static_map"        ); 
     cltGetStaticCostMap    = n.serviceClient<nav_msgs::GetMap>("/map_augmenter/get_static_cost_map"   );
     cltGetAugmentedMap     = n.serviceClient<nav_msgs::GetMap>("/map_augmenter/get_augmented_map"     );
     cltGetAugmentedCostMap = n.serviceClient<nav_msgs::GetMap>("/map_augmenter/get_augmented_cost_map");
 
-    ros::ServiceServer srvGetPlanStatic    = n.advertiseService("/path_planner/plan_path_with_static"   , callback_a_star_with_static_map);
-    ros::ServiceServer srvGetPlanAugmented = n.advertiseService("/path_planner/plan_path_with_augmented", callback_a_star_with_augmented_map);
+    ros::ServiceServer srvGetPlanStatic   =n.advertiseService("/path_planner/plan_path_with_static"   , callback_a_star_with_static_map);
+    ros::ServiceServer srvGetPlanAugmented=n.advertiseService("/path_planner/plan_path_with_augmented", callback_a_star_with_augmented_map);
 
     while(ros::ok())
     {

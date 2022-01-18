@@ -47,7 +47,7 @@
     <child link="head_link2"/>
     <axis xyz="0 0 1" />
     <dynamics damping ="0.1" />
-    <limit effort="6.0" velocity="3.0" lower="-3.14" upper="3.14"/>
+    <limit effort="6.0" velocity="3.0" lower="-1.57" upper="1.57"/>
   </joint>
 
   <link name="neck_link">

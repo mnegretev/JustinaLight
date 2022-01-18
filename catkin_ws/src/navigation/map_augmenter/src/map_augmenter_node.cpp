@@ -80,9 +80,14 @@ Eigen::Affine3d get_lidar_position()
 
 nav_msgs::OccupancyGrid merge_maps(nav_msgs::OccupancyGrid& a, nav_msgs::OccupancyGrid& b)
 {
+    if(a.info.width != b.info.width || a.info.height != b.info.height)
+    {
+        std::cout << "MapAugmenter.->WARNING!!! Cannot merge maps of different sizes!!!" <<std::endl;
+        return a;
+    }
     nav_msgs::OccupancyGrid c = a;
     for(size_t i=0; i< c.data.size(); i++)
-        c.data[i] = std::max((unsigned char)a.data[i], (unsigned char)b.data[i]);
+        c.data[i] = (char)std::max((unsigned char)a.data[i], (unsigned char)b.data[i]);
     return c;
 }
 

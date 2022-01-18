@@ -178,7 +178,7 @@ int main(int argc, char** argv)
             stop = false;
             state = SM_INIT;
             if(current_status == actionlib_msgs::GoalStatus::ACTIVE)
-                current_status = publish_status(actionlib_msgs::GoalStatus::ABORTED, goal_id, "Stop signal received. Task cancelled", pub_status);
+                current_status=publish_status(actionlib_msgs::GoalStatus::ABORTED,goal_id,"Stop signal received. Task cancelled",pub_status);
         }
         if(new_global_goal)
             state = SM_WAITING_FOR_TASK;
@@ -214,7 +214,8 @@ int main(int argc, char** argv)
                 pub_simple_move_stop.publish(std_msgs::Empty());
                 if(!patience)
                 {
-                    current_status = publish_status(actionlib_msgs::GoalStatus::ABORTED, goal_id, "Cannot calculate path from start to goal point", pub_status);
+                    current_status = publish_status(actionlib_msgs::GoalStatus::ABORTED, goal_id,
+                                                    "Cannot calculate path from start to goal point", pub_status);
                     state = SM_INIT;
                 }else
                     state = SM_CHECK_IF_OBSTACLES;
@@ -228,13 +229,15 @@ int main(int argc, char** argv)
             if(!clt_are_there_obs.call(srv_check_obstacles) || !srv_check_obstacles.response.success)
             {
                 std::cout << "MvnPln.->There are no temporal obstacles. Announcing failure." << std::endl;
-                current_status = publish_status(actionlib_msgs::GoalStatus::ABORTED, goal_id, "Cannot calculate path from start to goal point", pub_status);
+                current_status = publish_status(actionlib_msgs::GoalStatus::ABORTED, goal_id,
+                                                "Cannot calculate path from start to goal point", pub_status);
                 state = SM_INIT;
             }
             else
             {
                 std::cout << "MvnPln.->Temporal obstacles detected. Waiting for them to move." << std::endl;
-                current_status = publish_status(actionlib_msgs::GoalStatus::ACTIVE, goal_id, "Waiting for temporal obstacles to move", pub_status);
+                current_status = publish_status(actionlib_msgs::GoalStatus::ACTIVE, goal_id,
+                                                "Waiting for temporal obstacles to move", pub_status);
                 state = SM_WAIT_FOR_NO_OBSTACLES;
             }
             break;
@@ -244,7 +247,8 @@ int main(int argc, char** argv)
             if(!clt_are_there_obs.call(srv_check_obstacles))
             {
                 std::cout << "MvnPln.->Cannot call service for checking temporal obstacles. Announcing failure." << std::endl;
-                current_status = publish_status(actionlib_msgs::GoalStatus::ABORTED, goal_id, "Cannot calculate path from start to goal point", pub_status);
+                current_status = publish_status(actionlib_msgs::GoalStatus::ABORTED, goal_id,
+                                                "Cannot calculate path from start to goal point", pub_status);
                 state = SM_INIT;
             }
             else if(!srv_check_obstacles.response.success)
@@ -352,7 +356,7 @@ int main(int argc, char** argv)
 
             
         default:
-            std::cout << "MvnPln.->SOMEBODY VERY STUPID PROGRAMMED THIS SHIT. APOLOGIES FOR THE INCONVINIENCE :'( Please contact your dealer." << std::endl;
+            std::cout<<"MvnPln.->A VERY STUPID PERSON PROGRAMMED THIS SHIT. APOLOGIES FOR THE INCONVINIENCE. Please contact your dealer."<<std::endl;
             
         }
         ros::spinOnce();

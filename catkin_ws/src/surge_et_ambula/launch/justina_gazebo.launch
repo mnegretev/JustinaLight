@@ -10,7 +10,21 @@
   </node>
 
   <include file="$(find surge_et_ambula)/launch/gazebo_simul/justina_controllers.launch"/>
-  <include file="$(find surge_et_ambula)/launch/navigation.launch"/>
+  <include file="$(find surge_et_ambula)/launch/navigation.launch">
+    <arg name="static_map_file"  value="$(find config_files)/maps/appartment.yaml"/>
+    <arg name="prohibition_map_file"  value="$(find config_files)/prohibition_maps/appartment.yaml"/>
+    <arg name="initial_pose_x" value="3.25"/>
+    <arg name="initial_pose_y" value="6.30"/>
+    <arg name="initial_pose_a" value="-1.57"/>
+    <arg name="laser_scan_topic" value="/scan"/>
+    <arg name="point_cloud_topic" value="/kinect/points"/>
+    <arg name="use_lidar" value="True"/>
+    <arg name="use_sonars" value="False"/>
+    <arg name="use_point_cloud" value="True"/>
+    <arg name="cloud_downsampling" value="9"/>
+    <arg name="cloud_points_threshold" value="50"/>
+    <arg name="lidar_points_threshold" value="5"/>
+  </include>
 
   <node name="arms_kinematics" pkg="inverse_kinematics" type="ik_numeric.py" output="screen"/>
 </launch>

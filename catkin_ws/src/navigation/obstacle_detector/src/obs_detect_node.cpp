@@ -3,6 +3,7 @@
 #include "sensor_msgs/Range.h"
 #include "sensor_msgs/LaserScan.h"
 #include "sensor_msgs/PointCloud2.h"
+#include "nav_msgs/Path.h"
 #include "tf/transform_listener.h"
 #include "tf_conversions/tf_eigen.h"
 
@@ -55,6 +56,7 @@ float sonar_reading0;
 float sonar_reading1;
 float sonar_reading2;
 tf::TransformListener* tf_listener;
+nav_msgs::Path goal_path;
 
 Eigen::Affine3d get_transform_to_basefootprint(std::string link_name)
 {
@@ -98,6 +100,11 @@ void callback_sonar2(const sensor_msgs::Range::ConstPtr& msg)
     sonar_reading2 = msg->range;
 }
 
+void callback_goal_path(const nav_msgs::Path::ConstPtr& msg)
+{
+    goal_path = *msg;
+}
+
 void callbackEnable(const std_msgs::Bool::ConstPtr& msg)
 {
     if(msg->data)
@@ -133,6 +140,8 @@ bool collisionRiskWithCloud(float& collisionX, float& collisionY)
     }
     if((ros::Time::now() - point_cloud_ptr->header.stamp) > ros::Duration(0.5))
         std::cout << "ObsDetector.->POINT CLOUD IS TOO OLD!!! WARNING!!! POSSIBLE COLLISION RISK UNDETECTED!!!" << std::endl;
+
+    //SELECT MAX X ACCORDING TO DISTANCE TO GOAL POINT
     
     unsigned char* p = (unsigned char*)(&point_cloud_ptr->data[0]);
     int count = 0;
@@ -152,7 +161,7 @@ bool collisionRiskWithCloud(float& collisionX, float& collisionY)
         p += cloud_downsampling*point_cloud_ptr->point_step;
     }
     if(debug)
-        std::cout << "ObsDetector.->Cloud Size: " << point_cloud_ptr->width << "x" << point_cloud_ptr->height << "  Counter: " << count << std::endl;
+        std::cout<<"ObsDetector.->Cloud Size:"<<point_cloud_ptr->width<<"x"<<point_cloud_ptr->height<<"  Counter: " << count << std::endl;
     if(count > cloud_points_threshold)
     {
         collisionX /= count;
@@ -192,7 +201,7 @@ bool collisionRiskWithCloud2(float& collisionX, float& collisionY)
         p += cloud_downsampling2*point_cloud_ptr2->point_step;
     }
     if(debug)
-        std::cout << "ObsDetector.->Cloud Size2: " << point_cloud_ptr2->width << "x" << point_cloud_ptr2->height << "  Counter: " << count << std::endl;
+        std::cout<<"ObsDetector.->Cloud Size2:"<<point_cloud_ptr2->width<<"x"<<point_cloud_ptr2->height<<"  Counter: "<<count<<std::endl;
     if(count > cloud_points_threshold2)
     {
         collisionX /= count;
@@ -416,6 +425,7 @@ int main(int argc, char** argv)
 
     ros::Subscriber subEnable = n.subscribe("/navigation/obs_detector/enable", 1, callbackEnable);
     ros::Subscriber sub_cmd_vel = n.subscribe("/cmd_vel", 1, callback_cmd_vel);
+    ros::subscriber sub_goal_path    = n.subscribe("/simple_move/goal_path", 10, callback_goal_path);
     ros::Publisher pubCollisionRisk  = n.advertise<std_msgs::Bool>("/navigation/obs_detector/collision_risk", 1);
     ros::Publisher pubCollisionPoint = n.advertise<geometry_msgs::PointStamped>("/navigation/obs_detector/collision_point", 1);
     ros::Publisher pubNoSensorData   = n.advertise<std_msgs::Empty>("/navigation/obs_detector/no_sensor_data", 1);

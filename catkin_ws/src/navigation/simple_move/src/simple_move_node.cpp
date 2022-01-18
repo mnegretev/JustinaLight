@@ -208,9 +208,13 @@ void get_next_goal_from_path(float robot_x, float robot_y, float robot_t, float&
 std_msgs::Float32MultiArray get_next_goal_head_angles(float robot_x, float robot_y, float robot_t, int next_pose_idx)
 {
     std_msgs::Float32MultiArray msg;
-    float goal_x = goal_path.poses[next_pose_idx].pose.position.x;
-    float goal_y = goal_path.poses[next_pose_idx].pose.position.y;
-    msg.data.push_back(std::fmod(atan2(goal_y - robot_y, goal_x - robot_x) - robot_t + M_PI, 2*M_PI) - M_PI);
+    int idx = next_pose_idx + 5 >=  goal_path.poses.size() - 1 ? goal_path.poses.size() - 1 : next_pose_idx + 5;
+    float goal_x = goal_path.poses[idx].pose.position.x;
+    float goal_y = goal_path.poses[idx].pose.position.y;
+    float a = atan2(goal_y - robot_y, goal_x - robot_x) - robot_t;
+    if(a >   M_PI) a -= 2*M_PI;
+    if(a <= -M_PI) a += 2*M_PI;
+    msg.data.push_back(a);
     msg.data.push_back(-1.0);
     return msg;
 }
@@ -238,7 +242,8 @@ int main(int argc, char** argv)
     float beta = 0.2;
     float linear_acceleration = 0.1;
     float fine_dist_tolerance = 0.03;
-    float coarse_dist_tolerance = 0.1;
+    float coarse_dist_tolerance = 0.2;
+    
     float angle_tolerance = 0.05;
     bool  move_head = true;
 
@@ -294,9 +299,6 @@ int main(int argc, char** argv)
     float temp_k = 0;
     int attempts = 0;
     float error = 0;
-    std_msgs::Float32MultiArray zero_head;
-    zero_head.data.push_back(0);
-    zero_head.data.push_back(0);
     while(ros::ok())
     {
         if(stop)
@@ -305,7 +307,6 @@ int main(int argc, char** argv)
             state = SM_INIT;
             msg_goal_reached.status = actionlib_msgs::GoalStatus::ABORTED;
             pub_cmd_vel.publish(geometry_msgs::Twist());
-            if(move_head) pub_head_goal_pose.publish(zero_head);
             pub_goal_reached.publish(msg_goal_reached);
         }
         if(new_pose || new_path)
@@ -475,7 +476,7 @@ int main(int argc, char** argv)
                 if(--attempts <= 0)
                 {
                     state = SM_GOAL_PATH_FAILED;
-                    std::cout << "SimpleMove.->Timeout exceeded while trying to reach goal path. Current state: GOAL_PATH_ACCEL." << std::endl;
+                    std::cout<<"SimpleMove.->Timeout exceeded while trying to reach goal path. Current state: GOAL_PATH_ACCEL."<<std::endl;
                 }
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
                                                      max_angular_speed, alpha, beta, goal_distance < 0));
@@ -507,7 +508,7 @@ int main(int argc, char** argv)
                 if(--attempts <= 0)
                 {
                     state = SM_GOAL_PATH_FAILED;
-                    std::cout << "SimpleMove.->Timeout exceeded while trying to reach goal path. Current state: GOAL_PATH_CRUISE." << std::endl;
+                    std::cout<<"SimpleMove.->Timeout exceeded while trying to reach goal path. Current state: GOAL_PATH_CRUISE."<<std::endl;
                 }
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
                                                      max_angular_speed, alpha, beta, goal_distance < 0));
@@ -533,7 +534,7 @@ int main(int argc, char** argv)
                 if(--attempts <= 0)
                 {
                     state = SM_GOAL_PATH_FAILED;
-                    std::cout << "SimpleMove.->Timeout exceeded while trying to reach goal path. Current state: GOAL_PATH_DECCEL." << std::endl;
+                    std::cout<<"SimpleMove.->Timeout exceeded while trying to reach goal path. Current state:GOAL_PATH_DECCEL."<<std::endl;
                 }
                 current_linear_speed = temp_k * sqrt(error);
                 if(current_linear_speed < min_linear_speed) current_linear_speed = min_linear_speed;
@@ -550,7 +551,6 @@ int main(int argc, char** argv)
             msg_goal_reached.status = actionlib_msgs::GoalStatus::SUCCEEDED;
             pub_goal_reached.publish(msg_goal_reached);
             pub_cmd_vel.publish(geometry_msgs::Twist());
-            if(move_head) pub_head_goal_pose.publish(zero_head);
             current_linear_speed = 0;
             break;
 
@@ -561,7 +561,6 @@ int main(int argc, char** argv)
             msg_goal_reached.status = actionlib_msgs::GoalStatus::ABORTED;
             pub_goal_reached.publish(msg_goal_reached);
             pub_cmd_vel.publish(geometry_msgs::Twist());
-            if(move_head) pub_head_goal_pose.publish(zero_head);
             current_linear_speed = 0;
             break;
 

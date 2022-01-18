@@ -90,13 +90,13 @@ def callback_ra_ik_for_pose(req):
 
 def callback_la_dk(req):
     x = direct_kinematics([req.q1, req.q2, req.q3, req.q4, req.q5, req.q6, req.q7], 'left')
-    resp = DirectKinematicsResponse()
+    resp = ForwardKinematicsResponse()
     [resp.x, resp.y, resp.z, resp.roll, resp.pitch, resp.yaw] = x
     return resp
 
 def callback_ra_dk(req):
     x = direct_kinematics([req.q1, req.q2, req.q3, req.q4, req.q5, req.q6, req.q7], 'left')
-    resp = DirectKinematicsResponse()
+    resp = ForwardKinematicsResponse()
     [resp.x, resp.y, resp.z, resp.roll, resp.pitch, resp.yaw] = x
     return resp
 
@@ -106,8 +106,8 @@ def main():
     get_model_info()
     rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematicsForPose, callback_la_ik_for_pose)
     rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematicsForPose, callback_ra_ik_for_pose)
-    rospy.Service("/manipulation/la_direct_kinematics", DirectKinematics, callback_la_dk)
-    rospy.Service("/manipulation/ra_direct_kinematics", DirectKinematics, callback_ra_dk)
+    rospy.Service("/manipulation/la_direct_kinematics", ForwardKinematics, callback_la_dk)
+    rospy.Service("/manipulation/ra_direct_kinematics", ForwardKinematics, callback_ra_dk)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         loop.sleep()
