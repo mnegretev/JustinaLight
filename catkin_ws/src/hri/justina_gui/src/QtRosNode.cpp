@@ -19,28 +19,13 @@ QtRosNode::~QtRosNode()
 void QtRosNode::run()
 {    
     ros::Rate loop(30);
-    pubCmdVel    = n->advertise<geometry_msgs::Twist>("/cmd_vel", 10);
-    pubTorso     = n->advertise<std_msgs::Float64>("/torso_controller/command", 10);
-    pubLaAngle1  = n->advertise<std_msgs::Float64>("/la_1_controller/command" , 10);
-    pubLaAngle2  = n->advertise<std_msgs::Float64>("/la_2_controller/command" , 10);
-    pubLaAngle3  = n->advertise<std_msgs::Float64>("/la_3_controller/command" , 10);
-    pubLaAngle4  = n->advertise<std_msgs::Float64>("/la_4_controller/command" , 10);
-    pubLaAngle5  = n->advertise<std_msgs::Float64>("/la_5_controller/command" , 10);
-    pubLaAngle6  = n->advertise<std_msgs::Float64>("/la_6_controller/command" , 10);
-    pubLaAngle7  = n->advertise<std_msgs::Float64>("/la_7_controller/command" , 10);
-    pubRaAngle1  = n->advertise<std_msgs::Float64>("/ra_1_controller/command" , 10);
-    pubRaAngle2  = n->advertise<std_msgs::Float64>("/ra_2_controller/command" , 10);
-    pubRaAngle3  = n->advertise<std_msgs::Float64>("/ra_3_controller/command" , 10);
-    pubRaAngle4  = n->advertise<std_msgs::Float64>("/ra_4_controller/command" , 10);
-    pubRaAngle5  = n->advertise<std_msgs::Float64>("/ra_5_controller/command" , 10);
-    pubRaAngle6  = n->advertise<std_msgs::Float64>("/ra_6_controller/command" , 10);
-    pubRaAngle7  = n->advertise<std_msgs::Float64>("/ra_7_controller/command" , 10);
-    pubLaAngleGl = n->advertise<std_msgs::Float64>("/la_grip_left_controller/command" , 10);
-    pubLaAngleGr = n->advertise<std_msgs::Float64>("/la_grip_right_controller/command", 10);
-    pubRaAngleGl = n->advertise<std_msgs::Float64>("/ra_grip_left_controller/command" , 10);
-    pubRaAngleGr = n->advertise<std_msgs::Float64>("/ra_grip_right_controller/command", 10);
-    pubHdPan     = n->advertise<std_msgs::Float64>("/head_pan_controller/command",  10);
-    pubHdTilt    = n->advertise<std_msgs::Float64>("/head_tilt_controller/command", 10);
+    pubCmdVel     = n->advertise<geometry_msgs::Twist>("/cmd_vel", 10);
+    pubTorso      = n->advertise<std_msgs::Float64>("/torso_controller/command", 10);
+    pubLaGoalPose = n->advertise<std_msgs::Float32MultiArray>("/hardware/left_arm/goal_pose", 10);
+    pubRaGoalPose = n->advertise<std_msgs::Float32MultiArray>("/hardware/right_arm/goal_pose", 10);
+    pubHdGoalPose = n->advertise<std_msgs::Float32MultiArray>("/hardware/head/goal_pose", 10);
+    pubLaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/left_arm/goal_gripper", 10);
+    pubRaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/right_arm/goal_gripper", 10);
     cltLaInverseKinematics = n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/la_inverse_kinematics");
     cltRaInverseKinematics = n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/ra_inverse_kinematics");
     
@@ -115,67 +100,53 @@ void QtRosNode::publish_torso_position(float tr)
 
 void QtRosNode::publish_la_goal_angles(float a1, float a2, float a3, float a4, float a5, float a6, float a7)
 {
-    std_msgs::Float64 msg;
-    msg.data = a1;
-    pubLaAngle1.publish(msg);
-    msg.data = a2;
-    pubLaAngle2.publish(msg);
-    msg.data = a3;
-    pubLaAngle3.publish(msg);
-    msg.data = a4;
-    pubLaAngle4.publish(msg);
-    msg.data = a5;
-    pubLaAngle5.publish(msg);
-    msg.data = a6;
-    pubLaAngle6.publish(msg);
-    msg.data = a7;
-    pubLaAngle7.publish(msg);
+    std_msgs::Float32MultiArray msg;
+    msg.data.resize(7);
+    msg.data[0] = a1;
+    msg.data[1] = a2;
+    msg.data[2] = a3;
+    msg.data[3] = a4;
+    msg.data[4] = a5;
+    msg.data[5] = a6;
+    msg.data[6] = a7;
+    pubLaGoalPose.publish(msg);
 }
 
 void QtRosNode::publish_ra_goal_angles(float a1, float a2, float a3, float a4, float a5, float a6, float a7)
 {
-    std_msgs::Float64 msg;
-    msg.data = a1;
-    pubRaAngle1.publish(msg);
-    msg.data = a2;
-    pubRaAngle2.publish(msg);
-    msg.data = a3;
-    pubRaAngle3.publish(msg);
-    msg.data = a4;
-    pubRaAngle4.publish(msg);
-    msg.data = a5;
-    pubRaAngle5.publish(msg);
-    msg.data = a6;
-    pubRaAngle6.publish(msg);
-    msg.data = a7;
-    pubRaAngle7.publish(msg);
+    std_msgs::Float32MultiArray msg;
+    msg.data.resize(7);
+    msg.data[0] = a1;
+    msg.data[1] = a2;
+    msg.data[2] = a3;
+    msg.data[3] = a4;
+    msg.data[4] = a5;
+    msg.data[5] = a6;
+    msg.data[6] = a7;
+    pubRaGoalPose.publish(msg);
 }
 
-void QtRosNode::publish_la_grip_angles(float al, float ar)
+void QtRosNode::publish_la_grip_angles(float a)
 {
-    std_msgs::Float64 msg;
-    msg.data = al;
-    pubLaAngleGl.publish(msg);
-    msg.data = ar;
-    pubLaAngleGr.publish(msg);
+    std_msgs::Float32 msg;
+    msg.data = a;
+    pubLaGoalGrip.publish(msg);
 }
 
-void QtRosNode::publish_ra_grip_angles(float al, float ar)
+void QtRosNode::publish_ra_grip_angles(float a)
 {
-    std_msgs::Float64 msg;
-    msg.data = al;
-    pubRaAngleGl.publish(msg);
-    msg.data = ar;
-    pubRaAngleGr.publish(msg);
+    std_msgs::Float32 msg;
+    msg.data = a;
+    pubRaGoalGrip.publish(msg);
 }
 
 void QtRosNode::publish_head_angles(float pan, float tilt)
 {
-    std_msgs::Float64 msg;
-    msg.data = pan;
-    pubHdPan.publish(msg);
-    msg.data = tilt;
-    pubHdTilt.publish(msg);
+    std_msgs::Float32MultiArray msg;
+    msg.data.resize(2);
+    msg.data[0] = pan;
+    msg.data[1] = tilt;
+    pubHdGoalPose.publish(msg);
 }
 
 bool QtRosNode::call_la_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular)

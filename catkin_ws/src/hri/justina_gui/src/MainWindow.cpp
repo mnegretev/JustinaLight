@@ -346,12 +346,12 @@ void MainWindow::raTxtPredefinedReturnPressed()
 
 void MainWindow::laSbGripperValueChanged(double d)
 {
-    qtRosNode->publish_la_grip_angles(ui->laTxtAnglesG->value(), ui->laTxtAnglesG->value()); 
+    qtRosNode->publish_la_grip_angles(ui->laTxtAnglesG->value()); 
 }
 
 void MainWindow::raSbGripperValueChanged(double d)
 {
-    qtRosNode->publish_ra_grip_angles(ui->raTxtAnglesG->value(), ui->raTxtAnglesG->value()); 
+    qtRosNode->publish_ra_grip_angles(ui->raTxtAnglesG->value()); 
 }
 
 void MainWindow::hdSbHeadValueChanged(double d)
