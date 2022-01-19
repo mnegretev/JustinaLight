@@ -479,7 +479,7 @@ int main(int argc, char** argv)
                     std::cout<<"SimpleMove.->Timeout exceeded while trying to reach goal path. Current state: GOAL_PATH_ACCEL."<<std::endl;
                 }
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
-                                                     max_angular_speed, alpha, beta, goal_distance < 0));
+                                                     max_angular_speed, alpha, beta, false));
                 if(move_head) pub_head_goal_pose.publish(get_next_goal_head_angles(robot_x, robot_y, robot_t, next_pose_idx));
                 current_linear_speed += linear_acceleration/RATE;
             }
@@ -511,7 +511,7 @@ int main(int argc, char** argv)
                     std::cout<<"SimpleMove.->Timeout exceeded while trying to reach goal path. Current state: GOAL_PATH_CRUISE."<<std::endl;
                 }
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
-                                                     max_angular_speed, alpha, beta, goal_distance < 0));
+                                                     max_angular_speed, alpha, beta, false));
                 if(move_head) pub_head_goal_pose.publish(get_next_goal_head_angles(robot_x, robot_y, robot_t, next_pose_idx));
             }
             break;
@@ -539,7 +539,7 @@ int main(int argc, char** argv)
                 current_linear_speed = temp_k * sqrt(error);
                 if(current_linear_speed < min_linear_speed) current_linear_speed = min_linear_speed;
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
-                                                     max_angular_speed, alpha, beta, goal_distance < 0));
+                                                     max_angular_speed, alpha, beta, false));
                 if(move_head) pub_head_goal_pose.publish(get_next_goal_head_angles(robot_x, robot_y, robot_t, next_pose_idx));
             }
             break;

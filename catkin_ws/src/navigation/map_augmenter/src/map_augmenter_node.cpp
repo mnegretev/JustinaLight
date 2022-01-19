@@ -51,6 +51,16 @@ Eigen::Affine3d get_robot_position()
     return e;
 }
 
+void get_robot_position(float& robot_x, float& robot_y, float& robot_t)
+{
+    tf::StampedTransform transform;
+    listener->lookupTransform("map", base_link_name, ros::Time(0), transform);
+    robot_x = transform.getOrigin().x();
+    robot_y = transform.getOrigin().y();
+    tf::Quaternion q = transform.getRotation();
+    robot_t = atan2((float)q.z(), (float)q.w()) * 2;
+}
+
 Eigen::Affine3d get_camera_position()
 {
     tf::StampedTransform tf;
@@ -342,6 +352,17 @@ bool callback_are_there_obstacles(std_srvs::Trigger::Request& req, std_srvs::Tri
     return true;
 }
 
+bool callback_is_inside_obstacles(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& resp)
+{
+    float robot_x, robot_y, robot_a;
+    get_robot_position(robot_x, robot_y, robot_a);
+    int cell_x = (int)((robot_x - augmented_map.info.origin.position.x)/augmented_map.info.resolution);
+    int cell_y = (int)((robot_y - augmented_map.info.origin.position.y)/augmented_map.info.resolution);
+    int cell   = cell_y * obstacles_map.info.width + cell_x;
+    resp.success = augmented_map.data[cell] > 0;
+    return true;
+}
+
 bool decay_map_and_check_if_obstacles(nav_msgs::OccupancyGrid& map, int decay_factor)
 {
     bool obstacles = false;
@@ -473,6 +494,7 @@ int main(int argc, char** argv)
     ros::ServiceServer srvAugmentedMap      = n.advertiseService("/map_augmenter/get_augmented_map"     , callback_augmented_map);
     ros::ServiceServer srvAugmentedCostMap  = n.advertiseService("/map_augmenter/get_augmented_cost_map", callback_augmented_cost_map);
     ros::ServiceServer srvAreThereObstacles = n.advertiseService("/map_augmenter/are_there_obstacles"   , callback_are_there_obstacles);
+    ros::ServiceServer srvIsInsideObstacles = n.advertiseService("/map_augmenter/is_inside_obstacles"   , callback_is_inside_obstacles);
         
     int counter = 0;
     while(ros::ok())
@@ -482,7 +504,8 @@ int main(int argc, char** argv)
             counter = 0;
             are_there_obstacles = decay_map_and_check_if_obstacles(obstacles_map, decay_factor);
             obstacles_inflated_map = inflate_map(obstacles_map, inflation_radius);
-            pubAugmentedMap.publish(merge_maps(static_map, obstacles_inflated_map));
+            augmented_map = merge_maps(static_map, obstacles_inflated_map);
+            pubAugmentedMap.publish(augmented_map);
         }
         ros::spinOnce();
         loop.sleep();

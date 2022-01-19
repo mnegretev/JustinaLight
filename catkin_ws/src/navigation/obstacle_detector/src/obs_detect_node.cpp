@@ -56,7 +56,8 @@ float sonar_reading0;
 float sonar_reading1;
 float sonar_reading2;
 tf::TransformListener* tf_listener;
-nav_msgs::Path goal_path;
+float global_goal_x = 99999;
+float global_goal_y = 99999;
 
 Eigen::Affine3d get_transform_to_basefootprint(std::string link_name)
 {
@@ -65,6 +66,16 @@ Eigen::Affine3d get_transform_to_basefootprint(std::string link_name)
     Eigen::Affine3d e;
     tf::transformTFToEigen(tf, e);
     return e;
+}
+
+void get_robot_pose(float& robot_x, float& robot_y, float& robot_t)
+{
+    tf::StampedTransform transform;
+    tf_listener->lookupTransform("map", base_link_name, ros::Time(0), transform);
+    robot_x = transform.getOrigin().x();
+    robot_y = transform.getOrigin().y();
+    tf::Quaternion q = transform.getRotation();
+    robot_t = atan2((float)q.z(), (float)q.w()) * 2;
 }
 
 void callback_lidar(sensor_msgs::LaserScan::Ptr msg)
@@ -102,7 +113,8 @@ void callback_sonar2(const sensor_msgs::Range::ConstPtr& msg)
 
 void callback_goal_path(const nav_msgs::Path::ConstPtr& msg)
 {
-    goal_path = *msg;
+     global_goal_x = msg->poses[msg->poses.size() - 1].pose.position.x;
+     global_goal_y = msg->poses[msg->poses.size() - 1].pose.position.y;
 }
 
 void callbackEnable(const std_msgs::Bool::ConstPtr& msg)
@@ -131,6 +143,16 @@ void callbackEnable(const std_msgs::Bool::ConstPtr& msg)
     enable = msg->data;
 }
 
+float get_search_distance()
+{
+    float robot_x, robot_y, robot_a;
+    get_robot_pose(robot_x, robot_y, robot_a);
+    float dist_to_goal = sqrt(pow(global_goal_x - robot_x, 2) + pow(global_goal_x - robot_x, 2));
+    if(dist_to_goal < maxX)
+        return dist_to_goal;
+    return maxX;
+}
+
 bool collisionRiskWithCloud(float& collisionX, float& collisionY)
 {
     if(point_cloud_ptr == NULL)
@@ -142,6 +164,7 @@ bool collisionRiskWithCloud(float& collisionX, float& collisionY)
         std::cout << "ObsDetector.->POINT CLOUD IS TOO OLD!!! WARNING!!! POSSIBLE COLLISION RISK UNDETECTED!!!" << std::endl;
 
     //SELECT MAX X ACCORDING TO DISTANCE TO GOAL POINT
+    float optimal_x = get_search_distance();
     
     unsigned char* p = (unsigned char*)(&point_cloud_ptr->data[0]);
     int count = 0;
@@ -152,7 +175,7 @@ bool collisionRiskWithCloud(float& collisionX, float& collisionY)
     {
         Eigen::Vector3d v(*((float*)(p)), *((float*)(p+4)), *((float*)(p+8)));
         v = cam_to_robot * v;
-        if(v.x() > minX && v.x() < maxX && v.y() > minY && v.y() < maxY && v.z() > minZ && v.z() < maxZ)
+        if(v.x() > minX && v.x() < optimal_x && v.y() > minY && v.y() < maxY && v.z() > minZ && v.z() < maxZ)
         {
             count ++;
             collisionX += v.x();
@@ -182,6 +205,9 @@ bool collisionRiskWithCloud2(float& collisionX, float& collisionY)
     }
     if((ros::Time::now() - point_cloud_ptr2->header.stamp) > ros::Duration(0.5))
         std::cout << "ObsDetector.->POINT CLOUD 2 IS TOO OLD!!! WARNING!!! POSSIBLE COLLISION RISK UNDETECTED!!!" << std::endl;
+
+    //SELECT MAX X ACCORDING TO DISTANCE TO GOAL POINT
+    float optimal_x = get_search_distance();
     
     unsigned char* p = (unsigned char*)(&point_cloud_ptr2->data[0]);
     int count = 0;
@@ -192,7 +218,7 @@ bool collisionRiskWithCloud2(float& collisionX, float& collisionY)
     {
         Eigen::Vector3d v(*((float*)(p)), *((float*)(p+4)), *((float*)(p+8)));
         v = cam_to_robot * v;
-        if(v.x() > minX && v.x() < maxX && v.y() > minY && v.y() < maxY && v.z() > minZ && v.z() < maxZ)
+        if(v.x() > minX && v.x() < optimal_x && v.y() > minY && v.y() < maxY && v.z() > minZ && v.z() < maxZ)
         {
             count ++;
             collisionX += v.x();
@@ -222,7 +248,10 @@ bool collisionRiskWithLidar(float& collisionX, float& collisionY)
     }
     if((ros::Time::now() - laser_scan_ptr->header.stamp) > ros::Duration(0.5))
         std::cout << "ObsDetector.->LASER SCAN IS TOO OLD!!! WARNING!!! POSSIBLE COLLISION RISK UNDETECTED!!!" << std::endl;
-    
+
+    //SELECT MAX X ACCORDING TO DISTANCE TO GOAL POINT
+    float optimal_x = get_search_distance();
+
     int count = 0;
     collisionX = 0;
     collisionY = 0;
@@ -232,7 +261,7 @@ bool collisionRiskWithLidar(float& collisionX, float& collisionY)
         float angle = laser_scan_ptr->angle_min + i*laser_scan_ptr->angle_increment;
         Eigen::Vector3d v(laser_scan_ptr->ranges[i]*cos(angle), laser_scan_ptr->ranges[i]*sin(angle), 0);
         v = lidar_to_robot * v;
-        if(v.x() > minX && v.x() < maxX && v.y() > minY && v.y() < maxY && v.z() > minZ && v.z() < maxZ)
+        if(v.x() > minX && v.x() < optimal_x && v.y() > minY && v.y() < maxY && v.z() > minZ && v.z() < maxZ)
         {
             count ++;
             collisionX += v.x();
@@ -262,9 +291,13 @@ bool collisionRiskWithSonars(float& collisionX, float& collisionY, float sonar_a
     float y1 = sonar_reading1*sin(sonar_angle_1);
     float x2 = sonar_reading2*cos(sonar_angle_2);
     float y2 = sonar_reading2*sin(sonar_angle_2);
-    bool collisionRisk = x0 > minX && x0 < maxX && y0 > minY && y0 < maxY;
-    collisionRisk |= x1 > minX && x1 < maxX && y1 > minY && y1 < maxY;
-    collisionRisk |= x2 > minX && x2 < maxX && y2 > minY && y2 < maxY;
+
+    //SELECT MAX X ACCORDING TO DISTANCE TO GOAL POINT
+    float optimal_x = get_search_distance();
+
+    bool collisionRisk = x0 > minX && x0 < optimal_x && y0 > minY && y0 < maxY;
+    collisionRisk |= x1 > minX && x1 < optimal_x && y1 > minY && y1 < maxY;
+    collisionRisk |= x2 > minX && x2 < optimal_x && y2 > minY && y2 < maxY;
     collisionX = (x0 + x1 + x2)/3;
     collisionY = (y0 + y1 + y2)/3;
     if(debug)
@@ -425,7 +458,7 @@ int main(int argc, char** argv)
 
     ros::Subscriber subEnable = n.subscribe("/navigation/obs_detector/enable", 1, callbackEnable);
     ros::Subscriber sub_cmd_vel = n.subscribe("/cmd_vel", 1, callback_cmd_vel);
-    ros::subscriber sub_goal_path    = n.subscribe("/simple_move/goal_path", 10, callback_goal_path);
+    ros::Subscriber sub_goal_path    = n.subscribe("/simple_move/goal_path", 10, callback_goal_path);
     ros::Publisher pubCollisionRisk  = n.advertise<std_msgs::Bool>("/navigation/obs_detector/collision_risk", 1);
     ros::Publisher pubCollisionPoint = n.advertise<geometry_msgs::PointStamped>("/navigation/obs_detector/collision_point", 1);
     ros::Publisher pubNoSensorData   = n.advertise<std_msgs::Empty>("/navigation/obs_detector/no_sensor_data", 1);

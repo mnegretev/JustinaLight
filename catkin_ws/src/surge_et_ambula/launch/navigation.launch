@@ -21,6 +21,8 @@
   <node name="simple_move"  pkg="simple_move"  type="simple_move_node"  output="screen">
     <param name="max_linear_speed" value="0.5"/>
     <param name="max_angular_speed" value="0.8"/>
+    <param name="control_alpha" value="0.4"/>
+    <param name="control_beta" value="0.15"/>
   </node>
 
   <node name="obs_detector"  pkg="obstacle_detector"  type="obs_detect_node"  output="screen">
@@ -52,7 +54,7 @@
 
   <node name="mvn_pln"  pkg="mvn_pln"  type="mvn_pln_node"  output="screen">
     <remap from="/nav_control/goal" to="/move_base_simple/goal"/>
-    <param name="patience" value="True"/>
+    <param name="patience" value="False"/>
   </node>
 
   <node name="prohibition_map_server" pkg="map_server" type="map_server" output="screen" args="$(arg prohibition_map_file)">

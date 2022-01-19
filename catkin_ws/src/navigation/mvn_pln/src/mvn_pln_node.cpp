@@ -14,6 +14,8 @@
 #define SM_INIT 0
 #define SM_WAITING_FOR_TASK 1
 #define SM_CALCULATE_PATH 2
+#define SM_CHECK_IF_INSIDE_OBSTACLES 19
+#define SM_WAITING_FOR_MOVE_BACKWARDS 18
 #define SM_CHECK_IF_OBSTACLES 21
 #define SM_WAIT_FOR_NO_OBSTACLES 22
 #define SM_ENABLE_OBS_DETECT 23
@@ -151,6 +153,7 @@ int main(int argc, char** argv)
 
     ros::ServiceClient clt_plan_path       = n.serviceClient<nav_msgs::GetPlan>("/path_planner/plan_path_with_augmented");
     ros::ServiceClient clt_are_there_obs   = n.serviceClient<std_srvs::Trigger>("/map_augmenter/are_there_obstacles");
+    ros::ServiceClient clt_is_in_obstacles = n.serviceClient<std_srvs::Trigger>("/map_augmenter/is_inside_obstacles");
     
     ros::Rate loop(RATE);
     ros::Rate slow_loop(1);
@@ -213,17 +216,45 @@ int main(int argc, char** argv)
                 std::cout<<"MvnPln.->Cannot calc path to "<< global_goal.position.x <<" "<<global_goal.position.y << std::endl;
                 pub_simple_move_stop.publish(std_msgs::Empty());
                 if(!patience)
-                {
-                    current_status = publish_status(actionlib_msgs::GoalStatus::ABORTED, goal_id,
-                                                    "Cannot calculate path from start to goal point", pub_status);
-                    state = SM_INIT;
-                }else
+                    state = SM_CHECK_IF_INSIDE_OBSTACLES;
+                else
                     state = SM_CHECK_IF_OBSTACLES;
             }
             else
                 state = SM_ENABLE_OBS_DETECT;
             break;
 
+        case SM_CHECK_IF_INSIDE_OBSTACLES:
+            std::cout << "MvnPln.->Checking if robot is inside an obstacle..." << std::endl;
+            clt_is_in_obstacles.call(srv_check_obstacles);
+            if(srv_check_obstacles.response.success)
+            {
+                std::cout << "MvnPln.->Robot is inside an obstacle. Moving backwards..." << std::endl;
+                msg_goal_dist_angle.data[0] = -0.25;
+                msg_goal_dist_angle.data[1] = 0;
+                pub_goal_dist_angle.publish(msg_goal_dist_angle);
+                state = SM_WAITING_FOR_MOVE_BACKWARDS;
+            }
+            else
+            {
+                current_status = publish_status(actionlib_msgs::GoalStatus::ABORTED, goal_id, "Cannot calc path from start to goal", pub_status);
+                state = SM_INIT;
+            }
+            break;
+
+        case SM_WAITING_FOR_MOVE_BACKWARDS:
+            if(simple_move_goal_status.status == actionlib_msgs::GoalStatus::SUCCEEDED && simple_move_status_id == -1)
+            {
+                simple_move_goal_status.status = 0;
+                std::cout << "MvnPln.->Moved backwards succesfully." << std::endl;
+            }
+            else if(simple_move_goal_status.status == actionlib_msgs::GoalStatus::ABORTED)
+            {
+                simple_move_goal_status.status = 0;
+                std::cout << "MvnPln.->Simple move reported move aborted. " << std::endl;
+            }
+            state = SM_CALCULATE_PATH;
+            break;
             
         case SM_CHECK_IF_OBSTACLES:
             if(!clt_are_there_obs.call(srv_check_obstacles) || !srv_check_obstacles.response.success)
