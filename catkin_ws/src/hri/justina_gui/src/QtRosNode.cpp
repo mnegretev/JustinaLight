@@ -28,7 +28,7 @@ void QtRosNode::run()
     pubRaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/right_arm/goal_gripper", 10);
     cltLaInverseKinematics = n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/la_inverse_kinematics");
     cltRaInverseKinematics = n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/ra_inverse_kinematics");
-    
+    cltFindLines           = n->serviceClient<vision_msgs::FindLines>("/vision/line_finder/find_lines_ransac");
     int pub_zero_counter = 5;
     while(ros::ok() && !this->gui_closed)
     {
@@ -191,4 +191,14 @@ bool QtRosNode::call_ra_inverse_kinematics(std::vector<float>& cartesian, std::v
     articular.push_back(srv.response.q6);
     articular.push_back(srv.response.q7);
     return true;
+}
+
+bool QtRosNode::call_find_lines()
+{
+    vision_msgs::FindLines srv;
+    boost::shared_ptr<sensor_msgs::PointCloud2 const> ptr;
+    //ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot", ros::Duration(1.0));
+    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/kinect/points", ros::Duration(1.0));
+    srv.request.point_cloud = *ptr;
+    cltFindLines.call(srv);
 }

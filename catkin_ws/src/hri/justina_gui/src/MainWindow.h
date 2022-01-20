@@ -59,6 +59,8 @@ public slots:
     void raSbGripperValueChanged(double d);
     void hdSbHeadValueChanged(double d);
 
+    void visFindLinesClicked();
+
 private:
     Ui::MainWindow *ui;
 };

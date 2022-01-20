@@ -53,6 +53,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->raTxtPredefined, SIGNAL(returnPressed()), this, SLOT(raTxtPredefinedReturnPressed()));
     QObject::connect(ui->hdTxtPan, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
     QObject::connect(ui->hdTxtTilt, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
+
+    QObject::connect(ui->visBtnFindLines, SIGNAL(clicked()), this, SLOT(visFindLinesClicked()));
 }
 
 MainWindow::~MainWindow()
@@ -357,4 +359,9 @@ void MainWindow::raSbGripperValueChanged(double d)
 void MainWindow::hdSbHeadValueChanged(double d)
 {
     qtRosNode->publish_head_angles(ui->hdTxtPan->value(), ui->hdTxtTilt->value());
+}
+
+void MainWindow::visFindLinesClicked()
+{
+    qtRosNode->call_find_lines();
 }

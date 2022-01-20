@@ -1,6 +1,22 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Float32MultiArray, Float32, Float64
+from sensor_msgs.msg import JointState
+
+def callback_joint_state(msg):
+    global pubLaCurrentPose, pubRaCurrentPose, pubLaCurrentGrip, pubRaCurrentGrip, pubHdCurrentPose
+    hd_pose = Float32MultiArray()
+    la_pose = Float32MultiArray()
+    ra_pose = Float32MultiArray()
+    hd_pose.data.append(msg.position[0])
+    hd_pose.data.append(msg.position[1])
+    for i in range(7):
+        la_pose.data.append(msg.position[2+i])
+    for i in range(7):
+        ra_pose.data.append(msg.position[2+11])
+    pubHdCurrentPose.publish(hd_pose)
+    pubLaCurrentPose.publish(la_pose)
+    pubRaCurrentPose.publish(ra_pose)
 
 def callback_la_goal_pose(msg):
     global pubLaAngle1, pubLaAngle1, pubLaAngle2, pubLaAngle3, pubLaAngle4, pubLaAngle5, pubLaAngle6, pubLaAngle7 
@@ -46,14 +62,21 @@ def callback_head_goal_pose(msg):
 def main():
     global pubLaAngle1, pubLaAngle1, pubLaAngle2, pubLaAngle3, pubLaAngle4, pubLaAngle5, pubLaAngle6, pubLaAngle7 
     global pubRaAngle1, pubRaAngle1, pubRaAngle2, pubRaAngle3, pubRaAngle4, pubRaAngle5, pubRaAngle6, pubRaAngle7 
-    global pubLaAngleGl, pubLaAngleGr, pubRaAngleGl, pubRaAngleGr, pubHdPan, pubHdTilt   
+    global pubLaAngleGl, pubLaAngleGr, pubRaAngleGl, pubRaAngleGr, pubHdPan, pubHdTilt
+    global pubLaCurrentPose, pubRaCurrentPose, pubLaCurrentGrip, pubRaCurrentGrip, pubHdCurrentPose
     print("INITIALIZING TOPIC RESENDER...")
     rospy.init_node("topic_resender")
+    rospy.Subscriber("/joint_states", JointState, callback_joint_state)
     rospy.Subscriber("/hardware/left_arm/goal_pose",  Float32MultiArray, callback_la_goal_pose)
     rospy.Subscriber("/hardware/right_arm/goal_pose", Float32MultiArray, callback_ra_goal_pose)
     rospy.Subscriber("/hardware/left_arm/goal_gripper",  Float32, callback_la_goal_gripper)
     rospy.Subscriber("/hardware/right_arm/goal_gripper", Float32, callback_ra_goal_gripper)
     rospy.Subscriber("/hardware/head/goal_pose", Float32MultiArray, callback_head_goal_pose)
+    pubLaCurrentPose = rospy.Publisher("/hardware/left_arm/current_pose" , Float32MultiArray, queue_size=10)
+    pubRaCurrentPose = rospy.Publisher("/hardware/right_arm/current_pose", Float32MultiArray, queue_size=10)
+    pubLaCurrentGrip = rospy.Publisher("/hardware/left_arm/current_gripper" , Float32, queue_size=10)
+    pubRaCurrentGrip = rospy.Publisher("/hardware/right_arm/current_gripper", Float32, queue_size=10)
+    pubHdCurrentPose = rospy.Publisher("/hardware/head/current_pose", Float32MultiArray, queue_size=10);
     pubLaAngle1  = rospy.Publisher("/la_1_controller/command", Float64, queue_size=10)
     pubLaAngle2  = rospy.Publisher("/la_2_controller/command", Float64, queue_size=10)
     pubLaAngle3  = rospy.Publisher("/la_3_controller/command", Float64, queue_size=10)

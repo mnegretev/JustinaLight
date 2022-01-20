@@ -1648,7 +1648,7 @@ QRadioButton::indicator{
         <double>1.570800000000000</double>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.050000000000000</double>
        </property>
       </widget>
       <widget class="QLabel" name="hdLblPan_2">
@@ -1687,6 +1687,24 @@ QRadioButton::indicator{
         </rect>
        </property>
       </widget>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Vision</string>
+     </attribute>
+     <widget class="QPushButton" name="visBtnFindLines">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>91</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Find Lines</string>
+      </property>
      </widget>
     </widget>
    </widget>
