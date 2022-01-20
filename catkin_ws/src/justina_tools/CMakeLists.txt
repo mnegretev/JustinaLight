@@ -72,6 +72,7 @@ ${PCL_INCLUDE_DIRS}
 
 add_library(justina_tools
   src/JustinaTools.cpp
+  src/JustinaVision.cpp
 )
 
 add_dependencies(justina_tools ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
