@@ -29,6 +29,7 @@ private:
     static ros::Publisher pubSimpleMoveLateral;
     //Publishers and subscribers for mvn_pln
     static ros::Publisher pubMvnPlnGetCloseXYA;
+    static ros::Publisher pubNavigationStop;
     //Publishers and subscribers for localization
     static tf::TransformListener* tf_listener;
 
@@ -65,6 +66,7 @@ public:
     static void startGetClose(std::string location);
     static bool getClose(float x, float y, float angle, int timeOut_ms);
     static bool getClose(std::string location, int timeOut_ms);
+    static void stopNavigation();
 
     //Callbacks for subscribers
     static void callbackStop(const std_msgs::Empty::ConstPtr& msg);
