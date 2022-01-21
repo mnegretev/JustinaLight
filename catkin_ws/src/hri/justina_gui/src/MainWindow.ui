@@ -45,7 +45,7 @@ QRadioButton::indicator{
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tabGeneral">
      <attribute name="title">
@@ -1704,6 +1704,42 @@ QRadioButton::indicator{
       </property>
       <property name="text">
        <string>Find Lines</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="visTxtTrainObject">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>113</width>
+        <height>25</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>101</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Train Object:</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="visBtnRecogObjects">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>110</y>
+        <width>141</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Recognize Objects</string>
       </property>
      </widget>
     </widget>

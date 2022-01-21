@@ -28,7 +28,9 @@ void QtRosNode::run()
     pubRaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/right_arm/goal_gripper", 10);
     cltLaInverseKinematics = n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/la_inverse_kinematics");
     cltRaInverseKinematics = n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/ra_inverse_kinematics");
-    cltFindLines           = n->serviceClient<vision_msgs::FindLines>("/vision/line_finder/find_lines_ransac");
+    cltFindLines           = n->serviceClient<vision_msgs::FindLines>       ("/vision/line_finder/find_lines_ransac");
+    cltTrainObject         = n->serviceClient<vision_msgs::TrainObject>     ("/vision/obj_reco/train_object");
+    cltRecogObjects        = n->serviceClient<vision_msgs::RecognizeObjects>("/vision/obj_reco/recognize_objects");
     int pub_zero_counter = 5;
     while(ros::ok() && !this->gui_closed)
     {
@@ -197,8 +199,26 @@ bool QtRosNode::call_find_lines()
 {
     vision_msgs::FindLines srv;
     boost::shared_ptr<sensor_msgs::PointCloud2 const> ptr;
-    //ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot", ros::Duration(1.0));
-    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/kinect/points", ros::Duration(1.0));
+    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot", ros::Duration(1.0));
     srv.request.point_cloud = *ptr;
     cltFindLines.call(srv);
+}
+
+bool QtRosNode::call_train_object(std::string name)
+{
+    vision_msgs::TrainObject srv;
+    boost::shared_ptr<sensor_msgs::PointCloud2 const> ptr;
+    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot", ros::Duration(1.0));
+    srv.request.point_cloud = *ptr;
+    srv.request.name = name;
+    cltTrainObject.call(srv);
+}
+
+bool QtRosNode::call_recognize_objects()
+{
+    vision_msgs::RecognizeObjects srv;
+    boost::shared_ptr<sensor_msgs::PointCloud2 const> ptr;
+    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_robot", ros::Duration(1.0));
+    srv.request.point_cloud = *ptr;
+    cltRecogObjects.call(srv);
 }

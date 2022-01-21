@@ -280,7 +280,7 @@ int main(int argc, char** argv)
     tf_listener.waitForTransform("map",  base_link_name, ros::Time(0), ros::Duration(1000.0));
     tf_listener.waitForTransform("odom", base_link_name, ros::Time(0), ros::Duration(1000.0));
 
-    ros::Publisher pub_goal_reached     = n.advertise<actionlib_msgs::GoalStatus>("/simple_move/goal_reached", 1);                           
+    ros::Publisher pub_goal_reached     = n.advertise<actionlib_msgs::GoalStatus>("/simple_move/goal_reached", 1); 
     ros::Publisher pub_cmd_vel          = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     ros::Publisher pub_head_goal_pose   = n.advertise<std_msgs::Float32MultiArray>("/hardware/head/goal_pose", 1);
 

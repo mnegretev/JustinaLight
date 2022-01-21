@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   vision_msgs
   pcl_ros
+  visualization_msgs
 )
 
 find_package(OpenCV REQUIRED)
@@ -32,6 +33,7 @@ add_executable(obj_reco_node
   src/PlanarSegment.cpp
   src/Plane3D.cpp
   src/DetectedObject.cpp
+  src/ObjRecognizer.cpp
 )
 
 add_dependencies(obj_reco_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

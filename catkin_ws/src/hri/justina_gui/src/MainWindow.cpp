@@ -55,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->hdTxtTilt, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
 
     QObject::connect(ui->visBtnFindLines, SIGNAL(clicked()), this, SLOT(visFindLinesClicked()));
+    QObject::connect(ui->visTxtTrainObject, SIGNAL(returnPressed()), this, SLOT(visTrainObjectReturnPressed()));
+    QObject::connect(ui->visBtnRecogObjects, SIGNAL(clicked()), this, SLOT(visRecognizeObjectsClicked()));
 }
 
 MainWindow::~MainWindow()
@@ -364,4 +366,14 @@ void MainWindow::hdSbHeadValueChanged(double d)
 void MainWindow::visFindLinesClicked()
 {
     qtRosNode->call_find_lines();
+}
+
+void MainWindow::visTrainObjectReturnPressed()
+{
+    qtRosNode->call_train_object(ui->visTxtTrainObject->text().toStdString());
+}
+
+void MainWindow::visRecognizeObjectsClicked()
+{
+    qtRosNode->call_recognize_objects();
 }

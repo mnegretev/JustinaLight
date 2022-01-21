@@ -13,6 +13,8 @@
 #include "tf/transform_listener.h"
 #include "manip_msgs/InverseKinematicsForPose.h"
 #include "vision_msgs/FindLines.h"
+#include "vision_msgs/TrainObject.h"
+#include "vision_msgs/RecognizeObjects.h"
 
 class QtRosNode : public QThread
 {
@@ -29,9 +31,11 @@ public:
     ros::Publisher pubHdGoalPose;
     ros::Publisher pubLaGoalGrip;
     ros::Publisher pubRaGoalGrip;
-    ros::ServiceClient    cltLaInverseKinematics;
-    ros::ServiceClient    cltRaInverseKinematics;
-    ros::ServiceClient    cltFindLines;
+    ros::ServiceClient cltLaInverseKinematics;
+    ros::ServiceClient cltRaInverseKinematics;
+    ros::ServiceClient cltFindLines;
+    ros::ServiceClient cltTrainObject;
+    ros::ServiceClient cltRecogObjects;
     tf::TransformListener tf_listener;
     
     geometry_msgs::Twist cmd_vel;
@@ -56,7 +60,8 @@ public:
     bool call_ra_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
 
     bool call_find_lines();
-    
+    bool call_train_object(std::string name);
+    bool call_recognize_objects();
 signals:
     void updateGraphics();
     void onRosNodeFinished();

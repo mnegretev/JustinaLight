@@ -17,17 +17,18 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  VisionObject.msg
+  VisionObjects.msg
+)
 
 
 add_service_files(
   FILES
   FindLines.srv
+  RecognizeObjects.srv
+  TrainObject.srv
 )
 
 ## Generate actions in the 'action' folder

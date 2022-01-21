@@ -60,7 +60,8 @@ public slots:
     void hdSbHeadValueChanged(double d);
 
     void visFindLinesClicked();
-
+    void visTrainObjectReturnPressed();
+    void visRecognizeObjectsClicked();
 private:
     Ui::MainWindow *ui;
 };
