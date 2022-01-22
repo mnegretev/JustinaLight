@@ -44,7 +44,7 @@ if __name__ == "__main__":
     
     # get the time step of the current world.
     timeStep = int(robot.getBasicTimeStep())
-    max_speed=10
+    max_speed=5
     
     #instancias de los sensores
     kinectRange = robot.getDevice('kinect range')
@@ -62,8 +62,10 @@ if __name__ == "__main__":
         leftArm.append(robot.getDevice('LTH' + str(i+1)))
         rightArm.append(robot.getDevice('RTH' + str(i+1)))
     for i in range(0,7):
-        leftArm[i].setPosition(float('inf'))
-        leftArm[i].setVelocity(0.0)
+        leftArm[i].setPosition(float(0))
+        leftArm[i].setVelocity(1.0)
+        rightArm[i].setPosition(float('inf'))
+        rightArm[i].setVelocity(0.0)
     
     #motores de ruedas
     left_motor = robot.getDevice('motor_L')
@@ -88,10 +90,11 @@ if __name__ == "__main__":
     while robot.step(timeStep) != -1:
        
         
-        left_motor.setVelocity(0.5*max_speed)
-        right_motor.setVelocity(0.5*max_speed)
+        left_motor.setVelocity(max_speed)
+        right_motor.setVelocity(max_speed)
         for i in range (0,7):
-            leftArm[i].setVelocity(0.1*max_speed)
+            leftArm[i].setPosition(1.0)
+            rightArm[i].setVelocity(0.05*max_speed)
             
         """
         msg_image.data = camera.getImage()                                       # GET IMAGE DATA FROM CAMERA
