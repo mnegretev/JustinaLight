@@ -4,6 +4,7 @@
 
       <!-- Exploration services -->
   <include file="$(find exploration)/launch/Exploration_Services.launch"/>
+  <node pkg="exploration" type="autonomous_exploration_client.py" name="autonomous_exploration_client" respawn="false" output="screen"></node>
 
    <!-- SLAM gmapping -->
   <node name="gmapping" pkg="gmapping" type="slam_gmapping" args="scan:=/scan" output="screen">
