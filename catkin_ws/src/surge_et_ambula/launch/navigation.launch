@@ -4,8 +4,8 @@
   <arg name="initial_pose_x" default="0.0"/>
   <arg name="initial_pose_y" default="0.0"/>
   <arg name="initial_pose_a" default="0.0"/>
-  <arg name="laser_scan_topic" default="/scan"/>
-  <arg name="point_cloud_topic" default="/kinect/points"/>
+  <arg name="laser_scan_topic" default="/hardware/scan"/>
+  <arg name="point_cloud_topic" default="/hardware/kinect/rgbd_wrt_robot"/>
   <arg name="use_lidar" default="True"/>
   <arg name="use_sonars" default="False"/>
   <arg name="use_point_cloud" default="False"/>

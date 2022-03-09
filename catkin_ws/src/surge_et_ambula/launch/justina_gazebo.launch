@@ -16,8 +16,8 @@
     <arg name="initial_pose_x" value="3.25"/>
     <arg name="initial_pose_y" value="6.30"/>
     <arg name="initial_pose_a" value="-1.57"/>
-    <arg name="laser_scan_topic" value="/scan"/>
-    <arg name="point_cloud_topic" value="/kinect/points"/>
+    <arg name="laser_scan_topic" value="/hardware/scan"/>
+    <arg name="point_cloud_topic" value="/hardware/kinect/rgbd_wrt_kinect"/>
     <arg name="use_lidar" value="True"/>
     <arg name="use_sonars" value="False"/>
     <arg name="use_point_cloud" value="True"/>

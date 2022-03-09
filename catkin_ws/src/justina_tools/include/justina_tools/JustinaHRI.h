@@ -47,5 +47,5 @@ public:
 
 private:
     //Speech recog and synthesis
-    static void callbackSprHypothesis(const hri_msgs::RecognizedSpeech::ConstPtr& msg);
+    static void callbackSprRecognized(const hri_msgs::RecognizedSpeech::ConstPtr& msg);
 };
