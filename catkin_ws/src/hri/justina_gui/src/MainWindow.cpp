@@ -57,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->visBtnFindLines, SIGNAL(clicked()), this, SLOT(visFindLinesClicked()));
     QObject::connect(ui->visTxtTrainObject, SIGNAL(returnPressed()), this, SLOT(visTrainObjectReturnPressed()));
     QObject::connect(ui->visBtnRecogObjects, SIGNAL(clicked()), this, SLOT(visRecognizeObjectsClicked()));
+    QObject::connect(ui->visTxtRecognizeObject, SIGNAL(returnPressed()), this, SLOT(visRecognizeObjectReturnPressed()));
 }
 
 MainWindow::~MainWindow()
@@ -371,6 +372,11 @@ void MainWindow::visFindLinesClicked()
 void MainWindow::visTrainObjectReturnPressed()
 {
     qtRosNode->call_train_object(ui->visTxtTrainObject->text().toStdString());
+}
+
+void MainWindow::visRecognizeObjectReturnPressed()
+{
+    qtRosNode->call_recognize_object(ui->visTxtRecognizeObject->text().toStdString());
 }
 
 void MainWindow::visRecognizeObjectsClicked()

@@ -15,6 +15,7 @@
 #include "vision_msgs/FindLines.h"
 #include "vision_msgs/TrainObject.h"
 #include "vision_msgs/RecognizeObjects.h"
+#include "vision_msgs/RecognizeObject.h"
 
 class QtRosNode : public QThread
 {
@@ -36,6 +37,7 @@ public:
     ros::ServiceClient cltFindLines;
     ros::ServiceClient cltTrainObject;
     ros::ServiceClient cltRecogObjects;
+    ros::ServiceClient cltRecogObject;
     tf::TransformListener tf_listener;
     
     geometry_msgs::Twist cmd_vel;
@@ -62,6 +64,7 @@ public:
     bool call_find_lines();
     bool call_train_object(std::string name);
     bool call_recognize_objects();
+    bool call_recognize_object(std::string name);
 signals:
     void updateGraphics();
     void onRosNodeFinished();

@@ -31,6 +31,7 @@ void QtRosNode::run()
     cltFindLines           = n->serviceClient<vision_msgs::FindLines>       ("/vision/line_finder/find_lines_ransac");
     cltTrainObject         = n->serviceClient<vision_msgs::TrainObject>     ("/vision/obj_reco/train_object");
     cltRecogObjects        = n->serviceClient<vision_msgs::RecognizeObjects>("/vision/obj_reco/recognize_objects");
+    cltRecogObject         = n->serviceClient<vision_msgs::RecognizeObject >("/vision/obj_reco/recognize_object");
     int pub_zero_counter = 5;
     while(ros::ok() && !this->gui_closed)
     {
@@ -236,4 +237,19 @@ bool QtRosNode::call_recognize_objects()
     }
     srv.request.point_cloud = *ptr;
     cltRecogObjects.call(srv);
+}
+
+bool QtRosNode::call_recognize_object(std::string name)
+{
+    vision_msgs::RecognizeObject srv;
+    boost::shared_ptr<sensor_msgs::PointCloud2 const> ptr;
+    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect", ros::Duration(1.0));
+    if(ptr==NULL)
+    {
+        std::cout << "JustinaGUI.->Cannot get point cloud before calling train object service..." << std::endl;
+        return false;
+    }
+    srv.request.point_cloud = *ptr;
+    srv.request.name = name;
+    cltRecogObject.call(srv);
 }

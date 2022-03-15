@@ -28,6 +28,7 @@ add_service_files(
   FILES
   FindLines.srv
   RecognizeObjects.srv
+  RecognizeObject.srv
   TrainObject.srv
 )
 

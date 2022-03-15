@@ -61,6 +61,7 @@ public slots:
 
     void visFindLinesClicked();
     void visTrainObjectReturnPressed();
+    void visRecognizeObjectReturnPressed();
     void visRecognizeObjectsClicked();
 private:
     Ui::MainWindow *ui;

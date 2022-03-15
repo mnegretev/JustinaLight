@@ -2,6 +2,7 @@
 #include "pcl_ros/transforms.h"
 #include "vision_msgs/FindLines.h"
 #include "vision_msgs/RecognizeObjects.h"
+#include "vision_msgs/RecognizeObject.h"
 #include "vision_msgs/VisionObject.h"
 #include "vision_msgs/TrainObject.h"
 #include "visualization_msgs/MarkerArray.h"
@@ -119,6 +120,42 @@ bool callback_recog_objs(vision_msgs::RecognizeObjects::Request& req, vision_msg
     return resp.recog_objects.size() > 0;
 }
 
+bool callback_recog_obj(vision_msgs::RecognizeObject::Request& req, vision_msgs::RecognizeObject::Response& resp)
+{
+    std::cout << "ObjReco.->Trying to recognize " << req.name << " by Jebug's method..." << std::endl;
+    if(req.point_cloud.header.frame_id != "base_link")
+    {
+        std::cout << "ObjReco.->Transforming point cloud to robot reference" << std::endl;
+        pcl_ros::transformPointCloud("base_link", req.point_cloud, req.point_cloud, *tf_listener);
+    }
+    cv::Mat bgrImg;
+    cv::Mat xyzCloud;
+    JustinaTools::PointCloud2Msg_ToCvMat(req.point_cloud, bgrImg, xyzCloud);
+    ObjExtractor::DebugMode = debug_mode;
+    std::vector<DetectedObject> detected_objs = ObjExtractor::GetObjectsInHorizontalPlanes(xyzCloud);
+    bool obj_found = false;
+    for(int i=0; i < detected_objs.size() && !obj_found; i++)
+    {
+        std::string obj_name = object_recognizer.RecognizeObject(detected_objs[i], bgrImg);
+        if(!(obj_found = obj_name == req.name)) continue;
+        vision_msgs::VisionObject obj;
+        obj.header.frame_id = "base_link";
+        obj.header.stamp    = ros::Time::now();
+        obj.id              = obj_name == "" ? "unknown" : obj_name;
+        obj.confidence      = 0.5; //A temporal value, since ObjRecognizer does not return a confidence value
+        obj.pose.position.x = detected_objs[i].centroid.x;
+        obj.pose.position.y = detected_objs[i].centroid.y;
+        obj.pose.position.z = detected_objs[i].centroid.z;
+        obj.pose.orientation.w = 1.0;
+        resp.recog_object = obj;
+        cv::rectangle(bgrImg, detected_objs[i].boundBox, cv::Scalar(0,0,255));
+        cv::putText(bgrImg, obj_name, detected_objs[i].boundBox.tl(), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0,0,255));
+    }
+    std::cout << "ObjReco.->" << (obj_found ? "Recognized " : "Cannot recognize ") << req.name << std::endl;
+    cv::imshow("Recognized Object", bgrImg);
+    return obj_found;
+}
+
 bool callback_train_object(vision_msgs::TrainObject::Request& req, vision_msgs::TrainObject::Response& resp)
 {
     std::cout << "ObjReco.->Training object " << req.name << " Jebusly..." << std::endl;
@@ -157,6 +194,7 @@ int main(int argc, char** argv)
     ros::NodeHandle n;
     ros::ServiceServer srvFindLines = n.advertiseService("/vision/line_finder/find_lines_ransac", callback_find_lines);
     ros::ServiceServer srvRecogObjs = n.advertiseService("/vision/obj_reco/recognize_objects", callback_recog_objs);
+    ros::ServiceServer srvRecogObj  = n.advertiseService("/vision/obj_reco/recognize_object" , callback_recog_obj );
     ros::ServiceServer srvTrainObj  = n.advertiseService("/vision/obj_reco/train_object", callback_train_object);
     ros::Rate loop(30);
     tf_listener = new tf::TransformListener();
