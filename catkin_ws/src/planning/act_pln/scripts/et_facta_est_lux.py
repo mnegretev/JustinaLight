@@ -31,8 +31,21 @@ def callback_navigation_status(msg):
     goal_reached = msg.status == GoalStatus.SUCCEEDED
 
 def parse_command(cmd):
-    obj = "pringles" if "PRINGLES" in cmd else "drink"
-    loc = [8.0,8.5] if "TABLE" in cmd else [3.22, 9.72]
+    obj_options = ['JUICE', 'CUP', 'DEODORANT', 'SOAP']
+    loc_options = ['LIVINGROOM', 'KITCHEN']
+    locations   = {'LIVINGROOM':[5.04, 2.42, 1.5708], 'KITCHEN':[9.58, 2.73, 0]}
+    obj = ""
+    loc = ""
+    for o in obj_options:
+        if o in cmd:
+            obj = o
+            break
+    for l in loc_options:
+        if l in cmd:
+            loc = locations[l]
+            break
+    obj = obj.lower()
+    print("ActPln.->Parsed command: " + cmd + "   OBJ=" + obj + "   LOC=" + str(loc))
     return obj, loc
 
 def move_left_arm(q1,q2,q3,q4,q5,q6,q7):
@@ -40,7 +53,7 @@ def move_left_arm(q1,q2,q3,q4,q5,q6,q7):
     msg = Float32MultiArray()
     msg.data = [q1,q2,q3,q4,q5,q6,q7]
     pubLaGoalPose.publish(msg)
-    time.sleep(4.0)
+    time.sleep(5.0)
 
 def move_left_gripper(q):
     global pubLaGoalGripper
@@ -51,8 +64,8 @@ def move_right_arm(q1,q2,q3,q4,q5,q6,q7):
     global pubRaGoalPose
     msg = Float32MultiArray()
     msg.data = [q1,q2,q3,q4,q5,q6,q7]
-    pubRaGoalPose.publish(q1,q2,q3,q4,q5,q6,q7)
-    time.sleep(4.0)
+    pubRaGoalPose.publish(msg)
+    time.sleep(5.0)
 
 def move_right_gripper(q):
     global pubRaGoalGripper
@@ -71,14 +84,15 @@ def move_base(distance, angle):
     msg = Float32MultiArray()
     msg.data = [distance,angle]
     pubGoalDistAngle.publish(msg)
-    time.sleep(3.0)
+    time.sleep(5.0)
 
-def go_to_goal_pose(goal_x, goal_y):
+def go_to_goal_pose(goal_x, goal_y, goal_a):
     global pubGoalPose
     goal_pose = PoseStamped()
-    goal_pose.pose.orientation.w = 1.0
     goal_pose.pose.position.x = goal_x
     goal_pose.pose.position.y = goal_y
+    goal_pose.pose.orientation.w = math.cos(goal_a/2.0)
+    goal_pose.pose.orientation.z = math.sin(goal_a/2.0)
     pubGoalPose.publish(goal_pose)
 
 def say(text):
@@ -165,52 +179,56 @@ def main():
             obj_p.header.frame_id = "base_link"
             obj_p.header.stamp = rospy.Time(0)
             obj_p.point.x, obj_p.point.y, obj_p.point.z = recog_object_position.x, recog_object_position.y, recog_object_position.z
-            target_frame = "shoulders_left_link" if requested_object == "pringles" else "shoulders_right_link"
+            target_frame = "shoulders_left_link" if recog_object_position.y > 0 else "shoulders_right_link"
             print("Transforming " + requested_object + " position to " + target_frame)
             obj_p = listener.transformPoint(target_frame, obj_p)
             print("Trying to get inverse kinematics for pose " + str([obj_p.point.x,obj_p.point.y,obj_p.point.z]))
             req_ik = InverseKinematicsForPoseRequest()
-            req_ik.x = obj_p.point.x + 0.05
+            req_ik.x = obj_p.point.x
             req_ik.y = obj_p.point.y
             req_ik.z = obj_p.point.z + 0.1
             req_ik.roll  = 3.0
             req_ik.pitch = -1.57
             req_ik.yaw   = -3.0
-            if requested_object == "pringles":
+            if target_frame == "shoulders_left_link":
                 resp_ik = clt_la_inverse_kin(req_ik)
             else:
                 resp_ik = clt_ra_inverse_kin(req_ik)
-            current_state = "SM_MOVE_LEFT_ARM" if requested_object == "pringles" else "SM_MOVE_RIGHT_ARM"
+            print("IK Result: " + str([resp_ik.q1,resp_ik.q2,resp_ik.q3,resp_ik.q4,resp_ik.q5,resp_ik.q6,resp_ik.q7]))
+            current_state = "SM_MOVE_LEFT_ARM" if target_frame == "shoulders_left_link" else "SM_MOVE_RIGHT_ARM"
             
         elif current_state == "SM_MOVE_LEFT_ARM":
+            say("I am going to take the " + requested_object)
             print("Moving left manipulator to stand by position")
-            move_left_arm(-0.6, 0, 0, 1.8, 0, 0.6, 0)
+            move_left_arm(-0.6, 0, 0, 2.0, 0, 0.6, 0)
             move_left_gripper(0.7)
             print("Moving left manipulator to object position")
             move_left_arm(resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7)
-            move_left_gripper(-0.3)
+            move_left_gripper(-0.1)
             move_left_arm(resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4+0.1, resp_ik.q5, resp_ik.q6+0.1, resp_ik.q7)
             print("Moving backwards")
-            move_base(-0.8, 0)
+            move_base(-0.4, 0)
             move_left_arm(-0.6, 0, 0, 1.8, 0, 0.6, 0)
+            current_state = "SM_INIT"
             current_state = "SM_START_NAVIGATION"
             
         elif current_state == "SM_MOVE_RIGHT_ARM":
             print("Moving right manipulator to stand by position")
-            move_right_arm(-0.6, 0, 0, 1.8, 0, 0.6, 0)
+            move_right_arm(-0.6, 0, 0, 2.0, 0, 0.6, 0)
             move_right_gripper(0.7)
             print("Moving right manipulator to object position")
             move_right_arm(resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7)
-            move_right_gripper(-0.3)
+            move_right_gripper(-0.1)
             move_right_arm(resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4+0.1, resp_ik.q5, resp_ik.q6+0.1, resp_ik.q7)
             print("Moving backwards")
-            move_base(-0.8, 0)
+            move_base(-0.4, 0)
             move_right_arm(-0.6, 0, 0, 1.8, 0, 0.6, 0)
             current_state = "SM_START_NAVIGATION"
             
         elif current_state == "SM_START_NAVIGATION":
             print("Sending goal position to " + str(requested_location))
-            go_to_goal_pose(requested_location[0], requested_location[1])
+            say("I am going to move")
+            go_to_goal_pose(requested_location[0], requested_location[1],requested_location[2])
             goal_reached = False
             current_state = "SM_WAIT_FOR_MOVEMENT_FINISHED"
             
@@ -218,22 +236,26 @@ def main():
             if goal_reached:
                 print("Goal point reached")
                 goal_reached = False
+                move_base(0.3,0)
                 current_state = "SM_LEAVE_OBJECT"
 
         elif current_state == "SM_LEAVE_OBJECT":
-            if requested_object == 'pringles':
+            say("I am going to leave the " + requested_object)
+            if target_frame == "shoulders_left_link":
                 move_left_arm(resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7)
                 move_left_gripper(0.5)
-                move_left_arm(-0.6, 0, 0, 1.8, 0, 0.6, 0)
+                move_base(-0.3, 0)
+                move_left_arm(-0.6, 0, 0, 2.0, 0, 0.6, 0)
                 move_left_gripper(0.0)
                 move_left_arm(0,0,0,0,0,0,0)
             else:
                 move_right_arm(resp_ik.q1, resp_ik.q2, resp_ik.q3, resp_ik.q4, resp_ik.q5, resp_ik.q6, resp_ik.q7)
                 move_right_gripper(0.5)
-                move_right_arm(-0.6, 0, 0, 1.8, 0, 0.6, 0)
+                move_base(-0.3, 0)
+                move_right_arm(-0.6, 0, 0, 2.0, 0, 0.6, 0)
                 move_right_gripper(0.0)
-                move_right_arm(0,0,0,0,0,0,0)
-            go_to_goal_pose(3.39, 6.56)
+                move_right_arm(0,0,0,0,0,0,0)            
+            go_to_goal_pose(3.04, 0.88,-1.5708)
             goal_reached = False
             current_state = "SM_WAIT_FOR_RETURN"
 
@@ -244,7 +266,7 @@ def main():
                 current_state = "SM_APPROACH_TO_TABLE"
 
         elif current_state == "SM_APPROACH_TO_TABLE":
-            go_to_goal_pose(3.39, 5.76)
+            go_to_goal_pose(3.34, 0.5,-1.5708)
             goal_reached = False
             current_state = "SM_WAIT_FOR_APPROACHING"
 
@@ -252,7 +274,8 @@ def main():
             if goal_reached:
                 print("Start point reached")
                 goal_reached = False
-                move_base(0.3, 0)
+                move_base(0.15, 0)
+                say("I am ready for a new command")
                 current_state = "SM_INIT"
                 executing_task = False
         loop.sleep()

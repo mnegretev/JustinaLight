@@ -38,15 +38,15 @@ void callbackArmGoalPose(const std_msgs::Float32MultiArray::ConstPtr &msg){
     else{
         if(!simul){
             goalPos[0] = int(-(msg->data[0]/(360.0/4095.0*M_PI/180.0)) + zero_arm[0] );
-            goalPos[1] = int( (msg->data[1]/(360.0/4095.0*M_PI/180.0)) + zero_arm[1] );
-            goalPos[2] = int( (msg->data[2]/(360.0/4095.0*M_PI/180.0)) + zero_arm[2] );
+            goalPos[1] = int(-(msg->data[1]/(360.0/4095.0*M_PI/180.0)) + zero_arm[1] );
+            goalPos[2] = int(-(msg->data[2]/(360.0/4095.0*M_PI/180.0)) + zero_arm[2] );
             goalPos[3] = int( (msg->data[3]/(360.0/4095.0*M_PI/180.0)) + zero_arm[3] );
-            goalPos[4] = int( (msg->data[4]/(360.0/4095.0*M_PI/180.0)) + zero_arm[4] );
+            goalPos[4] = int(-(msg->data[4]/(360.0/4095.0*M_PI/180.0)) + zero_arm[4] );
             goalPos[5] = int(-((msg->data[5] <= -1.7 ? -1.7 : msg->data[5]) /(360.0/4095.0*M_PI/180.0)) + zero_arm[5] );
-            goalPos[6] = int( (msg->data[6]/(360.0/4095.0*M_PI/180.0)) + zero_arm[6] );
+            goalPos[6] = int(-(msg->data[6]/(360.0/4095.0*M_PI/180.0)) + zero_arm[6] );
             // std::cout << "right_arm_node.->goalPose[0]:" << goalPos[0] << std::endl;
             for(int i = 0; i < 7; i++)
-                goalSpeeds[i] = 40;
+                goalSpeeds[i] = 100;
             if(msg->data.size() == 14){
                 for(int i = 7; i < 14; i++){
                     goalSpeeds[i - 7] = msg->data[i] * 1023;

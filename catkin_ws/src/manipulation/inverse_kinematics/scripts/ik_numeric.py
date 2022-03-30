@@ -81,7 +81,7 @@ def callback_la_ik_for_pose(req):
     return resp
 
 def callback_ra_ik_for_pose(req):
-    q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, [0,0,0,0,0,0,0], 'right')
+    q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, 'right')
     if q is None:
         return False
     resp = InverseKinematicsForPoseResponse()

@@ -7,8 +7,8 @@
   <include file="$(find surge_et_ambula)/launch/hardware/justina_hardware.launch"/>
   
   <include file="$(find surge_et_ambula)/launch/navigation.launch">
-    <arg name="static_map_file"  value="$(find config_files)/maps/Biorobotics.yaml"/>
-    <arg name="prohibition_map_file"  value="$(find config_files)/prohibition_maps/Biorobotics.yaml"/>
+    <arg name="static_map_file"  value="$(find config_files)/maps/BioroboticsDemo.yaml"/>
+    <arg name="prohibition_map_file"  value="$(find config_files)/prohibition_maps/BioroboticsDemo.yaml"/>
     <arg name="initial_pose_x" value="0.0"/>
     <arg name="initial_pose_y" value="0.0"/>
     <arg name="initial_pose_a" value="0.0"/>
