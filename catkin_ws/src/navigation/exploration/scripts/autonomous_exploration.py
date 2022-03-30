@@ -93,7 +93,7 @@ class Node:
         rospy.Subscriber('/move_base_simple/goal_response',Flag, self.callback_move_robot_response)
 
         if self.flag==True:#Just when the goal point is reached, we repeat all the process
-            os.system("clear")#Command to clean the terminal
+            #os.system("clear")#Command to clean the terminal
 
             #-------------........--Map Client------------------------------------
             #print("Establishing the connection with Map Server")
