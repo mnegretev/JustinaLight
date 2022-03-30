@@ -106,7 +106,8 @@ class Node:
                 
             
             except rospy.ServiceException as e:
-                print("The request for the map server failed: %s"%e)
+                #print("The request for the map server failed: %s"%e)
+		pass
 
             
             #print("Already we get the data related with the GetMap service\n")
@@ -126,7 +127,8 @@ class Node:
                 
             
             except rospy.ServiceException as e:
-                print("The request for the inflated map server failed: %s"%e)
+                #print("The request for the inflated map server failed: %s"%e)
+		pass
 
             
             #print("Already we get the data related with the GetInflatedMap service\n")
@@ -151,7 +153,8 @@ class Node:
                 
             
             except rospy.ServiceException as e:
-                print("The request for the centorids server failed: %s"%e)
+                #print("The request for the centorids server failed: %s"%e)
+		pass
 
             
             #print("Already we get {0} clusters from the boundary points\n".format(len(self.data_centroids.points))) 
@@ -170,7 +173,8 @@ class Node:
                 
             
             except rospy.ServiceException as e:
-                print("The request for the objective point server failed: %s"%e)
+                #print("The request for the objective point server failed: %s"%e)
+		pass
 
             
             #print("Already we get the objective: [{} , {}]".format(self.data_o.goal.x,self.data_o.goal.y)) 
