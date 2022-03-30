@@ -96,7 +96,7 @@ class Node:
             os.system("clear")#Command to clean the terminal
 
             #-------------........--Map Client------------------------------------
-            print("Establishing the connection with Map Server")
+            #print("Establishing the connection with Map Server")
             rospy.wait_for_service('/dynamic_map')#We are waiting to the connection with the server
             try:
                 if self.client_map==0:
@@ -109,14 +109,14 @@ class Node:
                 print("The request for the map server failed: %s"%e)
 
             
-            print("Already we get the data related with the GetMap service\n")
+            #print("Already we get the data related with the GetMap service\n")
 
             #----------------------------------------------------------------------
             
 
         
             #-----------------------Inflated Map Client--------------------------------
-            print("Establishing the connection with Inflated Map Server")
+            #print("Establishing the connection with Inflated Map Server")
             rospy.wait_for_service('/navigation/mapping/get_inflated_map')#We are waiting to the connection with the server
             try:
                 if self.client_inflated_map==0:
@@ -129,19 +129,19 @@ class Node:
                 print("The request for the inflated map server failed: %s"%e)
 
             
-            print("Already we get the data related with the GetInflatedMap service\n")
+            #print("Already we get the data related with the GetInflatedMap service\n")
 
         
             #--------------------------GetRobotPos------------------------------------
         
             self.getPosRobot()#We call the method getPosRobot 
-            print("Already we get the data related with the GetPosRobot service\n")
-            print("The position of the robot in [m] is: "+str([self.pos_x_robot,self.pos_y_robot])+"\n")
+            #print("Already we get the data related with the GetPosRobot service\n")
+            #print("The position of the robot in [m] is: "+str([self.pos_x_robot,self.pos_y_robot])+"\n")
             #----------------------------------------------------------------------
 
      
             #-----------------------Centroids Client--------------------------------
-            print("Establishing the connection with Centroids Server")
+            #print("Establishing the connection with Centroids Server")
             rospy.wait_for_service('/navigation/mapping/get_boundary_points_clustered')#We are waiting to the connection with the server
             try:
                 if self.client_centroids==0:
@@ -154,13 +154,13 @@ class Node:
                 print("The request for the centorids server failed: %s"%e)
 
             
-            print("Already we get {0} clusters from the boundary points\n".format(len(self.data_centroids.points))) 
+            #print("Already we get {0} clusters from the boundary points\n".format(len(self.data_centroids.points))) 
             
             
             #self.visualization_points(self.data_centroids.points)
             
             #----------------Goal Point Client--------------------------------
-            print("Establishing the connection with Goal Point Server")
+            #print("Establishing the connection with Goal Point Server")
             rospy.wait_for_service('/navigation/mapping/get_goal_point')#We are waiting to the connection with the server
             try:
                 if self.client_objetive==0:
@@ -173,7 +173,7 @@ class Node:
                 print("The request for the objective point server failed: %s"%e)
 
             
-            print("Already we get the objective: [{} , {}]".format(self.data_o.goal.x,self.data_o.goal.y)) 
+            #print("Already we get the objective: [{} , {}]".format(self.data_o.goal.x,self.data_o.goal.y)) 
             
             
             
@@ -181,8 +181,8 @@ class Node:
         
             self.flag=False#Change the value of the flag, because the goal point hasn't been reached
             self.move_to_goal.publish(self.data_o.goal)#We publish the goal point to move the robot by potential fields
-            print("\nEstablishing the connection with Potential Fields Node")
-            print("Wating to reach the goal")
+            #print("\nEstablishing the connection with Potential Fields Node")
+            #print("Wating to reach the goal")
             
     
             #------------------------------------------------------------------------------------

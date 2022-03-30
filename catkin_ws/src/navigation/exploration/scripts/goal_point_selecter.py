@@ -53,7 +53,7 @@ class Server:
     def GetGoalPoint(self):
             
         rospy.Service('/navigation/mapping/get_goal_point', GetGoalPoint, self.handle_GetGoalPoint)
-        print("The Goal Point Selecter Server is ready for the request")
+        #print("The Goal Point Selecter Server is ready for the request")
             
 
 

@@ -23,7 +23,7 @@ class Server:
     def GetBoundaryPoints(self,req):
         
             #----------------Boundary Points Client--------------------------------
-            print("Establishing the connection with Boundary Points Server")
+            #print("Establishing the connection with Boundary Points Server")
             rospy.wait_for_service('/navigation/mapping/get_boundary_points')#We are waiting to the connection with the server
             try:
                 
@@ -35,8 +35,8 @@ class Server:
                 print("The request for the boundary points server failed: %s"%e)
 
             
-            print("Already we get the data related with the GetBoundaryPoints service\n")
-            print("The number of Boundary Points founded are "+str(len(self.boundary_points))+"\n")
+            #print("Already we get the data related with the GetBoundaryPoints service\n")
+            #print("The number of Boundary Points founded are "+str(len(self.boundary_points))+"\n")
 
 
    
@@ -77,14 +77,14 @@ class Server:
             p.z=0
             centroids.append(p)
             
-        print("We already get the centroids\n")
+        #print("We already get the centroids\n")
         return GetBoundaryPointsResponse(points=centroids)
         
 
     def GetCentroids(self):
             
         rospy.Service('/navigation/mapping/get_boundary_points_clustered', GetBoundaryPoints, self.handle_GetCentroids)
-        print("The Clusters K Means Server is ready for the request")
+        #print("The Clusters K Means Server is ready for the request")
             
     
 

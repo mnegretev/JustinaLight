@@ -160,7 +160,7 @@ class Node:
 
         
         
-        print ("Moving to goal point " + str([self.goal_x, self.goal_y]) + " by potential fields\n")
+        #print ("Moving to goal point " + str([self.goal_x, self.goal_y]) + " by potential fields\n")
         pos_x_robot, pos_y_robot, pos_a_robot=self.getPosRobot()
         epsilon=0.5
         dist_to_goal=math.sqrt((self.goal_x - pos_x_robot)**2 + (self.goal_y - pos_y_robot)**2)
@@ -193,7 +193,7 @@ class Node:
         self.response.publish(self.flag)
         #We publish the Twist message to be sure that the robot will be static
         self.pub_cmd_vel.publish(Twist())
-        print("Goal point reached\n")
+        #print("Goal point reached\n")
 
     
     def main(self):    

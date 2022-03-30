@@ -52,7 +52,7 @@ class Server():
             
         
         
-        print("We already get the boundary points\n")
+        #print("We already get the boundary points\n")
         return GetBoundaryPointsResponse(points=boundary_points)#We return the Points array
 
         
@@ -60,7 +60,7 @@ class Server():
     def GetBoundaryPoints(self):
 
         rospy.Service('/navigation/mapping/get_boundary_points', GetBoundaryPoints, self.handle_GetBoundaryPoints)
-        print("The Boundary Points Server is ready for the request")
+        #print("The Boundary Points Server is ready for the request")
         
         
         
