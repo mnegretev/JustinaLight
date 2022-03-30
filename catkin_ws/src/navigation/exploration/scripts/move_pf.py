@@ -198,7 +198,7 @@ class Node:
     
     def main(self):    
         rospy.Subscriber('/navigation/move_base_simple/goal',Point,self.callback_potential_fields)
-        rospy.Subscriber('/scan',LaserScan,self.callback_scan)
+        rospy.Subscriber('/hardware/scan',LaserScan,self.callback_scan)
         rospy.spin()
 
 if __name__ == "__main__":

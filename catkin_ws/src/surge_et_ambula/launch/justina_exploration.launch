@@ -1,7 +1,7 @@
 <launch>
      <!-- Simulation gazebo -->
 
-  <include file="$(find surge_et_ambula)/launch/gazebo_simul/justina_hardware_gazebo.launch">
+  <include file="$(find surge_et_ambula)/launch/hardware/justina_base.launch">
 	<arg name="world" value="appartment_exploration"/>
 	<arg name="posx" value="9.506894"/>
 	<arg name="posy" value="11.160222"/>

@@ -45,7 +45,7 @@ class Node:
         self.data_centroids=0
         self.inflated_cells=0.3#Attribute where the inflated ratio is defined
         #Attributes where the handler of the services are saved
-        self.client_map=0
+	self.client_map=0
         self.client_pos_robot=0
         self.client_inflated_map=0
         self.client_boundary_points=0
