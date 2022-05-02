@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <env name="WEBOTS_HOME" value="/home/quimey10/webots"/>
+  <env name="WEBOTS_HOME" value="/usr/local/webots"/>
 
   <arg name="no_gui" default="false," doc="Start Webots with minimal GUI"/>
   <include file="$(find webots_ros)/launch/webots.launch">
