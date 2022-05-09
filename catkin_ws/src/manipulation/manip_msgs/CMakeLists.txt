@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  trajectory_msgs
   message_generation
 )
 
@@ -59,7 +60,10 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   ForwardKinematics.srv
-  InverseKinematicsForPose.srv 
+  InverseKinematicsForPose.srv
+  InverseKinematicsForTrajectory.srv
+  InverseKinematics.srv
+  GetCartesianTrajectory.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -72,7 +76,7 @@ add_service_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  geometry_msgs   std_msgs
+  geometry_msgs   std_msgs trajectory_msgs
 )
 
 ################################################
