@@ -86,6 +86,7 @@ def cartesian_traj(tt, pi, pf, vi, vf, ai, af):
         point.positions = p6[0,i], p6[1,i],p6[2,i], (p6[3,i]), (p6[4,i]), (p6[5,i])
         #point.velocities = 0,0,0,0,0,0#v6[0,i],v6[1,i],v6[2,i],v6[3,i],v6[4,i],v6[5,i]
         #point.accelerations = 0,0,0,0,0,0#a6[0,i],a6[1,i],a6[2,i],a6[3,i],a6[4,i],a6[5,i]
+        traj.points.append(point)
         point.time_from_start.secs = tfs
         #print("time from start", point.time_from_start.secs)
         tfs += tm
