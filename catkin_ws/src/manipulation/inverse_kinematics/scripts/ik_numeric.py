@@ -156,7 +156,7 @@ def callback_trajectory_3d(req):  #request es de tipo Pose
 
 def callback_trajectory_q(req):  # Trayectoria en espacio articular: recibe un JointTrajectory
     qs = numpy.empty(0)
-    # Formar la 1a suposicion con posicion actual
+    # Formar la primera suposicion con posicion actual
     q_estim = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
     arm = 'left'
     n_p = len(req.points)   # Numero de puntos en la trayectoria
@@ -179,7 +179,7 @@ def callback_trajectory_q(req):  # Trayectoria en espacio articular: recibe un J
     tfs = 0
     for i in range(n_p):    # Para cada punto de la trayectoria
         point = JointTrajectoryPoint()  # Creamos un objeto que almacena los datos de 1 punto
-        point.positions = qs[0,i], q7[1,i],q7[2,i], (q7[3,i]), (q7[4,i]), (q7[5,i]), (q7[6,i])
+        point.positions = qs[0,i], qs[1,i],qs[2,i], (qs[3,i]), (qs[4,i]), (qs[5,i]), (qs[6,i])
         traj_q.points.append(point)
         point.time_from_start.secs = tfs
         #print("time from start", point.time_from_start.secs)
