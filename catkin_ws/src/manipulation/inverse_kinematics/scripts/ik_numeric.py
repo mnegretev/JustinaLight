@@ -144,8 +144,8 @@ def callback_trajectory_3d(req):  #request es de tipo Pose
     ang1, ang2 = list(angles1), list(angles2)
     t = req.t 
     tt = numpy.array([0,t])
-    pi = [req.p1.positions.x, req.p1.positions.y, req.p1.positions.z, ang1[0], ang1[1], ang1[2]]
-    pf = [req.p2.positions.x, req.p2.positions.y, req.p2.positions.z, ang2[0], ang2[1], ang2[2]]
+    pi = [req.p1.position.x, req.p1.positions.y, req.p1.positions.z, ang1[0], ang1[1], ang1[2]]
+    pf = [req.p2.position.x, req.p2.positions.y, req.p2.positions.z, ang2[0], ang2[1], ang2[2]]
     vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
@@ -156,8 +156,8 @@ def callback_trajectory_3d(req):  #request es de tipo Pose
 
 def callback_trajectory_q(req):  # Trayectoria en espacio articular: recibe un JointTrajectory
     qs = numpy.empty(0)
-    # Formar la primera suposicion con posicion actual
-    q_estim = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
+    # Formar la primera estimacion con posicion actual
+    q_estim = numpy.asarray([0.14, -0.0, 0.0, 0.16, 0.0, -0.01, 0.0])#[-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
     arm = 'left'
     n_p = len(req.points)   # Numero de puntos en la trayectoria
     # Formar las sucesivas suposicion con el punto anterior al objetivo
