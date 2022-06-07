@@ -66,6 +66,7 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm,q = numpy.asarray([
         J = jacobian(q, arm)
         err = p - pd
         err[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
+        
         q = (q - numpy.dot(numpy.linalg.pinv(J), err) + math.pi)%(2*math.pi) - math.pi
         p = direct_kinematics(q, arm)
         iterations +=1

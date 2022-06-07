@@ -36,14 +36,7 @@ def main():
     #resultado1 = laik_srv_client(laik_msg)
     #print("Serv ik_la:",resultado1)
 
-    dk_msg = ForwardKinematicsRequest()
-    dk_msg.q1 = 0
-    dk_msg.q2 = 0
-    dk_msg.q3 = 0
-    dk_msg.q4 = 0
-    dk_msg.q5 = 0
-    dk_msg.q6 = 0
-    dk_msg.q7 = 0
+
     
     # PROBANDO IK BRAZO IZQUIERDO
     # Punto final   GUI: Th1
