@@ -7,7 +7,6 @@ import numpy
 import urdf_parser_py.urdf
 from geometry_msgs.msg import PointStamped
 from manip_msgs.srv import *
-
 #import matplotlib.pyplot as plt
 #from pylab import *
 from tf.transformations import euler_from_quaternion
@@ -51,7 +50,7 @@ def direct_kinematics(q, arm):
     return numpy.asarray([H[0,3], H[1,3], H[2,3]] + list(tft.euler_from_matrix(H)))
 
 def jacobian(q, arm):
-    delta_q = 0.000001
+    delta_q = 0.000001   
     J = numpy.asarray([[0.0 for a in q] for i in range(6)])##numpy, ndarray
     qn = numpy.asarray([q,]*len(q)) + delta_q*numpy.identity(len(q))
     qp = numpy.asarray([q,]*len(q)) - delta_q*numpy.identity(len(q)) 
@@ -61,16 +60,16 @@ def jacobian(q, arm):
 
 def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm,q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])):
     pd = numpy.asarray([x,y,z,roll,pitch,yaw])
-    q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
     p  = direct_kinematics(q, arm)
     iterations = 0
-    while numpy.linalg.norm(p - pd) > 0.01 and iterations < 20:
+    while numpy.linalg.norm(p - pd) > 0.00001 and iterations < 20:
         J = jacobian(q, arm)
         err = p - pd
         err[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
         q = (q - numpy.dot(numpy.linalg.pinv(J), err) + math.pi)%(2*math.pi) - math.pi
         p = direct_kinematics(q, arm)
         iterations +=1
+        
     if iterations < 20 and angles_in_joint_limits(q, arm):
         print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q))
         return q
@@ -78,12 +77,11 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm,q = numpy.asarray([
         print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
         return False
 
-#********************************************************************
-
+t = 5       # tiempo de la trayectoria
 tm = 0.05   # tiempo de muestreo
 
-# Calcula polinomio 5o orden para una variable
-def calcula_tray(tt, pi, pf, vi, vf, ai, af):
+def calcula_tray(tt, pi, pf, vi, vf, ai, af):  # Calcula polinomio 5o orden para una variable
+    tm = 0.1
     print("tiempo de muestreo tm: ",tm)
     for p in range(0,len(tt)-1):
         # Rango de tiempo en el que se evalua el polinomio
@@ -130,70 +128,120 @@ def cartesian_traj(tt, pi, pf, vi, vf, ai, af):
         point.positions = p6[0,i], p6[1,i],p6[2,i], (p6[3,i]), (p6[4,i]), (p6[5,i])
         #point.velocities = 0,0,0,0,0,0#v6[0,i],v6[1,i],v6[2,i],v6[3,i],v6[4,i],v6[5,i]
         #point.accelerations = 0,0,0,0,0,0#a6[0,i],a6[1,i],a6[2,i],a6[3,i],a6[4,i],a6[5,i]
-        traj.points.append(point)
         point.time_from_start.secs = tfs
-        #print("time from start", point.time_from_start.secs)
+        traj.points.append(point)
         tfs += tm
 
-    return traj
+    #grafica_tray(t, p6[0,:], p6[1,:], p6[2,:],'Posicion en X,Y,Z','X', 'Y','Z','Distancia[m]')
+    #grafica_tray(t, p6[3,:], p6[4,:], p6[5,:],'Orientacion Row, Pitch, Yaw','R','P','Y','Distancia[grados]')
 
+    return traj
 
 def callback_trajectory_3d(req):  #request es de tipo Pose
     angles1 = tft.euler_from_quaternion([req.p1.orientation.x , req.p1.orientation.y ,req.p1.orientation.z, req.p1.orientation.w])
     angles2 = tft.euler_from_quaternion([req.p2.orientation.x , req.p2.orientation.y ,req.p2.orientation.z, req.p2.orientation.w])
     ang1, ang2 = list(angles1), list(angles2)
-    t = req.t 
     tt = numpy.array([0,t])
-    pi = [req.p1.positions.x, req.p1.positions.y, req.p1.positions.z, ang1[0], ang1[1], ang1[2]]
-    pf = [req.p2.positions.x, req.p2.positions.y, req.p2.positions.z, ang2[0], ang2[1], ang2[2]]
+    pi = [req.p1.position.x, req.p1.position.y, req.p1.position.z, ang1[0], ang1[1], ang1[2]]
+    pf = [req.p2.position.x, req.p2.position.y, req.p2.position.z, ang2[0], ang2[1], ang2[2]]
     vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
+    c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
     resp = GetCartesianTrajectoryResponse()
-    resp.trajectory = tr
+    resp.trajectory = c_tr
+	
+    callback_trajectory_q( c_tr, 'left')
     
     return resp    # Retorna un objeto JointTrajectory
+"""
+def grafica_tray(t, x, y, z, lbl, a,b,c,y_label):
+    plot(t,x,t,y,t,z)
+    grid()
+    xlabel('t[s]')        # Etiqueta del eje OX
+    ylabel(y_label)        # Etiqueta del eje OY
+    title(lbl)    # Titulo del grafico
 
-def callback_trajectory_q(req):  # Trayectoria en espacio articular: recibe un JointTrajectory
+    legend((a,b,c),
+    prop = {'size': 10}, loc='upper right')
+    
+    show()
+"""
+
+def callback_trajectory_q(req, arm, q_estim):  # Trayectoria en espacio articular: recibe un JointTrajectory
     qs = numpy.empty(0)
-    # Formar la primera suposicion con posicion actual
-    q_estim = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
-    arm = 'left'
+    # Formar la primera estimacion con posicion actual
+    #q_estim = numpy.asarray([0.14, -0.0,- 0.0, 0.16, 0.0, -0.01, 0.0])#[-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
     n_p = len(req.points)   # Numero de puntos en la trayectoria
+    print("numero de puntos traj*****", n_p)
     # Formar las sucesivas suposicion con el punto anterior al objetivo
     i = 0
     for i in range(n_p):
-        q_obt = inverse_kinematics_xyzrpy(req.points[i].positions[0], req.points[i].positions[1], 
-                req.points[i].positions[2], req.points[i].positions[3], 
-                req.points[i].positions[4], req.points[i].positions[5], 
-                arm,q_estim)
-
+        q_obt = inverse_kinematics_xyzrpy(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], req.points[i].positions[3], req.points[i].positions[4], req.points[i].positions[5], arm,q_estim)
         qs = numpy.append(qs, [q_obt])  # Guarda cada punto obtenido en q en un arreglo
-        q_estim = q_obt  # Actualiza la estimacion 
+        q_estim = q_obt  # Actualiza la estimacion
+        print("punto q#",i)
     
-    # Empaquetar cada q en un JointTrajectory
-    qs = numpy.reshape(qs, (7,n_p))
+    qs = numpy.reshape(qs, (n_p,7)) # Redimensiona el arreglo
     traj_q = JointTrajectory()    #trayectoria con puntos en espacio articular
-    traj.joint_names = ["q1","q2","q3","q4","q5","q6","q7"]
-    i = 0
+    traj_q.joint_names = ["q1","q2","q3","q4","q5","q6","q7"]
+    i=0
     tfs = 0
-    for i in range(n_p):    # Para cada punto de la trayectoria
+  
+    for element in qs:
         point = JointTrajectoryPoint()  # Creamos un objeto que almacena los datos de 1 punto
-        point.positions = qs[0,i], qs[1,i],qs[2,i], (qs[3,i]), (qs[4,i]), (qs[5,i]), (qs[6,i])
+        point.positions = element[0], element[1], element[2], element[3], element[4], element[5], element[6]
         traj_q.points.append(point)
         point.time_from_start.secs = tfs
-        #print("time from start", point.time_from_start.secs)
         tfs += tm
+        
+    return traj_q
 
-    resp = InverseKinematicsForTrajectoryResponse()
+
+
+
+def callback_LA_ik_for_trajectory(req):
+    
+    # Punto de inicio   GUI: Th1 = 0.2000, Th4 = 0.2000
+    # - Translation: [0.169, -0.000, -0.717]
+    # - Rotation: in RPY (radian) [-0.0, -0.299, 0.0]
+    # - Position q: [0.14, -0.0, 0.0, 0.16, 0.0, -0.01, 0.0]
+    
+    init_estim = [0.14, 0, 0, 0.16, 0,-0.01, 0]
+    tt = numpy.array([0,t])
+    pi = [0.169, -0.0, -0.717, -0.0, -0.299, 0.01]  #***********
+    pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
+    print("Punto final xyz", pf)
+    vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
+    
+    traj_q = callback_trajectory_q( c_tr, 'left',init_estim)
+    resp = InverseKinematicsResponse()
     resp = traj_q
-
     return resp
 
+def callback_RA_ik_for_trajectory(req):
+
+    # Punto de inicio   GUI: Th1 = 0.2000, Th4 = 0.2000
+    # - Translation: [0.171, -0.0, -0.716]
+    # - Rotation: in RPY (radian) [-0.0, -0.493,- 0.0]
+    # - Position q: [0.2, 0.0, 0.0, 0.2, 0.0, 0.2, 0.0]
+    init_estim = [0.2, 0.0, 0.0, 0.2, 0.0, 0.2, 0.0]
+    tt = numpy.array([0,t])
+    pi = [0.19, -0.0, -0.703,-0.0, -0.493,- 0.0] 
+    pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
+    vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
+    print("trayectoria cartesiana: ",c_tr)
+    traj_q = callback_trajectory_q( c_tr, 'right',init_estim)
+    resp = InverseKinematicsResponse()
+    resp = traj_q
+    print("Servicio realizado")
+    return resp
 
 def callback_la_ik_for_pose(req):
     q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, 'left')
-    #q = inverse_kinematics_xyz(req.x, req.y, req.z, 'left')
     if q is None:
         return None
     resp = InverseKinematicsForPoseResponse()
@@ -230,9 +278,9 @@ def main():
     rospy.Service("/manipulation/ra_direct_kinematics", ForwardKinematics, callback_ra_dk)
     # Servicio que genera trayectoria en el espacio cartesiano
     rospy.Service("/manipulation/cartesian_traj", GetCartesianTrajectory, callback_trajectory_3d)
-    # Servicio que genera trayectoria en el espacio articular
-    rospy.Service("/manipulation/q_traj", InverseKinematicsForTrajectory, callback_trajectory_q)
-
+    # Servicio que resuleve la IK para un punto distante 
+    rospy.Service("/manipulation/LA_inverse_kinematics", InverseKinematics, callback_LA_ik_for_trajectory)
+    rospy.Service("/manipulation/RA_inverse_kinematics", InverseKinematics, callback_RA_ik_for_trajectory)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         loop.sleep()
