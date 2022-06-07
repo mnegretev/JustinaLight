@@ -143,11 +143,11 @@ def callback_trajectory_3d(req):  #request es de tipo Pose
     angles2 = tft.euler_from_quaternion([req.p2.orientation.x , req.p2.orientation.y ,req.p2.orientation.z, req.p2.orientation.w])
     ang1, ang2 = list(angles1), list(angles2)
     tt = numpy.array([0,t])
-    pi = [req.p1.position.x, req.p1.position.y, req.p1.position.z, ang1[0], ang1[1], ang1[2]]
+    pii = [req.p1.position.x, req.p1.position.y, req.p1.position.z, ang1[0], ang1[1], ang1[2]]
     pf = [req.p2.position.x, req.p2.position.y, req.p2.position.z, ang2[0], ang2[1], ang2[2]]
     vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
+    c_tr = cartesian_traj(tt, pii, pf, vi, vf, ai, af)
     resp = GetCartesianTrajectoryResponse()
     resp.trajectory = c_tr
 	
@@ -171,7 +171,6 @@ def grafica_tray(t, x, y, z, lbl, a,b,c,y_label):
 def callback_trajectory_q(req, arm, q_estim):  # Trayectoria en espacio articular: recibe un JointTrajectory
     qs = numpy.empty(0)
     # Formar la primera estimacion con posicion actual
-    #q_estim = numpy.asarray([0.14, -0.0,- 0.0, 0.16, 0.0, -0.01, 0.0])#[-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])
     n_p = len(req.points)   # Numero de puntos en la trayectoria
     print("numero de puntos traj*****", n_p)
     # Formar las sucesivas suposicion con el punto anterior al objetivo
