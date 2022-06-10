@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->navBtnExecPath, SIGNAL(clicked()), this, SLOT(navBtnExecPath_pressed()));
 
     QObject::connect(ui->torTxtPos, SIGNAL(valueChanged(double)), this, SLOT(torSbPosValueChanged(double)));
+
     QObject::connect(ui->laTxtAngles1, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
     QObject::connect(ui->laTxtAngles2, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
     QObject::connect(ui->laTxtAngles3, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
@@ -40,6 +41,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->laTxtAngles5, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
     QObject::connect(ui->laTxtAngles6, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
     QObject::connect(ui->laTxtAngles7, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
+    QObject::connect(ui->laTxtAnglesG, SIGNAL(valueChanged(double)), this, SLOT(laSbGripperValueChanged(double)));
+    QObject::connect(ui->txtLaArticularGoal, SIGNAL(returnPressed()), this, SLOT(laTxtArticularGoalReturnPressed()()));
+
     QObject::connect(ui->raTxtAngles1, SIGNAL(valueChanged(double)), this, SLOT(raSbAnglesValueChanged(double)));
     QObject::connect(ui->raTxtAngles2, SIGNAL(valueChanged(double)), this, SLOT(raSbAnglesValueChanged(double)));
     QObject::connect(ui->raTxtAngles3, SIGNAL(valueChanged(double)), this, SLOT(raSbAnglesValueChanged(double)));
@@ -47,10 +51,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->raTxtAngles5, SIGNAL(valueChanged(double)), this, SLOT(raSbAnglesValueChanged(double)));
     QObject::connect(ui->raTxtAngles6, SIGNAL(valueChanged(double)), this, SLOT(raSbAnglesValueChanged(double)));
     QObject::connect(ui->raTxtAngles7, SIGNAL(valueChanged(double)), this, SLOT(raSbAnglesValueChanged(double)));
-    QObject::connect(ui->laTxtAnglesG, SIGNAL(valueChanged(double)), this, SLOT(laSbGripperValueChanged(double)));
     QObject::connect(ui->raTxtAnglesG, SIGNAL(valueChanged(double)), this, SLOT(raSbGripperValueChanged(double)));
-    QObject::connect(ui->laTxtPredefined, SIGNAL(returnPressed()), this, SLOT(laTxtPredefinedReturnPressed()));
-    QObject::connect(ui->raTxtPredefined, SIGNAL(returnPressed()), this, SLOT(raTxtPredefinedReturnPressed()));
+    QObject::connect(ui->txtRaArticularGoal, SIGNAL(returnPressed()), this, SLOT(raTxtArticularGoalReturnPressed()()));
+    
     QObject::connect(ui->hdTxtPan, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
     QObject::connect(ui->hdTxtTilt, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
 
@@ -276,17 +279,15 @@ void MainWindow::laSbAnglesValueChanged(double d)
                                       ui->laTxtAngles7->value());
 }
 
-void MainWindow::raSbAnglesValueChanged(double d)
+void MainWindow::laSbGripperValueChanged(double d)
 {
-    qtRosNode->publish_ra_goal_angles(ui->raTxtAngles1->value(), ui->raTxtAngles2->value(), ui->raTxtAngles3->value(),
-                                      ui->raTxtAngles4->value(), ui->raTxtAngles5->value(), ui->raTxtAngles6->value(),
-                                      ui->raTxtAngles7->value());
+    qtRosNode->publish_la_grip_angles(ui->laTxtAnglesG->value()); 
 }
 
-void MainWindow::laTxtPredefinedReturnPressed()
+void MainWindow::laTxtArticularGoalReturnPressed()
 {
     std::vector<std::string> parts;
-    std::string str = this->ui->laTxtPredefined->text().toStdString();
+    std::string str = this->ui->txtLaArticularGoal->text().toStdString();
     boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
     std::vector<float> cartesian;
     cartesian.resize(parts.size());
@@ -306,20 +307,89 @@ void MainWindow::laTxtPredefinedReturnPressed()
         return;
     }
     
-    YAML::Node n = yamlParser->nodeLaPredefined[ui->laTxtPredefined->text().toStdString()];
+    YAML::Node n = yamlParser->nodeLaPredefined[ui->txtLaArticularGoal->text().toStdString()];
     if(!n)
     {
-        ui->laTxtPredefined->setText("Invalid pose");
+        ui->txtLaArticularGoal->setText("Invalid pose");
         return;
     }
     qtRosNode->publish_la_goal_angles(n[0].as<float>(), n[1].as<float>(), n[2].as<float>(), n[3].as<float>(),
                                       n[4].as<float>(), n[5].as<float>(), n[6].as<float>());
 }
 
-void MainWindow::raTxtPredefinedReturnPressed()
+void MainWindow::laTxtCartesianGoalReturnPressed()
+{
+}
+
+void MainWindow::laBtnXpPressed()
+{
+}
+      
+void MainWindow::laBtnXmPressed()
+{
+}
+
+void MainWindow::laBtnYpPressed()
+{
+}
+
+void MainWindow::laBtnYmPressed()
+{
+}
+
+void MainWindow::laBtnZpPressed()
+{
+}
+
+void MainWindow::laBtnZmPressed()
+{
+}
+
+void MainWindow::laBtnRollpPressed()
+{
+}
+
+void MainWindow::laBtnRollmPressed()
+{
+}
+
+void MainWindow::laBtnPitchpPressed()
+{
+}
+
+void MainWindow::laBtnPitchmPressed()
+{
+}
+
+void MainWindow::laBtnYawpPressed()
+{
+}
+
+void MainWindow::laBtnYawmPressed()
+{
+}
+
+void MainWindow::la_get_IK_and_update_ui(std::vector<float> cartesian)
+{
+}
+
+
+void MainWindow::raSbAnglesValueChanged(double d)
+{
+    qtRosNode->publish_ra_goal_angles(ui->raTxtAngles1->value(), ui->raTxtAngles2->value(), ui->raTxtAngles3->value(),
+                                      ui->raTxtAngles4->value(), ui->raTxtAngles5->value(), ui->raTxtAngles6->value(),
+                                      ui->raTxtAngles7->value());
+}
+
+void MainWindow::raSbGripperValueChanged(double d)
+{
+    qtRosNode->publish_ra_grip_angles(ui->raTxtAnglesG->value()); 
+}
+
+void MainWindow::raTxtArticularGoalReturnPressed()
 {
     std::vector<std::string> parts;
-    std::string str = this->ui->raTxtPredefined->text().toStdString();
+    std::string str = this->ui->txtRaArticularGoal->text().toStdString();
     boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
     std::vector<float> cartesian;
     cartesian.resize(parts.size());
@@ -339,24 +409,70 @@ void MainWindow::raTxtPredefinedReturnPressed()
         return;
     }
     
-    YAML::Node n = yamlParser->nodeRaPredefined[ui->raTxtPredefined->text().toStdString()];
+    YAML::Node n = yamlParser->nodeRaPredefined[ui->txtRaArticularGoal->text().toStdString()];
     if(!n)
     {
-        ui->raTxtPredefined->setText("Invalid pose");
+        ui->txtRaArticularGoal->setText("Invalid pose");
         return;
     }
     qtRosNode->publish_ra_goal_angles(n[0].as<float>(), n[1].as<float>(), n[2].as<float>(), n[3].as<float>(),
                                       n[4].as<float>(), n[5].as<float>(), n[6].as<float>());
 }
 
-void MainWindow::laSbGripperValueChanged(double d)
+void MainWindow::raTxtCartesianGoalReturnPressed()
 {
-    qtRosNode->publish_la_grip_angles(ui->laTxtAnglesG->value()); 
 }
 
-void MainWindow::raSbGripperValueChanged(double d)
+void MainWindow::raBtnXpPressed()
 {
-    qtRosNode->publish_ra_grip_angles(ui->raTxtAnglesG->value()); 
+}
+      
+void MainWindow::raBtnXmPressed()
+{
+}
+
+void MainWindow::raBtnYpPressed()
+{
+}
+
+void MainWindow::raBtnYmPressed()
+{
+}
+
+void MainWindow::raBtnZpPressed()
+{
+}
+
+void MainWindow::raBtnZmPressed()
+{
+}
+
+void MainWindow::raBtnRollpPressed()
+{
+}
+
+void MainWindow::raBtnRollmPressed()
+{
+}
+
+void MainWindow::raBtnPitchpPressed()
+{
+}
+
+void MainWindow::raBtnPitchmPressed()
+{
+}
+
+void MainWindow::raBtnYawpPressed()
+{
+}
+
+void MainWindow::raBtnYawmPressed()
+{
+}
+
+void MainWindow::ra_get_IK_and_update_ui(std::vector<float> cartesian)
+{
 }
 
 void MainWindow::hdSbHeadValueChanged(double d)
