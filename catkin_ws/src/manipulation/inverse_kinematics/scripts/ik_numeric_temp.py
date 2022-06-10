@@ -71,30 +71,8 @@ def jacobian_3x7(q, arm):
 
 def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm,q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])):
     pd = numpy.asarray([x,y,z,roll,pitch,yaw])
-    p  = direct_kinematics(q, arm)
-    iterations = 0
-    q = [qi for qi in q]
-    err = p-pd
-    while numpy.linalg.norm(err) > 0.00001 and iterations < 20:
-        J = jacobian(q, arm)
-        err = p - pd
-        err[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
-        q = (q - numpy.dot(numpy.linalg.pinv(J), err) + math.pi)%(2*math.pi) - math.pi
-        p = direct_kinematics(q, arm)
-        err = p - pd
-        iterations +=1
-        
-    if iterations < 20 and angles_in_joint_limits(q, arm):
-        print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q))
-        return q
-    else:
-        print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
-        return False
-
-
-
-def inverse_kinematics_xyz(x, y, z,roll, pitch, yaw , arm,q):
-    pd = numpy.asarray([x,y,z,roll,pitch,yaw])
+    print("Ejecuntando funcion de Itzel para " + str(pd))
+    
     p  = direct_kinematics(q, arm)
     iterations = 0
     q_J3x7 = [qi for qi in q]
@@ -102,8 +80,13 @@ def inverse_kinematics_xyz(x, y, z,roll, pitch, yaw , arm,q):
     #
     err_xyz = p[0:3]-pd[0:3]
     while numpy.linalg.norm(err_xyz) > 0.00001 and iterations < 20:
+        #J = jacobian(q, arm)
         J_3x7 = jacobian_3x7(q, arm)
+        #err = p - pd
+        #err[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
         err_xyz = p[0:3]-pd[0:3]
+        
+        #q = (q - numpy.dot(numpy.linalg.pinv(J), err) + math.pi)%(2*math.pi) - math.pi
         q_J3x7 = q_J3x7 - numpy.dot(numpy.linalg.pinv(J_3x7), err_xyz)
         p = direct_kinematics(q_J3x7, arm)
         err_xyz = p[0:3]-pd[0:3]
@@ -115,8 +98,6 @@ def inverse_kinematics_xyz(x, y, z,roll, pitch, yaw , arm,q):
     else:
         print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
         return False
-
-
 
 t = 5       # trajectory time
 tm = 0.05   # sampling time
@@ -189,7 +170,6 @@ def callback_trajectory_3d(req):
 	
     callback_trajectory_q( c_tr, 'left')
     
-
     return resp    # Returns a JointTrajectory object
 
 def callback_trajectory_q(req, arm, q_estim):  # Trajectory in joint space: receives a JointTrajectory
@@ -200,7 +180,7 @@ def callback_trajectory_q(req, arm, q_estim):  # Trajectory in joint space: rece
     # Form the successive guesses with the point before the target
     i = 0
     for i in range(n_p):
-        q_obt = inverse_kinematics_xyz(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], req.points[i].positions[3], req.points[i].positions[4], req.points[i].positions[5], arm,q_estim)
+        q_obt = inverse_kinematics_xyzrpy(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], req.points[i].positions[3], req.points[i].positions[4], req.points[i].positions[5], arm,q_estim)
         qs = numpy.append(qs, [q_obt]) 
         print("Q obt type: " + str(type(q_obt)))
         print("Q obt: " +  str(q_obt))
@@ -259,7 +239,7 @@ def callback_RA_ik_for_trajectory(req):
 
 def callback_la_ik_for_pose(req):
     
-    q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, 'left')
+    q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, 'left', init_estim)
     if q is None:
         return None
     resp = InverseKinematicsForPoseResponse()
