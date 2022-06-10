@@ -5,6 +5,7 @@ import tf
 import tf.transformations as tft
 import numpy
 import urdf_parser_py.urdf
+from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import PointStamped
 from manip_msgs.srv import *
 from tf.transformations import euler_from_quaternion
@@ -70,23 +71,30 @@ def jacobian_3x7(q, arm):
 
 def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm,q = numpy.asarray([-0.5, 0.6, 0.3, 2.0, 0.3, 0.2, 0.3])):
     pd = numpy.asarray([x,y,z,roll,pitch,yaw])
+    print("Ejecuntando funcion de Itzel para " + str(pd))
+    
     p  = direct_kinematics(q, arm)
     iterations = 0
-    while numpy.linalg.norm(p - pd) > 0.00001 and iterations < 20:
-        J = jacobian(q, arm)
+    q_J3x7 = [qi for qi in q]
+    print("Estimacion inicial: " + str(q_J3x7))
+    #
+    err_xyz = p[0:3]-pd[0:3]
+    while numpy.linalg.norm(err_xyz) > 0.00001 and iterations < 20:
+        #J = jacobian(q, arm)
         J_3x7 = jacobian_3x7(q, arm)
-        err = p - pd
-        err[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
+        #err = p - pd
+        #err[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
         err_xyz = p[0:3]-pd[0:3]
         
-        q = (q - numpy.dot(numpy.linalg.pinv(J), err) + math.pi)%(2*math.pi) - math.pi
-        q_J3x7 = q - numpy.dot(numpy.linalg.pinv(J_3x7), err_xyz)
-        p = direct_kinematics(q, arm)
+        #q = (q - numpy.dot(numpy.linalg.pinv(J), err) + math.pi)%(2*math.pi) - math.pi
+        q_J3x7 = q_J3x7 - numpy.dot(numpy.linalg.pinv(J_3x7), err_xyz)
+        p = direct_kinematics(q_J3x7, arm)
+        err_xyz = p[0:3]-pd[0:3]
         iterations +=1
         
-    if iterations < 20 and angles_in_joint_limits(q, arm):
-        print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q))
-        return q
+    if iterations < 20 and angles_in_joint_limits(q_J3x7, arm):
+        print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q_J3x7))
+        return q_J3x7
     else:
         print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
         return False
@@ -178,6 +186,8 @@ def callback_trajectory_q(req, arm, q_estim):  # Trayectoria en espacio articula
     for i in range(n_p):
         q_obt = inverse_kinematics_xyzrpy(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], req.points[i].positions[3], req.points[i].positions[4], req.points[i].positions[5], arm,q_estim)
         qs = numpy.append(qs, [q_obt])  # Guarda cada punto obtenido en q en un arreglo
+        print("Q obt type: " + str(type(q_obt)))
+        print("Q obt: " +  str(q_obt))
         q_estim = q_obt  # Actualiza la estimacion
         print("punto q#",i)
     
@@ -195,37 +205,6 @@ def callback_trajectory_q(req, arm, q_estim):  # Trayectoria en espacio articula
         tfs += tm
         
     return traj_q
-
-
-
-def trajectory_q_j3x7(req, arm, q_estim):  # Trayectoria en espacio articular: recibe un JointTrajectory
-    qs = numpy.empty(0)
-    # Formar la primera estimacion con posicion actual
-    n_p = len(req.points)   # Numero de puntos en la trayectoria
-    print("numero de puntos traj*****", n_p)
-    # Formar las sucesivas suposicion con el punto anterior al objetivo
-    i = 0
-    for i in range(n_p):
-        q_obt = inverse_kinematics_xyzrpy(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], req.points[i].positions[3], req.points[i].positions[4], req.points[i].positions[5], arm,q_estim)
-        qs = numpy.append(qs, [q_obt])  # Guarda cada punto obtenido en q en un arreglo
-        q_estim = q_obt  # Actualiza la estimacion
-        print("punto q#",i)
-    
-    qs = numpy.reshape(qs, (n_p,7)) # Redimensiona el arreglo
-    traj_q = JointTrajectory()    #trayectoria con puntos en espacio articular
-    traj_q.joint_names = ["q1","q2","q3","q4","q5","q6","q7"]
-    i=0
-    tfs = 0
-  
-    for element in qs:
-        point = JointTrajectoryPoint()  # Creamos un objeto que almacena los datos de 1 punto
-        point.positions = element[0], element[1], element[2], element[3], element[4], element[5], element[6]
-        traj_q.points.append(point)
-        point.time_from_start.secs = tfs
-        tfs += tm
-        
-    return traj_q
-
 
 
 def callback_LA_ik_for_trajectory(req):
@@ -235,9 +214,12 @@ def callback_LA_ik_for_trajectory(req):
     # - Rotation: in RPY (radian) [-0.0, -0.299, 0.0]
     # - Position q: [0.14, -0.0, 0.0, 0.16, 0.0, -0.01, 0.0]
     
-    init_estim = [0.14, 0, 0, 0.16, 0,-0.01, 0]
+    #init_estim = [0.14, 0, 0, 0.16, 0,-0.01, 0]
+    init_estim = rospy.wait_for_message("/hardware/left_arm/current_pose", Float32MultiArray, rospy.Duration(0.5))
+    init_estim = init_estim.data
     tt = numpy.array([0,t])
-    pi = [0.169, -0.0, -0.717, -0.0, -0.299, 0.01]  #***********
+    #pi = [0.169, -0.0, -0.717, -0.0, -0.299, 0.01]  #***********
+    pi = direct_kinematics(init_estim, 'left')
     pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
     print("Punto final xyz", pf)
     vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -245,11 +227,11 @@ def callback_LA_ik_for_trajectory(req):
     c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
     
     traj_q = callback_trajectory_q(c_tr, 'left',init_estim)
-    traj_q_J3x7 = trajectory_q_j3x7(c_tr, 'left',init_estim)
+    #traj_q_J3x7 = trajectory_q_j3x7(c_tr, 'left',init_estim)
     resp = InverseKinematicsResponse()
     resp2 = InverseKinematicsResponse()
     resp = traj_q
-    resp2 = traj_q_J3x7
+    #resp2 = traj_q_J3x7
     
     return resp
 
@@ -274,7 +256,8 @@ def callback_RA_ik_for_trajectory(req):
     return resp
 
 def callback_la_ik_for_pose(req):
-    q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, 'left')
+    
+    q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, 'left', init_estim)
     if q is None:
         return None
     resp = InverseKinematicsForPoseResponse()
