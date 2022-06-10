@@ -12,6 +12,8 @@
 #include "sensor_msgs/PointCloud2.h"
 #include "tf/transform_listener.h"
 #include "manip_msgs/InverseKinematicsForPose.h"
+#include "manip_msgs/InverseKinematics.h"
+#include "manip_msgs/ForwardKinematics.h"
 #include "vision_msgs/FindLines.h"
 #include "vision_msgs/TrainObject.h"
 #include "vision_msgs/RecognizeObjects.h"
@@ -27,13 +29,17 @@ public:
     ros::NodeHandle* n;
     ros::Publisher pubCmdVel;
     ros::Publisher pubTorso;
-    ros::Publisher pubLaGoalPose;
-    ros::Publisher pubRaGoalPose;
-    ros::Publisher pubHdGoalPose;
+    ros::Publisher pubLaGoalQ;
+    ros::Publisher pubRaGoalQ;
+    ros::Publisher pubHdGoalQ;
     ros::Publisher pubLaGoalGrip;
     ros::Publisher pubRaGoalGrip;
+    ros::Subscriber subLaCurrentQ;
+    ros::Subscriber subRaCurrentQ;
     ros::ServiceClient cltLaInverseKinematics;
     ros::ServiceClient cltRaInverseKinematics;
+    ros::ServiceClient cltLaForwardKinematics;
+    ros::ServiceClient cltRaForwardKinematics;
     ros::ServiceClient cltFindLines;
     ros::ServiceClient cltTrainObject;
     ros::ServiceClient cltRecogObjects;
@@ -43,6 +49,10 @@ public:
     geometry_msgs::Twist cmd_vel;
     bool publishing_cmd_vel;
     bool gui_closed;
+    std::vector<float> la_current_q;
+    std::vector<float> ra_current_q;
+    std::vector<float> la_current_cartesian;
+    std::vector<float> ra_current_cartesian;
     
     void run();
     void setNodeHandle(ros::NodeHandle* nh);
@@ -58,8 +68,12 @@ public:
     void publish_la_grip_angles(float a);
     void publish_ra_grip_angles(float a);
     void publish_head_angles(float pan, float tilt);
+    void callback_la_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg);
+    void callback_ra_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg);
     bool call_la_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
     bool call_ra_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
+    bool call_la_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian);
+    bool call_ra_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian);
 
     bool call_find_lines();
     bool call_train_object(std::string name);
