@@ -323,7 +323,7 @@ std::vector<DetectedObject> ObjExtractor::GetObjectsInHorizontalPlanes(cv::Mat p
 
 bool ObjExtractor::TrainGripper(cv::Mat imageBGR)
 {
-	cv::Rect2d roi;
+    /*cv::Rect2d roi;
 	roi = cv::selectROI("Train Gripper",imageBGR,false ,false); 
 	cv::Mat imageHSV;
 	cv::cvtColor(imageBGR,imageHSV,CV_BGR2HSV);
@@ -378,7 +378,7 @@ bool ObjExtractor::TrainGripper(cv::Mat imageBGR)
 		cv::destroyWindow("Train Gripper");
 		return true;
 	}
-	cv::destroyWindow("Train Gripper");
+	cv::destroyWindow("Train Gripper");*/
 	return false;
 
 }
