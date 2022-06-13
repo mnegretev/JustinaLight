@@ -292,8 +292,8 @@ def main():
     get_model_info()
     rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematicsForPose, callback_la_ik_for_pose)
     rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematicsForPose, callback_ra_ik_for_pose)
-    rospy.Service("/manipulation/la_direct_kinematics", ForwardKinematics, callback_la_dk)
-    rospy.Service("/manipulation/ra_direct_kinematics", ForwardKinematics, callback_ra_dk)
+    rospy.Service("/manipulation/la_forward_kinematics", ForwardKinematics, callback_la_dk)
+    rospy.Service("/manipulation/ra_forward_kinematics", ForwardKinematics, callback_ra_dk)
     # Service that generates trajectory in Cartesian space
     rospy.Service("/manipulation/cartesian_traj", GetCartesianTrajectory, callback_trajectory_3d)
     # Service that resolves the IK for a distant point 

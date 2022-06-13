@@ -45,7 +45,7 @@ QRadioButton::indicator{
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="tabGeneral">
      <attribute name="title">
@@ -1194,7 +1194,7 @@ Person</string>
       <property name="title">
        <string>Left Arm Cartesian</string>
       </property>
-      <widget class="QLineEdit" name="txtLaCartesianGoal">
+      <widget class="QLineEdit" name="laTxtCartesianGoal">
        <property name="geometry">
         <rect>
          <x>50</x>
@@ -1217,7 +1217,7 @@ Person</string>
         <string>Goal:</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaXp">
+      <widget class="QPushButton" name="laBtnXp">
        <property name="geometry">
         <rect>
          <x>140</x>
@@ -1236,7 +1236,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaYp">
+      <widget class="QPushButton" name="laBtnYp">
        <property name="geometry">
         <rect>
          <x>80</x>
@@ -1255,7 +1255,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaXm">
+      <widget class="QPushButton" name="laBtnXm">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -1274,7 +1274,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaYm">
+      <widget class="QPushButton" name="laBtnYm">
        <property name="geometry">
         <rect>
          <x>80</x>
@@ -1293,7 +1293,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentX">
+      <widget class="QLabel" name="laLblCurrentX">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -1306,7 +1306,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaZp">
+      <widget class="QPushButton" name="laBtnZp">
        <property name="geometry">
         <rect>
          <x>220</x>
@@ -1325,7 +1325,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaZm">
+      <widget class="QPushButton" name="laBtnZm">
        <property name="geometry">
         <rect>
          <x>220</x>
@@ -1422,7 +1422,7 @@ Person</string>
         <string>P</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentY">
+      <widget class="QLabel" name="laLblCurrentY">
        <property name="geometry">
         <rect>
          <x>60</x>
@@ -1435,7 +1435,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentZ">
+      <widget class="QLabel" name="laLblCurrentZ">
        <property name="geometry">
         <rect>
          <x>110</x>
@@ -1448,7 +1448,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentRoll">
+      <widget class="QLabel" name="laLblCurrentRoll">
        <property name="geometry">
         <rect>
          <x>160</x>
@@ -1461,7 +1461,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentPitch">
+      <widget class="QLabel" name="laLblCurrentPitch">
        <property name="geometry">
         <rect>
          <x>210</x>
@@ -1474,7 +1474,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentYaw">
+      <widget class="QLabel" name="laLblCurrentYaw">
        <property name="geometry">
         <rect>
          <x>260</x>
@@ -1500,7 +1500,7 @@ Person</string>
         <string>Current:</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaRollp">
+      <widget class="QPushButton" name="laBtnRollp">
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -1519,7 +1519,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaRollm">
+      <widget class="QPushButton" name="laBtnRollm">
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -1538,7 +1538,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaPitchp">
+      <widget class="QPushButton" name="laBtnPitchp">
        <property name="geometry">
         <rect>
          <x>120</x>
@@ -1557,7 +1557,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaPitchm">
+      <widget class="QPushButton" name="laBtnPitchm">
        <property name="geometry">
         <rect>
          <x>120</x>
@@ -1576,7 +1576,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaYawp">
+      <widget class="QPushButton" name="laBtnYawp">
        <property name="geometry">
         <rect>
          <x>200</x>
@@ -1595,7 +1595,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLaYawm">
+      <widget class="QPushButton" name="laBtnYawm">
        <property name="geometry">
         <rect>
          <x>200</x>
@@ -1615,7 +1615,7 @@ Person</string>
        </property>
       </widget>
      </widget>
-     <widget class="QGroupBox" name="gbArticular">
+     <widget class="QGroupBox" name="laGbArticular">
       <property name="geometry">
        <rect>
         <x>310</x>
@@ -1883,7 +1883,7 @@ Person</string>
         <string>q3:</string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="txtLaArticularGoal">
+      <widget class="QLineEdit" name="laTxtArticularGoal">
        <property name="geometry">
         <rect>
          <x>50</x>
@@ -2012,7 +2012,7 @@ Person</string>
         <string>q3</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentQ6">
+      <widget class="QLabel" name="laLblCurrentQ6">
        <property name="geometry">
         <rect>
          <x>260</x>
@@ -2038,7 +2038,7 @@ Person</string>
         <string>q4</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentQ2">
+      <widget class="QLabel" name="laLblCurrentQ2">
        <property name="geometry">
         <rect>
          <x>60</x>
@@ -2051,7 +2051,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentQ4">
+      <widget class="QLabel" name="laLblCurrentQ4">
        <property name="geometry">
         <rect>
          <x>160</x>
@@ -2077,7 +2077,7 @@ Person</string>
         <string>q2</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentQ3">
+      <widget class="QLabel" name="laLblCurrentQ3">
        <property name="geometry">
         <rect>
          <x>110</x>
@@ -2090,7 +2090,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentQ1">
+      <widget class="QLabel" name="laLblCurrentQ1">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -2103,7 +2103,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentQ5">
+      <widget class="QLabel" name="laLblCurrentQ5">
        <property name="geometry">
         <rect>
          <x>210</x>
@@ -2129,7 +2129,7 @@ Person</string>
         <string>q6</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblLaCurrentQ7">
+      <widget class="QLabel" name="laLblCurrentQ7">
        <property name="geometry">
         <rect>
          <x>310</x>
@@ -2161,7 +2161,7 @@ Person</string>
      <attribute name="title">
       <string>Right Arm</string>
      </attribute>
-     <widget class="QGroupBox" name="gbArticular_2">
+     <widget class="QGroupBox" name="raGbArticular">
       <property name="geometry">
        <rect>
         <x>310</x>
@@ -2429,7 +2429,7 @@ Person</string>
         <string>q3:</string>
        </property>
       </widget>
-      <widget class="QLineEdit" name="txtRaArticularGoal">
+      <widget class="QLineEdit" name="raTxtArticularGoal">
        <property name="geometry">
         <rect>
          <x>50</x>
@@ -2558,7 +2558,7 @@ Person</string>
         <string>q3</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentQ6">
+      <widget class="QLabel" name="raLblCurrentQ6">
        <property name="geometry">
         <rect>
          <x>260</x>
@@ -2584,7 +2584,7 @@ Person</string>
         <string>q4</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentQ2">
+      <widget class="QLabel" name="raLblCurrentQ2">
        <property name="geometry">
         <rect>
          <x>60</x>
@@ -2597,7 +2597,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentQ4">
+      <widget class="QLabel" name="raLblCurrentQ4">
        <property name="geometry">
         <rect>
          <x>160</x>
@@ -2623,7 +2623,7 @@ Person</string>
         <string>q2</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentQ3">
+      <widget class="QLabel" name="raLblCurrentQ3">
        <property name="geometry">
         <rect>
          <x>110</x>
@@ -2636,7 +2636,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentQ1">
+      <widget class="QLabel" name="raLblCurrentQ1">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -2649,7 +2649,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentQ5">
+      <widget class="QLabel" name="raLblCurrentQ5">
        <property name="geometry">
         <rect>
          <x>210</x>
@@ -2675,7 +2675,7 @@ Person</string>
         <string>q6</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentQ7">
+      <widget class="QLabel" name="raLblCurrentQ7">
        <property name="geometry">
         <rect>
          <x>310</x>
@@ -2717,7 +2717,7 @@ Person</string>
       <property name="title">
        <string>Right Arm Cartesian</string>
       </property>
-      <widget class="QLineEdit" name="txtRaCartesianGoal">
+      <widget class="QLineEdit" name="raTxtCartesianGoal">
        <property name="geometry">
         <rect>
          <x>50</x>
@@ -2740,7 +2740,7 @@ Person</string>
         <string>Goal:</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaXp">
+      <widget class="QPushButton" name="raBtnXp">
        <property name="geometry">
         <rect>
          <x>140</x>
@@ -2759,7 +2759,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaYp">
+      <widget class="QPushButton" name="raBtnYp">
        <property name="geometry">
         <rect>
          <x>80</x>
@@ -2778,7 +2778,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaXm">
+      <widget class="QPushButton" name="raBtnXm">
        <property name="geometry">
         <rect>
          <x>20</x>
@@ -2797,7 +2797,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaYm">
+      <widget class="QPushButton" name="raBtnYm">
        <property name="geometry">
         <rect>
          <x>80</x>
@@ -2816,7 +2816,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentX">
+      <widget class="QLabel" name="raLblCurrentX">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -2829,7 +2829,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaZp">
+      <widget class="QPushButton" name="raBtnZp">
        <property name="geometry">
         <rect>
          <x>220</x>
@@ -2848,7 +2848,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaZm">
+      <widget class="QPushButton" name="raBtnZm">
        <property name="geometry">
         <rect>
          <x>220</x>
@@ -2945,7 +2945,7 @@ Person</string>
         <string>P</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentY">
+      <widget class="QLabel" name="raLblCurrentY">
        <property name="geometry">
         <rect>
          <x>60</x>
@@ -2958,7 +2958,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentZ">
+      <widget class="QLabel" name="raLblCurrentZ">
        <property name="geometry">
         <rect>
          <x>110</x>
@@ -2971,7 +2971,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentRoll">
+      <widget class="QLabel" name="raLblCurrentRoll">
        <property name="geometry">
         <rect>
          <x>160</x>
@@ -2984,7 +2984,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentPitch">
+      <widget class="QLabel" name="raLblCurrentPitch">
        <property name="geometry">
         <rect>
          <x>210</x>
@@ -2997,7 +2997,7 @@ Person</string>
         <string>0.000</string>
        </property>
       </widget>
-      <widget class="QLabel" name="lblRaCurrentYaw">
+      <widget class="QLabel" name="raLblCurrentYaw">
        <property name="geometry">
         <rect>
          <x>260</x>
@@ -3023,7 +3023,7 @@ Person</string>
         <string>Current:</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaRollp">
+      <widget class="QPushButton" name="raBtnRollp">
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -3042,7 +3042,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaRollm">
+      <widget class="QPushButton" name="raBtnRollm">
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -3061,7 +3061,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaPitchp">
+      <widget class="QPushButton" name="raBtnPitchp">
        <property name="geometry">
         <rect>
          <x>120</x>
@@ -3080,7 +3080,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaPitchm">
+      <widget class="QPushButton" name="raBtnPitchm">
        <property name="geometry">
         <rect>
          <x>120</x>
@@ -3099,7 +3099,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaYawp">
+      <widget class="QPushButton" name="raBtnYawp">
        <property name="geometry">
         <rect>
          <x>200</x>
@@ -3118,7 +3118,7 @@ Person</string>
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRaYawm">
+      <widget class="QPushButton" name="raBtnYawm">
        <property name="geometry">
         <rect>
          <x>200</x>

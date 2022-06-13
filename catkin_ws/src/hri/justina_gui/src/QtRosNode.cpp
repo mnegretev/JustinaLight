@@ -23,23 +23,23 @@ QtRosNode::~QtRosNode()
 void QtRosNode::run()
 {    
     ros::Rate loop(30);
-    pubCmdVel     = n->advertise<geometry_msgs::Twist>("/cmd_vel", 10);
-    pubTorso      = n->advertise<std_msgs::Float64>("/torso_controller/command", 10);
-    pubLaGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/left_arm/goal_pose", 10);
-    pubRaGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/right_arm/goal_pose", 10);
-    pubHdGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/head/goal_pose", 10);
-    pubLaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/left_arm/goal_gripper", 10);
-    pubRaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/right_arm/goal_gripper", 10);
+    pubCmdVel     = n->advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    pubTorso      = n->advertise<std_msgs::Float64>("/torso_controller/command", 1);
+    pubLaGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/left_arm/goal_pose", 1);
+    pubRaGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/right_arm/goal_pose", 1);
+    pubHdGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/head/goal_pose", 1);
+    pubLaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/left_arm/goal_gripper", 1);
+    pubRaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/right_arm/goal_gripper", 1);
     subLaCurrentQ = n->subscribe("/hardware/left_arm/current_pose" , 1, &QtRosNode::callback_la_current_q, this);
     subRaCurrentQ = n->subscribe("/hardware/right_arm/current_pose", 1, &QtRosNode::callback_ra_current_q, this);
-    cltLaInverseKinematics = n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/la_inverse_kinematics");
-    cltRaInverseKinematics = n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/ra_inverse_kinematics");
-    cltLaForwardKinematics = n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/la_forward_kinematics");
-    cltRaForwardKinematics = n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/ra_forward_kinematics");
-    cltFindLines           = n->serviceClient<vision_msgs::FindLines>       ("/vision/line_finder/find_lines_ransac");
-    cltTrainObject         = n->serviceClient<vision_msgs::TrainObject>     ("/vision/obj_reco/train_object");
-    cltRecogObjects        = n->serviceClient<vision_msgs::RecognizeObjects>("/vision/obj_reco/recognize_objects");
-    cltRecogObject         = n->serviceClient<vision_msgs::RecognizeObject >("/vision/obj_reco/recognize_object");
+    cltLaInverseKinematics=n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/la_inverse_kinematics");
+    cltRaInverseKinematics=n->serviceClient<manip_msgs::InverseKinematicsForPose>("/manipulation/ra_inverse_kinematics");
+    cltLaForwardKinematics=n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/la_forward_kinematics");
+    cltRaForwardKinematics=n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/ra_forward_kinematics");
+    cltFindLines          =n->serviceClient<vision_msgs::FindLines>       ("/vision/line_finder/find_lines_ransac");
+    cltTrainObject        =n->serviceClient<vision_msgs::TrainObject>     ("/vision/obj_reco/train_object");
+    cltRecogObjects       =n->serviceClient<vision_msgs::RecognizeObjects>("/vision/obj_reco/recognize_objects");
+    cltRecogObject        =n->serviceClient<vision_msgs::RecognizeObject >("/vision/obj_reco/recognize_object");
     int pub_zero_counter = 5;
     while(ros::ok() && !this->gui_closed)
     {
