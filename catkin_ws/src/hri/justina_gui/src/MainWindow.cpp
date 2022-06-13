@@ -55,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->laTxtAngles7, SIGNAL(valueChanged(double)), this, SLOT(laSbAnglesValueChanged(double)));
     QObject::connect(ui->laTxtAnglesG, SIGNAL(valueChanged(double)), this, SLOT(laSbGripperValueChanged(double)));
     QObject::connect(ui->laTxtArticularGoal, SIGNAL(returnPressed()), this, SLOT(laTxtArticularGoalReturnPressed()));
+    QObject::connect(ui->laTxtCartesianGoal, SIGNAL(returnPressed()), this, SLOT(laTxtCartesianGoalReturnPressed()));
 
     QObject::connect(ui->raBtnXp    , SIGNAL(clicked()), this, SLOT(raBtnXpPressed()));
     QObject::connect(ui->raBtnXm    , SIGNAL(clicked()), this, SLOT(raBtnXmPressed()));
@@ -77,6 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->raTxtAngles7, SIGNAL(valueChanged(double)), this, SLOT(raSbAnglesValueChanged(double)));
     QObject::connect(ui->raTxtAnglesG, SIGNAL(valueChanged(double)), this, SLOT(raSbGripperValueChanged(double)));
     QObject::connect(ui->raTxtArticularGoal, SIGNAL(returnPressed()), this, SLOT(raTxtArticularGoalReturnPressed()));
+    QObject::connect(ui->raTxtCartesianGoal, SIGNAL(returnPressed()), this, SLOT(raTxtCartesianGoalReturnPressed()));
     
     QObject::connect(ui->hdTxtPan, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
     QObject::connect(ui->hdTxtTilt, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
@@ -501,33 +503,16 @@ void MainWindow::laTxtArticularGoalReturnPressed()
 void MainWindow::laTxtCartesianGoalReturnPressed()
 {
     std::vector<std::string> parts;
-    std::vector<float> q = qtRosNode->ra_current_q;
-    std::string str = this->ui->raTxtArticularGoal->text().toStdString();
-    
-    YAML::Node yaml_node = yamlParser->nodeRaPredefined[str];
-    if(yaml_node)
-        for(int i=0; i<7;  i++)
-            q[i] = yaml_node[i].as<float>();
-    else
+    std::string str = this->ui->laTxtCartesianGoal->text().toStdString();
+    boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
+    std::vector<float> cartesian = qtRosNode->la_current_cartesian;
+    for(size_t i=0; i < parts.size() && i < 6; i++)
     {
-        boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
-        for(size_t i=0; i < parts.size() && i < 7; i++)
-        {
-            std::stringstream ss(parts[i]);
-            if(!(ss >> q[i]))
-                q[i] = qtRosNode->ra_current_q[i];
-        }
+        std::stringstream ss(parts[i]);
+        if(!(ss >> cartesian[i]))
+            cartesian[i] = qtRosNode->la_current_cartesian[i];
     }
-    ui->raGbArticular->setEnabled(false);
-    ui->raTxtAngles1->setValue(q[0]);
-    ui->raTxtAngles2->setValue(q[1]);
-    ui->raTxtAngles3->setValue(q[2]);
-    ui->raTxtAngles4->setValue(q[3]);
-    ui->raTxtAngles5->setValue(q[4]);
-    ui->raTxtAngles6->setValue(q[5]);
-    ui->raTxtAngles7->setValue(q[6]);
-    ui->raGbArticular->setEnabled(true);
-    qtRosNode->publish_ra_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+    la_get_IK_and_update_ui(cartesian);
 }
 
 /*
@@ -622,7 +607,7 @@ void MainWindow::ra_get_IK_and_update_ui(std::vector<float> cartesian)
     std::vector<float> q = qtRosNode->ra_current_q;
     if(!qtRosNode->call_ra_inverse_kinematics(cartesian, q))
     {
-        std::cout << "SimpleGUI.->Cannot calculate inverse kinematics for left arm." << std::endl;
+        std::cout << "JustinaGUI.->Cannot calculate inverse kinematics for right arm." << std::endl;
         return;
     }
     ui->raGbArticular->setEnabled(false);
