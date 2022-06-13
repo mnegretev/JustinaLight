@@ -288,15 +288,15 @@ def main():
     print("INITIALIZING INVERSE KINEMATIC NODE BY MARCOSOFT...")
     rospy.init_node("ik_geometric")
     get_model_info()
-    rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematicsForPose, callback_la_ik_for_pose)
-    rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematicsForPose, callback_ra_ik_for_pose)
+    #rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematicsForPose, callback_la_ik_for_pose)
+    #rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematicsForPose, callback_ra_ik_for_pose)
     rospy.Service("/manipulation/la_forward_kinematics", ForwardKinematics, callback_la_dk)
     rospy.Service("/manipulation/ra_forward_kinematics", ForwardKinematics, callback_ra_dk)
     # Service that generates trajectory in Cartesian space
     rospy.Service("/manipulation/cartesian_traj", GetCartesianTrajectory, callback_trajectory_3d)
     # Service that resolves the IK for a distant point 
-    rospy.Service("/manipulation/LA_inverse_kinematics", InverseKinematics, callback_LA_ik_for_trajectory)
-    rospy.Service("/manipulation/RA_inverse_kinematics", InverseKinematics, callback_RA_ik_for_trajectory)
+    rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematics, callback_LA_ik_for_trajectory)
+    rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematics, callback_RA_ik_for_trajectory)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         jacobian_3x7

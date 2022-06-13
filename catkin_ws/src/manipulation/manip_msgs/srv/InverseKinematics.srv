@@ -15,3 +15,7 @@ trajectory_msgs/JointTrajectory articular_trajectory
 
 #If goal pose is out of the workspace, a false should be returned when service is called.
 #Reachability of a given position can be determined by trying to calculate its inverse kinematics
+
+#If roll, pitch or yaw are NaN, the IK method is supposed to ignore such restriction, e.g., if
+#yaw is NaN, then the arm will try to reach the given xyz, roll and pitch, with the
+#necessary yaw to reach such configuration. 

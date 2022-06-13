@@ -10,6 +10,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/GetPlan.h"
 #include "sensor_msgs/PointCloud2.h"
+#include "trajectory_msgs/JointTrajectory.h"
 #include "tf/transform_listener.h"
 #include "manip_msgs/InverseKinematicsForPose.h"
 #include "manip_msgs/InverseKinematics.h"
