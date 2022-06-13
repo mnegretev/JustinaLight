@@ -85,7 +85,7 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm,q = numpy.asarray([
         iterations +=1
         
     if iterations < 20 and angles_in_joint_limits(q, arm):
-        print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q))
+        #print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q))
         return q
     else:
         print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
@@ -98,7 +98,7 @@ def inverse_kinematics_xyz(x, y, z, arm,q):
     p  = direct_kinematics(q, arm)
     iterations = 0
     q_J3x7 = [qi for qi in q]
-    print("Estimacion inicial: " + str(q_J3x7))
+    #print("Estimacion inicial: " + str(q_J3x7))
     err_xyz = p[0:3]-pd[0:3]
     while numpy.linalg.norm(err_xyz) > 0.00001 and iterations < 20:
         J_3x7 = jacobian_3x7(q, arm)
@@ -109,7 +109,7 @@ def inverse_kinematics_xyz(x, y, z, arm,q):
         iterations +=1
         
     if iterations < 20 and angles_in_joint_limits(q_J3x7, arm):
-        print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q_J3x7))
+        #print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q_J3x7))
         return q_J3x7
     else:
         print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
@@ -120,7 +120,7 @@ tm = 0.05   # sampling time
 
 def calcula_tray(tt, pi, pf, vi, vf, ai, af):  # Calculate 5th order polynomial for one variable
     tm = 0.1
-    print("sampling time tm: ",tm)
+    #print("sampling time tm: ",tm)
     for p in range(0,len(tt)-1):
         # Time range in which the polynomial is evaluated
         t=numpy.arange(tt[p],tt[p+1],tm)
@@ -143,7 +143,7 @@ def calcula_tray(tt, pi, pf, vi, vf, ai, af):  # Calculate 5th order polynomial 
         xvel = a[1][0]*c +2*a[2][0]*t +3*a[3][0]*t**2 +4*a[4][0]*t**3 +5*a[5][0]*t**4
         xacel = 2*a[2][0]*c + 6*a[3][0]*t +12*a[4][0]*t**2 +20*a[5][0]*t**3
     
-    print("number of points", len(xpos))
+    #print("number of points", len(xpos))
 
     return [t, xpos, xvel, xacel]
 
@@ -194,16 +194,14 @@ def callback_trajectory_q(req, arm, q_estim):  # Trajectory in joint space: rece
     qs = numpy.empty(0)
     # Form the first estimate with current position
     n_p = len(req.points)   # Number of points on the path
-    print("numero de puntos traj*****", n_p)
+    #print("numero de puntos traj*****", n_p)
     # Form the successive guesses with the point before the target
     i = 0
     for i in range(n_p):
         q_obt = inverse_kinematics_xyz(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], arm,q_estim)
         qs = numpy.append(qs, [q_obt]) 
-        print("Q obt type: " + str(type(q_obt)))
-        print("Q obt: " +  str(q_obt))
         q_estim = q_obt  # Update the estimate
-        print("punto q#",i)
+        #print("punto q#",i)
     
     qs = numpy.reshape(qs, (n_p,7)) # Resize the array
     traj_q = JointTrajectory()    #trajectory with points in joint space
@@ -228,7 +226,6 @@ def callback_LA_ik_for_trajectory(req):
     tt = numpy.array([0,t])
     pi = direct_kinematics(init_estim, 'left')
     pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
-    print("Punto final xyz", pf)
     vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
@@ -240,12 +237,11 @@ def callback_LA_ik_for_trajectory(req):
 
 def callback_RA_ik_for_trajectory(req):
 
-    init_estim = rospy.wait_for_message("/hardware/right_arm/current_pose", Float32MultiArray, rospy.Duration(0.5))
+    init_estim = rospy.wait_for_message("/hardware/right_arm/current_pose", Float32MultiArray, 0.5)
     init_estim = init_estim.data
     tt = numpy.array([0,t])
     pi = direct_kinematics(init_estim, 'right')
     pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
-    print("Punto final xyz", pf)
     vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
