@@ -223,7 +223,7 @@ def callback_trajectory_q(req, arm, q_estim):  # Trajectory in joint space: rece
 
 def callback_LA_ik_for_trajectory(req):
     
-    init_estim = rospy.wait_for_message("/hardware/left_arm/current_pose", Float32MultiArray, rospy.Duration(0.5))
+    init_estim = rospy.wait_for_message("/hardware/left_arm/current_pose", Float32MultiArray, 5.0)
     init_estim = init_estim.data
     tt = numpy.array([0,t])
     pi = direct_kinematics(init_estim, 'left')
