@@ -93,13 +93,12 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm,q = numpy.asarray([
 
 
 
-def inverse_kinematics_xyz(x, y, z,roll, pitch, yaw , arm,q):
-    pd = numpy.asarray([x,y,z,roll,pitch,yaw])
+def inverse_kinematics_xyz(x, y, z, arm,q):
+    pd = numpy.asarray([x,y,z])
     p  = direct_kinematics(q, arm)
     iterations = 0
     q_J3x7 = [qi for qi in q]
     print("Estimacion inicial: " + str(q_J3x7))
-    #
     err_xyz = p[0:3]-pd[0:3]
     while numpy.linalg.norm(err_xyz) > 0.00001 and iterations < 20:
         J_3x7 = jacobian_3x7(q, arm)
@@ -115,8 +114,6 @@ def inverse_kinematics_xyz(x, y, z,roll, pitch, yaw , arm,q):
     else:
         print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
         return False
-
-
 
 t = 5       # trajectory time
 tm = 0.05   # sampling time
@@ -178,12 +175,13 @@ def callback_trajectory_3d(req):
     angles1 = tft.euler_from_quaternion([req.p1.orientation.x , req.p1.orientation.y ,req.p1.orientation.z, req.p1.orientation.w])
     angles2 = tft.euler_from_quaternion([req.p2.orientation.x , req.p2.orientation.y ,req.p2.orientation.z, req.p2.orientation.w])
     ang1, ang2 = list(angles1), list(angles2)
+    t = req.t
     tt = numpy.array([0,t])
-    pii = [req.p1.position.x, req.p1.position.y, req.p1.position.z, ang1[0], ang1[1], ang1[2]]
+    pi = [req.p1.position.x, req.p1.position.y, req.p1.position.z, ang1[0], ang1[1], ang1[2]]
     pf = [req.p2.position.x, req.p2.position.y, req.p2.position.z, ang2[0], ang2[1], ang2[2]]
     vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    c_tr = cartesian_traj(tt, pii, pf, vi, vf, ai, af)
+    c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
     resp = GetCartesianTrajectoryResponse()
     resp.trajectory = c_tr
 	
@@ -200,7 +198,7 @@ def callback_trajectory_q(req, arm, q_estim):  # Trajectory in joint space: rece
     # Form the successive guesses with the point before the target
     i = 0
     for i in range(n_p):
-        q_obt = inverse_kinematics_xyz(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], req.points[i].positions[3], req.points[i].positions[4], req.points[i].positions[5], arm,q_estim)
+        q_obt = inverse_kinematics_xyz(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], arm,q_estim)
         qs = numpy.append(qs, [q_obt]) 
         print("Q obt type: " + str(type(q_obt)))
         print("Q obt: " +  str(q_obt))
