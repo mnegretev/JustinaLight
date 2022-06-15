@@ -11,7 +11,7 @@ from manip_msgs.srv import *
 from tf.transformations import euler_from_quaternion
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
-
+global joint_traj_msg
 
 def get_model_info():
     global joints, transforms
@@ -85,7 +85,7 @@ def inverse_kinematics_xyzrpy(x, y, z, roll, pitch, yaw, arm,q = numpy.asarray([
         iterations +=1
         
     if iterations < 20 and angles_in_joint_limits(q, arm):
-        #print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q))
+        print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q))
         return q
     else:
         print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
@@ -109,7 +109,7 @@ def inverse_kinematics_xyz(x, y, z, arm,q):
         iterations +=1
         
     if iterations < 20 and angles_in_joint_limits(q_J3x7, arm):
-        #print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q_J3x7))
+        print("InverseKinematics.->IK for " + arm + " arm solved after " + str(iterations) + " iterations: " + str(q_J3x7))
         return q_J3x7
     else:
         print("InverseKinematics.->Cannot solve IK for " + arm + " arm. Max attempts exceeded. ")
@@ -220,7 +220,7 @@ def callback_trajectory_q(req, arm, q_estim):  # Trajectory in joint space: rece
 
 
 def callback_LA_ik_for_trajectory(req):
-    
+    #if req.roll  is nan and req.pitch is nan and req.yaw is nan
     init_estim = rospy.wait_for_message("/hardware/left_arm/current_pose", Float32MultiArray, 5.0)
     init_estim = init_estim.data
     tt = numpy.array([0,t])
@@ -232,6 +232,10 @@ def callback_LA_ik_for_trajectory(req):
     traj_q = callback_trajectory_q(c_tr, 'left',init_estim)
     resp = InverseKinematicsResponse()
     resp = traj_q
+    #global joint_traj_msg
+    joint_traj_msg = JointTrajectory()
+    joint_traj_msg = traj_q
+    la_joint_traj_pub.publish(joint_traj_msg)
 
     return resp
 
@@ -293,10 +297,13 @@ def main():
     # Service that resolves the IK for a distant point 
     rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematics, callback_LA_ik_for_trajectory)
     rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematics, callback_RA_ik_for_trajectory)
+    global la_joint_traj_pub
+    # Every time the inverse kinematics service is called, it will publish the joint trajectory in the topic 
+    la_joint_traj_pub = rospy.Publisher("/manipulation/la_q_trajectory",JointTrajectory, queue_size=10)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         jacobian_3x7
-
+        #la_joint_traj_pub.publish(joint_traj_msg)
         loop.sleep()
 
 if __name__ == '__main__':
