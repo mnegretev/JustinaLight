@@ -9,7 +9,7 @@ import tf
 import math
 import time
 from std_msgs.msg import Float32, Float32MultiArray
-from geometry_msgs.msg import PoseStamped, PointStamped
+from geometry_msgs.msg import PoseStamped, PointStamped, Point
 from nav_msgs.msg import Path
 from nav_msgs.srv import GetPlan, GetPlanRequest
 from sensor_msgs.msg import PointCloud2
@@ -33,7 +33,7 @@ def callback_navigation_status(msg):
 def parse_command(cmd):
     obj_options = ['JUICE', 'CUP', 'DEODORANT', 'SOAP']
     loc_options = ['LIVINGROOM', 'KITCHEN']
-    locations   = {'LIVINGROOM':[5.04, 2.42, 1.5708], 'KITCHEN':[9.58, 2.73, 0]}
+    locations   = {'LIVINGROOM':[8.82, 2.28, 3.1415], 'KITCHEN':[9.48, 2.73, 0]}
     obj = ""
     loc = ""
     for o in obj_options:
@@ -101,7 +101,7 @@ def say(text):
     msg.sound   = -3
     msg.command = 1
     msg.volume  = 1.0
-    msg.arg2    = "voice_kal_diphone"
+    msg.arg2    = "voice_us1_mbrola"
     msg.arg = text
     pubSay.publish(msg)
 
@@ -168,9 +168,19 @@ def main():
         elif current_state == "SM_FIND_OBJECT":
             print("Trying to find object: " + requested_object)
             req_find_object = RecognizeObjectRequest()
-            req_find_object.point_cloud = rospy.wait_for_message("/hardware/kinect/rgbd_wrt_kinect", PointCloud2)
+            #req_find_object.point_cloud = rospy.wait_for_message("/hardware/kinect/rgbd_wrt_kinect", PointCloud2)
             req_find_object.name  = requested_object
-            recog_object_position = clt_find_object(req_find_object).recog_object.pose.position
+            #try:
+            #recog_object_position = clt_find_object(req_find_object).recog_object.pose.position
+            recog_object_position = None
+            #except:
+            
+            if recog_object_position == None:
+                recog_object_position = Point()
+                recog_object_position.x = 0.4
+                recog_object_position.y = 0.3
+                recog_object_position.z = 0.82
+            
             print("Object found at: " + str([recog_object_position.x, recog_object_position.y, recog_object_position.z]))
             current_state = "SM_INVERSE_KINEMATICS"
             

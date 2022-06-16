@@ -46,7 +46,7 @@ void callbackArmGoalPose(const std_msgs::Float32MultiArray::ConstPtr &msg){
             goalPos[5] = int( ((msg->data[5] <= -1.7 ? -1.7 : msg->data[5]) /(360.0/4095.0*M_PI/180.0)) + zero_arm[5]);
             goalPos[6] = int(-(msg->data[6]/(360.0/4095.0*M_PI/180.0)) + zero_arm[6]);
             for(int i = 0; i < 7; i++)
-                goalSpeeds[i] = 100;
+                goalSpeeds[i] = 40;
             // std::cout << "left_arm_node.->goalPose[0]:" << goalPos[0] << std::endl;
             if(msg->data.size() == 14){
 	      for(int i = 7; i < 14; i++){

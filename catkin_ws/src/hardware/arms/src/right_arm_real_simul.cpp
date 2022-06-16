@@ -18,7 +18,8 @@ float goalPos_simul[7] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 float goalSpeeds_simul[7] = {0.1, 0.1, 0.1, 0.1,};
 float goalGripper_simul = 0.0;
 
-int zero_arm[7] = {1402, 1546, 1893, 1862, 2024, 2295, 1922};
+int zero_arm[7] = {1402, 1546, 1893, 2239, 2024, 2295, 1922};
+// ID3=1862
 // int zero_gripper[2] = {1200, 395}; // To the old Gripper
 int zero_gripper[2] = {1506, 500}; // To new Gripper
 

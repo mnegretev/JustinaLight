@@ -32,6 +32,7 @@ public:
     void setRosNode(QtRosNode* qtRosNode);
     void setYamlParser(YamlParser* yamlParser);
     void closeEvent(QCloseEvent *event);
+    void initArmsGuiElements(std_msgs::Float32MultiArray la_q0, std_msgs::Float32MultiArray ra_q0);
 
 public slots:
     //Slots for signals emitted in the QtRosNode (e.g. a topic is received)
@@ -51,12 +52,43 @@ public slots:
     void navBtnExecPath_pressed();
 
     void torSbPosValueChanged(double d);
+    
     void laSbAnglesValueChanged(double d);
-    void raSbAnglesValueChanged(double d);
-    void laTxtPredefinedReturnPressed();
-    void raTxtPredefinedReturnPressed();
     void laSbGripperValueChanged(double d);
+    void laTxtArticularGoalReturnPressed();
+    void laTxtCartesianGoalReturnPressed();
+    void laBtnXpPressed();
+    void laBtnXmPressed();
+    void laBtnYpPressed();
+    void laBtnYmPressed();
+    void laBtnZpPressed();
+    void laBtnZmPressed();
+    void laBtnRollpPressed();
+    void laBtnRollmPressed();
+    void laBtnPitchpPressed();
+    void laBtnPitchmPressed();
+    void laBtnYawpPressed();
+    void laBtnYawmPressed();
+    void la_get_IK_and_update_ui(std::vector<float> cartesian);
+    
+    void raSbAnglesValueChanged(double d);
     void raSbGripperValueChanged(double d);
+    void raTxtArticularGoalReturnPressed();
+    void raTxtCartesianGoalReturnPressed();
+    void raBtnXpPressed();
+    void raBtnXmPressed();
+    void raBtnYpPressed();
+    void raBtnYmPressed();
+    void raBtnZpPressed();
+    void raBtnZmPressed();
+    void raBtnRollpPressed();
+    void raBtnRollmPressed();
+    void raBtnPitchpPressed();
+    void raBtnPitchmPressed();
+    void raBtnYawpPressed();
+    void raBtnYawmPressed();
+    void ra_get_IK_and_update_ui(std::vector<float> cartesian);
+
     void hdSbHeadValueChanged(double d);
 
     void visFindLinesClicked();

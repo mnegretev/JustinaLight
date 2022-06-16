@@ -19,8 +19,8 @@
   </node>
   
   <node name="simple_move"  pkg="simple_move"  type="simple_move_node"  output="screen">
-    <param name="max_linear_speed" value="0.5"/>
-    <param name="max_angular_speed" value="0.8"/>
+    <param name="max_linear_speed" value="0.8"/>
+    <param name="max_angular_speed" value="1.5"/>
     <param name="control_alpha" value="0.4"/>
     <param name="control_beta" value="0.15"/>
   </node>

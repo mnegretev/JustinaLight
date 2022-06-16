@@ -10,8 +10,11 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/GetPlan.h"
 #include "sensor_msgs/PointCloud2.h"
+#include "trajectory_msgs/JointTrajectory.h"
 #include "tf/transform_listener.h"
 #include "manip_msgs/InverseKinematicsForPose.h"
+#include "manip_msgs/InverseKinematics.h"
+#include "manip_msgs/ForwardKinematics.h"
 #include "vision_msgs/FindLines.h"
 #include "vision_msgs/TrainObject.h"
 #include "vision_msgs/RecognizeObjects.h"
@@ -27,13 +30,19 @@ public:
     ros::NodeHandle* n;
     ros::Publisher pubCmdVel;
     ros::Publisher pubTorso;
-    ros::Publisher pubLaGoalPose;
-    ros::Publisher pubRaGoalPose;
-    ros::Publisher pubHdGoalPose;
+    ros::Publisher pubLaGoalQ;
+    ros::Publisher pubRaGoalQ;
+    ros::Publisher pubLaGoalTraj;
+    ros::Publisher pubRaGoalTraj;
+    ros::Publisher pubHdGoalQ;
     ros::Publisher pubLaGoalGrip;
     ros::Publisher pubRaGoalGrip;
+    ros::Subscriber subLaCurrentQ;
+    ros::Subscriber subRaCurrentQ;
     ros::ServiceClient cltLaInverseKinematics;
     ros::ServiceClient cltRaInverseKinematics;
+    ros::ServiceClient cltLaForwardKinematics;
+    ros::ServiceClient cltRaForwardKinematics;
     ros::ServiceClient cltFindLines;
     ros::ServiceClient cltTrainObject;
     ros::ServiceClient cltRecogObjects;
@@ -43,6 +52,10 @@ public:
     geometry_msgs::Twist cmd_vel;
     bool publishing_cmd_vel;
     bool gui_closed;
+    std::vector<float> la_current_q;
+    std::vector<float> ra_current_q;
+    std::vector<float> la_current_cartesian;
+    std::vector<float> ra_current_cartesian;
     
     void run();
     void setNodeHandle(ros::NodeHandle* nh);
@@ -55,11 +68,17 @@ public:
     void publish_torso_position(float tr);
     void publish_la_goal_angles(float a1, float a2, float a3, float a4, float a5, float a6, float a7);
     void publish_ra_goal_angles(float a1, float a2, float a3, float a4, float a5, float a6, float a7);
+    void publish_la_goal_trajectory(trajectory_msgs::JointTrajectory Q);
+    void publish_ra_goal_trajectory(trajectory_msgs::JointTrajectory Q);
     void publish_la_grip_angles(float a);
     void publish_ra_grip_angles(float a);
     void publish_head_angles(float pan, float tilt);
-    bool call_la_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
-    bool call_ra_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
+    void callback_la_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg);
+    void callback_ra_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg);
+    bool call_la_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
+    bool call_ra_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
+    bool call_la_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian);
+    bool call_ra_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian);
 
     bool call_find_lines();
     bool call_train_object(std::string name);
