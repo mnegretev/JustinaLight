@@ -32,6 +32,8 @@ public:
     ros::Publisher pubTorso;
     ros::Publisher pubLaGoalQ;
     ros::Publisher pubRaGoalQ;
+    ros::Publisher pubLaGoalTraj;
+    ros::Publisher pubRaGoalTraj;
     ros::Publisher pubHdGoalQ;
     ros::Publisher pubLaGoalGrip;
     ros::Publisher pubRaGoalGrip;
@@ -66,13 +68,15 @@ public:
     void publish_torso_position(float tr);
     void publish_la_goal_angles(float a1, float a2, float a3, float a4, float a5, float a6, float a7);
     void publish_ra_goal_angles(float a1, float a2, float a3, float a4, float a5, float a6, float a7);
+    void publish_la_goal_trajectory(trajectory_msgs::JointTrajectory Q);
+    void publish_ra_goal_trajectory(trajectory_msgs::JointTrajectory Q);
     void publish_la_grip_angles(float a);
     void publish_ra_grip_angles(float a);
     void publish_head_angles(float pan, float tilt);
     void callback_la_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg);
     void callback_ra_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg);
-    bool call_la_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
-    bool call_ra_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular);
+    bool call_la_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
+    bool call_ra_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
     bool call_la_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian);
     bool call_ra_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian);
 

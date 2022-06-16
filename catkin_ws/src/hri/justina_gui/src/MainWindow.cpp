@@ -438,12 +438,16 @@ void MainWindow::laBtnYawmPressed()
 
 void MainWindow::la_get_IK_and_update_ui(std::vector<float> cartesian)
 {
-    std::vector<float> q = qtRosNode->la_current_q;
-    if(!qtRosNode->call_la_inverse_kinematics(cartesian, q))
+    trajectory_msgs::JointTrajectory Q;
+    if(!qtRosNode->call_la_inverse_kinematics(cartesian, Q))
     {
         std::cout << "JustinaGUI.->Cannot calculate inverse kinematics for left arm." << std::endl;
         return;
     }
+    std::vector<float> q;
+    q.resize(7);
+    for(int i=0; i<7; i++)
+        q[i] = Q.points[Q.points.size() - 1].positions[i];
     ui->laGbArticular->setEnabled(false);
     ui->laTxtAngles1->setValue(q[0]);
     ui->laTxtAngles2->setValue(q[1]);
@@ -453,19 +457,22 @@ void MainWindow::la_get_IK_and_update_ui(std::vector<float> cartesian)
     ui->laTxtAngles6->setValue(q[5]);
     ui->laTxtAngles7->setValue(q[6]);
     ui->laGbArticular->setEnabled(true);
-    qtRosNode->publish_la_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+    //qtRosNode->publish_la_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+    qtRosNode->publish_la_goal_trajectory(Q);
 }
 
 void MainWindow::laSbAnglesValueChanged(double d)
 {
-    qtRosNode->publish_la_goal_angles(ui->laTxtAngles1->value(), ui->laTxtAngles2->value(), ui->laTxtAngles3->value(),
-                                      ui->laTxtAngles4->value(), ui->laTxtAngles5->value(), ui->laTxtAngles6->value(),
-                                      ui->laTxtAngles7->value());
+    if(ui->laGbArticular->isEnabled())
+        qtRosNode->publish_la_goal_angles(ui->laTxtAngles1->value(), ui->laTxtAngles2->value(), ui->laTxtAngles3->value(),
+                                          ui->laTxtAngles4->value(), ui->laTxtAngles5->value(), ui->laTxtAngles6->value(),
+                                          ui->laTxtAngles7->value());
 }
 
 void MainWindow::laSbGripperValueChanged(double d)
 {
-    qtRosNode->publish_la_grip_angles(ui->laTxtAnglesG->value()); 
+    if(ui->laGbArticular->isEnabled())
+        qtRosNode->publish_la_grip_angles(ui->laTxtAnglesG->value()); 
 }
 
 void MainWindow::laTxtArticularGoalReturnPressed()
@@ -604,12 +611,16 @@ void MainWindow::raBtnYawmPressed()
 
 void MainWindow::ra_get_IK_and_update_ui(std::vector<float> cartesian)
 {
-    std::vector<float> q = qtRosNode->ra_current_q;
-    if(!qtRosNode->call_ra_inverse_kinematics(cartesian, q))
+    trajectory_msgs::JointTrajectory Q;
+    if(!qtRosNode->call_ra_inverse_kinematics(cartesian, Q))
     {
         std::cout << "JustinaGUI.->Cannot calculate inverse kinematics for right arm." << std::endl;
         return;
     }
+    std::vector<float> q;
+    q.resize(7);
+    for(int i=0; i<7; i++)
+        q[i] = Q.points[Q.points.size()-1].positions[i];
     ui->raGbArticular->setEnabled(false);
     ui->raTxtAngles1->setValue(q[0]);
     ui->raTxtAngles2->setValue(q[1]);
@@ -619,33 +630,45 @@ void MainWindow::ra_get_IK_and_update_ui(std::vector<float> cartesian)
     ui->raTxtAngles6->setValue(q[5]);
     ui->raTxtAngles7->setValue(q[6]);
     ui->raGbArticular->setEnabled(true);
-    qtRosNode->publish_ra_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+    //qtRosNode->publish_ra_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+    qtRosNode->publish_ra_goal_trajectory(Q);
 }
 
 void MainWindow::raSbAnglesValueChanged(double d)
 {
-    qtRosNode->publish_ra_goal_angles(ui->raTxtAngles1->value(), ui->raTxtAngles2->value(), ui->raTxtAngles3->value(),
-                                      ui->raTxtAngles4->value(), ui->raTxtAngles5->value(), ui->raTxtAngles6->value(),
-                                      ui->raTxtAngles7->value());
+    if(ui->raGbArticular->isEnabled())
+        qtRosNode->publish_ra_goal_angles(ui->raTxtAngles1->value(), ui->raTxtAngles2->value(), ui->raTxtAngles3->value(),
+                                          ui->raTxtAngles4->value(), ui->raTxtAngles5->value(), ui->raTxtAngles6->value(),
+                                          ui->raTxtAngles7->value());
 }
 
 void MainWindow::raSbGripperValueChanged(double d)
 {
-    qtRosNode->publish_ra_grip_angles(ui->raTxtAnglesG->value()); 
+    if(ui->raGbArticular->isEnabled())
+        qtRosNode->publish_ra_grip_angles(ui->raTxtAnglesG->value()); 
 }
 
 void MainWindow::raTxtArticularGoalReturnPressed()
 {
     std::vector<std::string> parts;
-    std::string str = this->ui->raTxtArticularGoal->text().toStdString();
-    boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
     std::vector<float> q = qtRosNode->ra_current_q;
-    for(size_t i=0; i < parts.size() && i < 7; i++)
+    std::string str = this->ui->raTxtArticularGoal->text().toStdString();
+    
+    YAML::Node yaml_node = yamlParser->nodeRaPredefined[str];
+    if(yaml_node)
+        for(int i=0; i<7;  i++)
+            q[i] = yaml_node[i].as<float>();
+    else
     {
-        std::stringstream ss(parts[i]);
-        if(!(ss >> q[i]))
-            q[i] = qtRosNode->ra_current_q[i];
+        boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
+        for(size_t i=0; i < parts.size() && i < 7; i++)
+        {
+            std::stringstream ss(parts[i]);
+            if(!(ss >> q[i]))
+                q[i] = qtRosNode->ra_current_q[i];
+        }
     }
+    
     ui->raGbArticular->setEnabled(false);
     ui->raTxtAngles1->setValue(q[0]);
     ui->raTxtAngles2->setValue(q[1]);

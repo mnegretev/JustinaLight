@@ -27,6 +27,8 @@ void QtRosNode::run()
     pubTorso      = n->advertise<std_msgs::Float64>("/torso_controller/command", 1);
     pubLaGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/left_arm/goal_pose", 1);
     pubRaGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/right_arm/goal_pose", 1);
+    pubLaGoalTraj = n->advertise<trajectory_msgs::JointTrajectory>("/manipulation/la_q_trajectory",1);
+    pubRaGoalTraj = n->advertise<trajectory_msgs::JointTrajectory>("/manipulation/ra_q_trajectory",1);
     pubHdGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/head/goal_pose", 1);
     pubLaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/left_arm/goal_gripper", 1);
     pubRaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/right_arm/goal_gripper", 1);
@@ -137,6 +139,16 @@ void QtRosNode::publish_ra_goal_angles(float a1, float a2, float a3, float a4, f
     pubRaGoalQ.publish(msg);
 }
 
+void QtRosNode::publish_la_goal_trajectory(trajectory_msgs::JointTrajectory Q)
+{
+    pubLaGoalTraj.publish(Q);
+}
+
+void QtRosNode::publish_ra_goal_trajectory(trajectory_msgs::JointTrajectory Q)
+{
+    pubRaGoalTraj.publish(Q);
+}
+
 void QtRosNode::publish_la_grip_angles(float a)
 {
     std_msgs::Float32 msg;
@@ -172,7 +184,7 @@ void QtRosNode::callback_ra_current_q(const std_msgs::Float32MultiArray::ConstPt
     call_ra_forward_kinematics(ra_current_q, ra_current_cartesian);
 }
 
-bool QtRosNode::call_la_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular)
+bool QtRosNode::call_la_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory)
 {
     manip_msgs::InverseKinematics srv;
     srv.request.x = cartesian[0];
@@ -183,15 +195,11 @@ bool QtRosNode::call_la_inverse_kinematics(std::vector<float>& cartesian, std::v
     srv.request.yaw   = cartesian[5];
     if(!cltLaInverseKinematics.call(srv))
         return false;
-    int idx = srv.response.articular_trajectory.points.size() - 1;
-    articular.clear();
-    articular.resize(7);
-    for(int i=0; i<7; i++)
-        articular[i] = srv.response.articular_trajectory.points[idx].positions[i];
+    trajectory = srv.response.articular_trajectory;
     return true;
 }
 
-bool QtRosNode::call_ra_inverse_kinematics(std::vector<float>& cartesian, std::vector<float>& articular)
+bool QtRosNode::call_ra_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory)
 {
     manip_msgs::InverseKinematics srv;
     srv.request.x = cartesian[0];
@@ -202,11 +210,7 @@ bool QtRosNode::call_ra_inverse_kinematics(std::vector<float>& cartesian, std::v
     srv.request.yaw   = cartesian[5];
     if(!cltRaInverseKinematics.call(srv))
         return false;
-    int idx = srv.response.articular_trajectory.points.size() - 1;
-    articular.clear();
-    articular.resize(7);
-    for(int i=0; i<7; i++)
-        articular[i] = srv.response.articular_trajectory.points[idx].positions[i];
+    trajectory = srv.response.articular_trajectory;
     return true;
 }
 
