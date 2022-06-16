@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 from std_msgs.msg import Float32MultiArray, Float32, Float64
 from sensor_msgs.msg import JointState

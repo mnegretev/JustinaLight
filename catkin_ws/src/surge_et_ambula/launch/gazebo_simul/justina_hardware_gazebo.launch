@@ -1,6 +1,4 @@
 <launch>
-
-
   <arg name="world" default="appartment"/>
   <env name="GAZEBO_MODEL_PATH" value="$(find gazebo_envs)/models:$(optenv GAZEBO_MODEL_PATH)"/>
   <param name="/base_link_name" value="base_link"/>
@@ -13,7 +11,7 @@
     <arg name="world_name" value="$(find gazebo_envs)/worlds/$(arg world).world"/>
   </include>
   
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find justina_description)/urdf/justina.xacro'"/>
+  <param name="robot_description" command="xacro $(find justina_description)/urdf/justina.xacro"/>
 
 
   <arg name="posx" default="7.64"/>
@@ -27,10 +25,10 @@
     <param name="use_tf_static" value="false"/>
   </node>
   <node name="topic_resender" pkg="gazebo_envs" type="topic_resender.py" output="screen"/>
-  <node name="tf_wheel_front_connect_x" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 base_link wheel_front_x 30"/>
+  <!--node name="tf_wheel_front_connect_x" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 base_link wheel_front_x 30"/>
   <node name="tf_wheel_front_connect_y" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 wheel_front_x wheel_front_y 30"/>
   <node name="tf_wheel_front_connect_z" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 wheel_front_y wheel_front_z 30"/>
   <node name="tf_wheel_back_connect_x"  pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 base_link wheel_back_x 30"/>
   <node name="tf_wheel_back_connect_y"  pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 wheel_back_x wheel_back_y 30"/>
-  <node name="tf_wheel_back_connect_z"  pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 wheel_back_y wheel_back_z 30"/>
+  <node name="tf_wheel_back_connect_z"  pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 wheel_back_y wheel_back_z 30"/-->
 </launch>

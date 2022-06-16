@@ -19,7 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
-find_package(OpenCV 3 REQUIRED)
+find_package(OpenCV 4 REQUIRED)
 
 ## Generate messages in the 'msg' folder
 # add_message_files(

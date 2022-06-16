@@ -81,7 +81,7 @@
       <wheelSeparation>0.42</wheelSeparation>
       <wheelDiameter>0.12</wheelDiameter>
       <torque>20</torque>  
-      <publishWheelTF>true</publishWheelTF>
+      <publishWheelTF>false</publishWheelTF>
       <robotNamespace>/</robotNamespace>
       <publishTf>1</publishTf>
       <publishWheelJointState>false</publishWheelJointState>

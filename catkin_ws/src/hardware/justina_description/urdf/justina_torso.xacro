@@ -24,7 +24,7 @@
     <inertial>
       <mass value="${torso_mass}"/>
       <origin xyz= "0.04 -0.097 -0.55" rpy="0 0 0"/>
-      <box_inertia m="${torso_mass}" x="0.07" y="0.09" z="0.55"/>
+      <xacro:box_inertia m="${torso_mass}" x="0.07" y="0.09" z="0.55"/>
     </inertial>
   </link>
   
@@ -54,7 +54,7 @@
     <inertial>
       <mass value="${spine_mass}"/>
       <origin xyz= "0 0 -0.5325" rpy="0 0 0"/>
-      <box_inertia m="${spine_mass}" x="0.07" y="0.09" z="0.54"/>
+      <xacro:box_inertia m="${spine_mass}" x="0.07" y="0.09" z="0.54"/>
     </inertial>
   </link>  
 </robot>

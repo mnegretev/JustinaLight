@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Status1
+        - /RobotModel1/Status1
         - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 371
@@ -75,7 +76,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.03999999910593033
       Style: Flat Squares
-      Topic: /scan
+      Topic: /hardware/scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -326,6 +327,7 @@ Visualization Manager:
         Z: 0
       Pose Color: 255; 85; 255
       Pose Style: None
+      Queue Size: 10
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
@@ -377,6 +379,7 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+      Marker Alpha: 1
       Marker Scale: 1
       Name: TF
       Show Arrows: false
@@ -414,25 +417,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 19.525522232055664
+      Distance: 10.72873306274414
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Field of View: 0.7853981852531433
       Focal Point:
-        X: 6.154557228088379
-        Y: 5.398977756500244
-        Z: -2.812983751296997
+        X: 2.765537977218628
+        Y: 7.39991569519043
+        Z: -1.250136375427246
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 0.8697969913482666
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
-      Yaw: 6.273582935333252
+      Yaw: 5.5935773849487305
     Saved: ~
 Window Geometry:
   Displays:
@@ -452,5 +455,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1600
-  X: 0
-  Y: 300
+  X: 72
+  Y: 171
