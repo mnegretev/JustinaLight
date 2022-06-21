@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import math
 import time
 import rospy
@@ -13,10 +13,15 @@ from tf.transformations import euler_from_quaternion
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 def la_trajectory_tracking(joint_trajectory):
-    print("Comenzando el seguimiento de trayectoria brazo izquierdo....")
-    time.sleep(1)
+
     global pubLaGoalPose
+    print("Starting left arm trajectory tracking....")
     i = 0
+    #ts = joint_trajectory.points[1].time_from_start
+    #print("ts=",joint_trajectory.points[1].time_from_start.nsecs)
+
+    ts = 0.05
+    #while not rospy.is_shutdown():
     for point in joint_trajectory.points:
         q1, q2, q3, q4, q5, q6, q7 = point.positions
         msg = Float32MultiArray()
@@ -28,39 +33,50 @@ def la_trajectory_tracking(joint_trajectory):
         msg.data.append(q6)
         msg.data.append(q7)
         pubLaGoalPose.publish(msg)
-        ts = 0.05
         time.sleep(ts)  # Wait ts seconds while moving the arm to the desired position
-        print("Se movio al punto" , i)
+        print("point: " , i)
         i += 1
-    print("Fin de la trayectoria...")
+        #if i >=50:
+            #break
+    
+
 
 def ra_trajectory_tracking(joint_trajectory):
     global pubRaGoalPose
+    print("Starting right arm trajectory tracking....")
+    time.sleep(1)
+    i = 0
+    ts = joint_trajectory.points[1].time_from_start
+    ts = 0.05
+    while not rospy.is_shutdown():
+        for point in joint_trajectory.points:  
+            q1, q2, q3, q4, q5, q6, q7 = point.positions 
+            msg = Float32MultiArray()
+            msg.data.append(q1)
+            msg.data.append(q2)
+            msg.data.append(q3)
+            msg.data.append(q4)
+            msg.data.append(q5)
+            msg.data.append(q6)
+            msg.data.append(q7)
+            pubRaGoalPose.publish(msg)
+            time.sleep(ts)  # Wait ts seconds while moving the arm to the desired position
+            print("point: " , i)
+            i += 1
+        if i >=50:
+            break
 
-    for point in joint_trajectory:  
-        q1, q2, q3, q4, q5, q6, q7 = point.points.positions 
-        msg = Float32MultiArray()
-        msg.data.append(q1)
-        msg.data.append(q2)
-        msg.data.append(q3)
-        msg.data.append(q4)
-        msg.data.append(q5)
-        msg.data.append(q6)
-        msg.data.append(q7)
-        pubRaGoalPose.publish(msg)
-        ts = 2
-        time.sleep(ts)  # Wait ts seconds while moving the arm to the desired position
 
 
 def callback_la_q_traj(msg):
     print("the topic /manipulation/la_q_trajectory was called....")
-    #print(msg)
     la_trajectory_tracking(msg)
+    print("End of trajectory...")
 
 def callback_ra_q_traj(msg):
     print("the topic /manipulation/ra_q_trajectory was called....")
-    #print(msg)
     ra_trajectory_tracking(msg)
+    print("End of trajectory...")
 
 def main():
     global pubLaGoalPose, pubRaGoalPose
@@ -69,7 +85,7 @@ def main():
     pubLaGoalPose = rospy.Publisher("/hardware/left_arm/goal_pose" , Float32MultiArray, queue_size=10);
     pubRaGoalPose = rospy.Publisher("/hardware/right_arm/goal_pose", Float32MultiArray, queue_size=10);
     sub_la_traj = rospy.Subscriber("/manipulation/la_q_trajectory",JointTrajectory, callback_la_q_traj)
-    #sub_ra_traj = rospy.Subscriber("/manipulation/ra_q_trajectory",JointTrajectory, callback_ra_q_traj)
+    sub_ra_traj = rospy.Subscriber("/manipulation/ra_q_trajectory",JointTrajectory, callback_ra_q_traj)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         #print("subscriptor a jointtraj activo...")
