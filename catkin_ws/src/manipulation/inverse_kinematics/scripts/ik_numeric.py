@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import math
+import string
 import rospy
 import tf
 import tf.transformations as tft
@@ -190,7 +191,7 @@ def callback_trajectory_3d(req):
 
     return resp    # Returns a JointTrajectory object
 
-def callback_trajectory_q(req, arm, q_estim):  # Trajectory in joint space: receives a JointTrajectory
+def callback_trajectory_q(req, arm, q_estim, jacob):  # Trajectory in joint space: receives a JointTrajectory
     qs = numpy.empty(0)
     # Form the first estimate with current position
     n_p = len(req.points)   # Number of points on the path
@@ -198,10 +199,15 @@ def callback_trajectory_q(req, arm, q_estim):  # Trajectory in joint space: rece
     # Form the successive guesses with the point before the target
     i = 0
     for i in range(n_p):
-        q_obt = inverse_kinematics_xyz(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], arm,q_estim)
-        qs = numpy.append(qs, [q_obt]) 
-        q_estim = q_obt  # Update the estimate
-        #print("punto q#",i)
+        if jacob is 3:
+            q_obt = inverse_kinematics_xyz(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], arm,q_estim)
+            qs = numpy.append(qs, [q_obt]) 
+            q_estim = q_obt  # Update the estimate
+        else:
+            q_obt = inverse_kinematics_xyzrpy(req.points[i].positions[0], req.points[i].positions[1], req.points[i].positions[2], req.points[i].positions[3], req.points[i].positions[4], req.points[i].positions[5], arm,q_estim)
+            qs = numpy.append(qs, [q_obt]) 
+            q_estim = q_obt  # Update the estimate
+
     
     qs = numpy.reshape(qs, (n_p,7)) # Resize the array
     traj_q = JointTrajectory()    #trajectory with points in joint space
@@ -213,31 +219,55 @@ def callback_trajectory_q(req, arm, q_estim):  # Trajectory in joint space: rece
         point = JointTrajectoryPoint()  # We create an object that stores the data of 1 point
         point.positions = element[0], element[1], element[2], element[3], element[4], element[5], element[6]
         traj_q.points.append(point)
-        point.time_from_start.secs = tfs
+        point.time_from_start = rospy.Duration(tfs)
         tfs += tm
         
     return traj_q
 
 
 def callback_LA_ik_for_trajectory(req):
-    #if req.roll  is nan and req.pitch is nan and req.yaw is nan
-    init_estim = rospy.wait_for_message("/hardware/left_arm/current_pose", Float32MultiArray, 5.0)
-    init_estim = init_estim.data
-    tt = numpy.array([0,t])
-    pi = direct_kinematics(init_estim, 'left')
-    pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
-    vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
-    traj_q = callback_trajectory_q(c_tr, 'left',init_estim)
-    resp = InverseKinematicsResponse()
-    resp = traj_q
-    #global joint_traj_msg
-    joint_traj_msg = JointTrajectory()
-    joint_traj_msg = traj_q
-    la_joint_traj_pub.publish(joint_traj_msg)
+    #req.roll, req.pitch, req.yaw = numpy.nan, numpy.nan, numpy.nan
+    print("valores rpy*********", req.roll, req.pitch, req.yaw)
 
-    return resp
+    if req.roll  is numpy.nan or req.pitch is numpy.nan or req.yaw is numpy.nan:
+        init_estim = rospy.wait_for_message("/hardware/left_arm/current_pose", Float32MultiArray, 5.0)
+        init_estim = init_estim.data
+        tt = numpy.array([0,t])
+        pi = direct_kinematics(init_estim, 'left')
+        pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
+        vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
+        traj_q = callback_trajectory_q(c_tr, 'left',init_estim, 3)
+        resp = InverseKinematicsResponse()
+        resp = traj_q
+        
+        joint_traj_msg = JointTrajectory()
+        joint_traj_msg = traj_q
+        #la_joint_traj_pub.publish(joint_traj_msg)
+        print("NO se pidio RPY***************")
+        return resp
+    
+    else:
+        init_estim = rospy.wait_for_message("/hardware/left_arm/current_pose", Float32MultiArray, 5.0)
+        init_estim = init_estim.data
+        tt = numpy.array([0,t])
+        pi = direct_kinematics(init_estim, 'left')
+        pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
+        vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
+        traj_q = callback_trajectory_q(c_tr, 'left',init_estim, 6)
+        resp = InverseKinematicsResponse()
+        resp = traj_q
+        
+        joint_traj_msg = JointTrajectory()
+        joint_traj_msg = traj_q
+        #la_joint_traj_pub.publish(joint_traj_msg)
+        print("Si se pidio RPY***************")
+        return resp
+    
+
 
 def callback_RA_ik_for_trajectory(req):
 
@@ -252,6 +282,10 @@ def callback_RA_ik_for_trajectory(req):
     traj_q = callback_trajectory_q(c_tr, 'right',init_estim)
     resp = InverseKinematicsResponse()
     resp = traj_q
+
+    joint_traj_msg = JointTrajectory()
+    joint_traj_msg = traj_q
+    #ra_joint_traj_pub.publish(joint_traj_msg)
 
     return resp
 
@@ -297,9 +331,10 @@ def main():
     # Service that resolves the IK for a distant point 
     rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematics, callback_LA_ik_for_trajectory)
     rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematics, callback_RA_ik_for_trajectory)
-    global la_joint_traj_pub
+    global la_joint_traj_pub, ra_joint_traj_pub
     # Every time the inverse kinematics service is called, it will publish the joint trajectory in the topic 
     la_joint_traj_pub = rospy.Publisher("/manipulation/la_q_trajectory",JointTrajectory, queue_size=10)
+    ra_joint_traj_pub = rospy.Publisher("/manipulation/ra_q_trajectory",JointTrajectory, queue_size=10)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         jacobian_3x7
