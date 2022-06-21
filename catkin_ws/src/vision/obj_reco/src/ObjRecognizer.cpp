@@ -97,11 +97,11 @@ std::string ObjRecognizer::RecognizeObject(DetectedObject detObj, cv::Mat bgrIma
 		heightErrorsVec.push_back( heightError ); 
 		
 		// Getting Shape Errors
-		double shapeError = cv::matchShapes( detObj.shadowContour2D, this->trainingCont2D[i], CV_CONTOURS_MATCH_I1, 0.0); 
+		double shapeError = cv::matchShapes( detObj.shadowContour2D, this->trainingCont2D[i], cv::CONTOURS_MATCH_I1, 0.0); 
 		shapeErrorsVec.push_back( shapeError ); 
 
 		// Getting Color Errors
-		double colorError = cv::compareHist( detObjHisto, this->trainingHistos[i], CV_COMP_INTERSECT);
+		double colorError = cv::compareHist( detObjHisto, this->trainingHistos[i], cv::HISTCMP_INTERSECT);
 		colorErrorsVec.push_back( colorError ); 
 	}
 	
@@ -310,7 +310,7 @@ bool ObjRecognizer::TrainObject(DetectedObject detObj, cv::Mat bgrImage, std::st
 cv::Mat ObjRecognizer::CalculateHistogram( cv::Mat bgrImage, cv::Mat mask )
 {
 	cv::Mat hsvImage; 
-	cv::cvtColor( bgrImage, hsvImage, CV_BGR2HSV_FULL ); 
+	cv::cvtColor( bgrImage, hsvImage, cv::COLOR_BGR2HSV_FULL ); 
 
 	cv::Mat histogram;
 	int chan[] = { 0 }; 
