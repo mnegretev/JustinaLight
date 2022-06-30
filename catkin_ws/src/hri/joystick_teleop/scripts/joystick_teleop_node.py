@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import math
 import rospy
 from sensor_msgs.msg import Joy
@@ -93,10 +93,10 @@ def callbackJoy(msg):
     #    spine_button = -1
 
     if(spine_button == 1 or spine_button ==-1):
-	mov_spine=True
+        mov_spine=True
 	
     else:
-	mov_spine=False
+        mov_spine=False
 
     #waist_button = msg.axes[6]
     waist_button = 0
@@ -115,7 +115,7 @@ def callbackJoy(msg):
     shoulders_button_2 = msg.buttons[7]
 
     if(shoulders_button_1 == 1 or shoulders_button_2 == 1):
-	mov_shoulders=True
+        mov_shoulders=True
     else:
         mov_shoulders=False	
 
@@ -169,7 +169,7 @@ def main():
     msgSkipState = Empty()
     #msgHeadTorque = Float32MultiArray()
     
-    print "INITIALIZING JOYSTICK TELEOP BY MARCOSOFT... :)"
+    print("INITIALIZING JOYSTICK TELEOP BY MARCOSOFT... :)")
     rospy.init_node("joystick_teleop")
        
     # rospy.Subscriber("/hardware/joy", Joy, callbackJoy)
@@ -204,25 +204,25 @@ def main():
         if skip_state == 1:
             pubSkipState.publish(msgSkipState)
 
-	if spine <= 0.51 and spine >= -0.51 and mov_spine==True:
-	    if(spine_button == 1 and spine < 0.5 ):
+        if spine <= 0.51 and spine >= -0.51 and mov_spine==True:
+            if(spine_button == 1 and spine < 0.5 ):
                 spine=spine+0.01
-    	    if(spine_button ==-1 and spine > -0.5):
+            if(spine_button ==-1 and spine > -0.5):
                 spine=spine-0.01
-	    msgSpine.data = spine
-	    pubSpin.publish(msgSpine)
+            msgSpine.data = spine
+            pubSpin.publish(msgSpine)
 	   
 
-	if waist < 1.1 and waist > -1.1 and mov_waist==True:
-	    if(waist_button == 1 and waist < 1 ):
+        if waist < 1.1 and waist > -1.1 and mov_waist==True:
+            if(waist_button == 1 and waist < 1 ):
                 waist=waist+0.01
             if(waist_button ==-1 and waist > -1):
                 waist=waist-0.01
             msgWaist.data = waist
             pubWaist.publish(msgWaist)
 
-	if shoulders < 1.1 and shoulders > -1.1 and mov_shoulders==True:
-	    if(shoulders_button_1 == 1 and shoulders < 1 ):
+        if shoulders < 1.1 and shoulders > -1.1 and mov_shoulders==True:
+            if(shoulders_button_1 == 1 and shoulders < 1 ):
                 shoulders=shoulders+0.01
             if(shoulders_button_2 == 1 and shoulders > -1):
                 shoulders=shoulders-0.01
