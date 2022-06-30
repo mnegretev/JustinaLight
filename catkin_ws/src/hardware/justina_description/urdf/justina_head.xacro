@@ -80,39 +80,39 @@
     <limit effort="6.0" velocity="3.0" lower="-1.2" upper="1.0"/>
   </joint>
   
-  <link name="kinect_base">
+  <link name="camera_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size=" 0.058 0.207 0.04"/>
+        <box size=" 0.029 0.103 0.02"/>
       </geometry>
-      <material name="black"/>
+      <material name="gray"/>
     </visual>
     <collision>
       <origin xyz= "0 0 0" rpy="0 0 0"/>
       <geometry>
-        <box size=" 0.058 0.207 0.04"/>
+        <box size=" 0.029 0.103 0.02"/>
       </geometry>
     </collision>
     <inertial>
       <origin xyz="0.0 0 0.0" rpy = "0 0 0"/>
-      <mass value = "0.15" />
+      <mass value = "0.1" />
       <inertia ixx = "0.00006205" iyy = "0.000555" izz = "0.0005776" ixy = "0" ixz = "0" iyz = "0" />
     </inertial>
   </link>
   
-  <joint name="kinect_base_connect" type="fixed">
+  <joint name="camera_link_connect" type="fixed">
     <origin xyz="0 0 0.065" rpy="0 0 0"/>
     <parent link="neck_link"/>
-    <child link="kinect_base"/>
+    <child link="camera_link"/>
   </joint>
 
-  <link name="kinect_link"/>
+  <!--link name="kinect_link"/>
   
   <joint name="kinect_connect" type="fixed">
     <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
     <parent link="kinect_base"/>
     <child link="kinect_link"/>
-  </joint>
+  </joint-->
 </robot>
   
