@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv,"write2byte");
+    ros::init(argc, argv, "read1byte");
     ros::NodeHandle node("~");
     int addr,value,baudrate;
     std::vector<int> ids;
@@ -21,21 +21,12 @@ int main(int argc, char **argv)
         std::cout<<"missing address"<<std::endl;
         return -1;
     }
-    if(!node.hasParam("value")){
-        std::cout<<"missing value"<<std::endl;
-        return -1;
-    }
-
     if(!node.getParam("ids",ids_string )){
         std::cout<<"Invalid servo IDs"<<std::endl;
         return -1;
     }
     if(!node.getParam("addr",addr)){
         std::cout<<"Invalid address"<<std::endl;
-        return -1;
-    }
-    if(!node.getParam("value",value)){
-        std::cout<<"Invalid value"<<std::endl;
         return -1;
     }
 
@@ -53,52 +44,57 @@ int main(int argc, char **argv)
         else
             ids.push_back(temp_id);
     }
-
+    
+    
     //Check if param exist. Otherwise, use the default values
     node.param("baudrate", baudrate,1000000);
     node.param<std::string>("port",port,"/dev/ttyUSB0");
-
-
+    
     //Set port, select protocol and set baudrate
     dynamixel::PortHandler   *portHandler   = dynamixel::PortHandler::getPortHandler(port.c_str());
-    dynamixel::PacketHandler *packetHandler = dynamixel::PacketHandler::getPacketHandler(1.0);    
+    dynamixel::PacketHandler *packetHandler = dynamixel::PacketHandler::getPacketHandler(1.0);
+    dynamixel::GroupBulkRead groupBulkRead(portHandler, packetHandler);
     portHandler->setBaudRate(baudrate);
 
-    uint8_t  dxl_error_write        = 0;
     int      dxl_comm_result = COMM_TX_FAIL;
-    uint8_t info;
+    bool     dxl_addparam_result = false;
+    bool     dxl_getdata_result  = false;
+    std::vector<int> data;
+    data.resize(ids.size());
 
-    ros::Time start_time = ros::Time::now();
+    //Setting parameters for bulk read. It is assumed we are going to read the same address and number of bytes for all servos
     for(int i=0; i<ids.size(); i++)
     {
-        //Write value of 2 bytes
-        dxl_comm_result = packetHandler->write1ByteTxOnly(portHandler, ids[i], addr,value);
-
-        if(dxl_comm_result != COMM_SUCCESS)
-        {
-            std::cout<<"Comunication error at servo " << ids[i] <<std::endl;
-            continue;
-        }
-        if(dxl_error_write & 0x01)
-            std::cout<<"Input voltage error at servo " << ids[i] <<std::endl;     
-        if(dxl_error_write & 0x02)
-            std::cout<<"Angle limit error at servo " << ids[i] <<std::endl;
-        if(dxl_error_write & 0x04)
-            std::cout<<"Overheating error at servo " << ids[i] <<std::endl;     
-        if(dxl_error_write & 0x08)
-            std::cout<<"Range error at servo " << ids[i] <<std::endl;     
-        if(dxl_error_write & 0x10)
-            std::cout<<"CheckSum error at servo " << ids[i] <<std::endl;     
-        if(dxl_error_write & 0x20)
-            std::cout<<"Overload error at servo " << ids[i] <<std::endl;     
-        if(dxl_error_write & 0x40)
-            std::cout<<"Instruction error  at servo " << ids[i] <<std::endl;     
-        std::cout<<"id: "<<ids[i]<<"\taddress: "<<addr<<"\tvalue: "<<value<<"\tBaudRate: "<<baudrate<<"\tPort: "<<port
-                 <<"\tError code: "<<int(dxl_error_write)<<std::endl;
+        dxl_addparam_result = groupBulkRead.addParam(ids[i], addr, 1);
+        if(!dxl_addparam_result)
+            std::cout << "Cannot add bulk read param addr=" << addr << "  len=1 for servo id=" << ids[i] << std::endl;
     }
+
+    //Sending bulk read package and getting the results
+    ros::Time start_time = ros::Time::now();
+    dxl_comm_result = groupBulkRead.txRxPacket();
+    if(dxl_comm_result != COMM_SUCCESS)
+    {
+        std::cout<<"Comunication error while trying to bulk reading." <<std::endl;
+        return -1;
+    }
+    for(int i=0; i<ids.size(); i++)
+    {
+        if(groupBulkRead.isAvailable(ids[i], addr, 1))
+        {
+            data[i] = groupBulkRead.getData(ids[i], addr, 1);
+            std::cout<<"Data: "<<data[i]<<"\tid: "<<ids[i]<<"\taddress: "<<addr<<"\tBaudRate: "<<baudrate<<"\tPort: "<<port<<std::endl;
+        }
+        else
+            std::cout << "Cannot get data for servo " << ids[i] << " while trying to bulk read" << std::endl;
+            
+    }
+    
     double millisecs = 1000*(ros::Time::now() - start_time).toSec();
     std::cout << "Communication time: " << millisecs << " milliseconds." << std::endl;
     
     portHandler->closePort();
+
     return 0;
+    
 }

@@ -138,6 +138,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(read1byte src/read1byte.cpp)
  add_executable(read1byte_multi src/read1byte_multi.cpp)
+ add_executable(read1byte_bulk src/read1byte_bulk.cpp)
  add_executable(read2bytes_multi src/read2bytes_multi.cpp)
  add_executable(read2byte src/read2byte.cpp)
  add_executable(write1byte src/write1byte.cpp)
@@ -156,6 +157,7 @@ include_directories(
 ## same as for the library above
  add_dependencies(read1byte ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(read1byte_multi ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ add_dependencies(read1byte_bulk ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(read2bytes_multi ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(read2byte ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
  add_dependencies(write1byte ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -169,6 +171,9 @@ include_directories(
    ${catkin_LIBRARIES}
  )
  target_link_libraries(read1byte_multi
+   ${catkin_LIBRARIES}
+ )
+ target_link_libraries(read1byte_bulk
    ${catkin_LIBRARIES}
  )
  target_link_libraries(read2bytes_multi
