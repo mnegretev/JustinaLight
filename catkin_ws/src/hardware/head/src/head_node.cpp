@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <vector>
 #include <hardware_tools/DynamixelManager.hpp>
-#include <std_msgs/Float32MultiArray.h>
-#include <std_msgs/Float32.h>
+#include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Float64.h>
 #include <std_msgs/Bool.h>
 #include <sensor_msgs/JointState.h>
 #include <tf/transform_broadcaster.h>
@@ -17,24 +17,24 @@ int PID[2][3] = {{24, 0, 128}, {64, 0, 32}};
 int minLimits[2] = {1023, 0};
 int maxLimits[2] = {3069, 4095};
 
-float goalPos_simul[2] = {0.0, 0.0};
-float goalSpeeds_simul[2] = {0.3, 0.3};
+double goalPos_simul[2] = {0.0, 0.0};
+double goalSpeeds_simul[2] = {0.3, 0.3};
 
 int zero_head[2] = {2040, 2520};
 //float offset = -0.07671; // This for help me carry
 //float offset = -0.10671; // This for help me carry
-float offset = 0.0;
+double offset = 0.0;
 //float offset = -0.04; // This is for p and g 
-float offsetReadSimul = -0.04;
+double offsetReadSimul = -0.04;
 
-void callbackHeadGoalPose(const std_msgs::Float32MultiArray::ConstPtr &msg){
+void callbackHeadGoalPose(const std_msgs::Float64MultiArray::ConstPtr &msg){
     // std::cout << "head_node.-> Reciving new goal head pose." << std::endl;
     if(!(msg->data.size() == 2))
         std::cout << "Can not process the goal poses for the head" << std::endl;
     else{
         if(!simul ||(!simul && readSimul)){
-            float goalPan = msg->data[0];
-            float goalTilt = msg->data[1];
+            double goalPan = msg->data[0];
+            double goalTilt = msg->data[1];
             if(goalPan < -1.1)
                 goalPan = -1.1;
             if(goalPan > 1.1)
@@ -122,8 +122,8 @@ int main(int argc, char ** argv){
     ros::Subscriber subGoalPos = n.subscribe("/hardware/head/goal_pose", 1, callbackHeadGoalPose);
     ros::Subscriber subSimul = n.subscribe("/simulated", 1, callback_simulated); 
     ros::Publisher joint_pub = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
-    ros::Publisher pubHeadPose = n.advertise<std_msgs::Float32MultiArray>("head/current_pose", 1);
-    ros::Publisher pubBattery = n.advertise<std_msgs::Float32>("/hardware/robot_state/head_battery", 1);
+    ros::Publisher pubHeadPose = n.advertise<std_msgs::Float64MultiArray>("head/current_pose", 1);
+    ros::Publisher pubBattery = n.advertise<std_msgs::Float64>("/hardware/robot_state/head_battery", 1);
 
     ros::Rate rate(30);
 
@@ -142,10 +142,10 @@ int main(int argc, char ** argv){
         goalPos[i] = zero_head[i];
     }
 
-    float bitsPerRadian = 4095.0/360.0*180.0/M_PI;
+    double bitsPerRadian = 4095.0/360.0*180.0/M_PI;
 
     std::string names[2] = {"head_pan", "head_tilt"};
-    float positions[2] = {0, 0};
+    double positions[2] = {0, 0};
     
     sensor_msgs::JointState jointStates;
     jointStates.name.insert(jointStates.name.begin(), names, names + 2);
@@ -168,14 +168,14 @@ int main(int argc, char ** argv){
         }
     }
 
-    std_msgs::Float32MultiArray msgCurrPose;
+    std_msgs::Float64MultiArray msgCurrPose;
     msgCurrPose.data.resize(2);
-    std_msgs::Float32 msgBattery;
+    std_msgs::Float64 msgBattery;
     
 
     //initialize simulation variables
-    float Pos[2] = {0.0, 0.0};
-    float deltaPos[2] = {0.0, 0.0};
+    double Pos[2] = {0.0, 0.0};
+    double deltaPos[2] = {0.0, 0.0};
     for(int i = 0; i < 2; i++){
         goalPos_simul[i] = 0.0;
         goalSpeeds_simul[i] = 0.1;
@@ -207,8 +207,8 @@ int main(int argc, char ** argv){
 
             jointStates.header.stamp = ros::Time::now();
             //std::cout << "head_node.->curr pose [0]:" << curr_position[0] << ", curr pose [1]:" << curr_position[1] << std::endl;
-            jointStates.position[0] = (- (float) (zero_head[0]-curr_position[0]))/bitsPerRadian;
-            jointStates.position[1] = (-(float) (zero_head[1]-curr_position[1]))/bitsPerRadian;
+            jointStates.position[0] = (- (zero_head[0]-curr_position[0]))/bitsPerRadian;
+            jointStates.position[1] = (- (zero_head[1]-curr_position[1]))/bitsPerRadian;
             
             msgCurrPose.data[0] = jointStates.position[0]; 
             msgCurrPose.data[1] = -jointStates.position[1]; 
@@ -278,7 +278,7 @@ int main(int argc, char ** argv){
                 if(bulkEnable)
                     dynamixelManager.readBulkData();
                 dynamixelManager.getPresentPosition(i, position);
-                float error = fabs(position - goalPos[i]);
+                double error = fabs(position - goalPos[i]);
                 //std::cout << "left_arm_pose.->Moto:" <<  i << ", error: " << error << std::endl;
                 if(error < 10){
                     validatePosition[i] = true;

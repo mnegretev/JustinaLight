@@ -4,6 +4,7 @@
 #include "nav_msgs/Path.h"
 #include "std_msgs/Float32.h"
 #include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Float64MultiArray.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Empty.h"
 #include "tf/transform_listener.h"
@@ -205,9 +206,9 @@ void get_next_goal_from_path(float robot_x, float robot_y, float robot_t, float&
     }while(error < 0.25 && ++next_pose_idx < goal_path.poses.size());
 }
 
-std_msgs::Float32MultiArray get_next_goal_head_angles(float robot_x, float robot_y, float robot_t, int next_pose_idx)
+std_msgs::Float64MultiArray get_next_goal_head_angles(float robot_x, float robot_y, float robot_t, int next_pose_idx)
 {
-    std_msgs::Float32MultiArray msg;
+    std_msgs::Float64MultiArray msg;
     int idx = next_pose_idx + 5 >=  goal_path.poses.size() - 1 ? goal_path.poses.size() - 1 : next_pose_idx + 5;
     float goal_x = goal_path.poses[idx].pose.position.x;
     float goal_y = goal_path.poses[idx].pose.position.y;
@@ -282,7 +283,7 @@ int main(int argc, char** argv)
 
     ros::Publisher pub_goal_reached     = n.advertise<actionlib_msgs::GoalStatus>("/simple_move/goal_reached", 1); 
     ros::Publisher pub_cmd_vel          = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-    ros::Publisher pub_head_goal_pose   = n.advertise<std_msgs::Float32MultiArray>("/hardware/head/goal_pose", 1);
+    ros::Publisher pub_head_goal_pose   = n.advertise<std_msgs::Float64MultiArray>("/hardware/head/goal_pose", 1);
 
     actionlib_msgs::GoalStatus msg_goal_reached;
     int state = SM_INIT;

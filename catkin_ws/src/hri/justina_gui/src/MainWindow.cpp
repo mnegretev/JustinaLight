@@ -119,7 +119,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     //event->accept();
 }
 
-void MainWindow::initArmsGuiElements(std_msgs::Float32MultiArray la_q0, std_msgs::Float32MultiArray ra_q0)
+void MainWindow::initArmsGuiElements(std_msgs::Float64MultiArray la_q0, std_msgs::Float64MultiArray ra_q0)
 {
     ui->laGbArticular->setEnabled(false);
     ui->laTxtAngles1->setValue(la_q0.data[0]);
@@ -354,89 +354,89 @@ void MainWindow::torSbPosValueChanged(double d)
  */
 void MainWindow::laBtnXpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[0] += 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
       
 void MainWindow::laBtnXmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[0] -= 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnYpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[1] += 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnYmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[1] -= 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnZpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[2] += 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnZmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[2] -= 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnRollpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[3] += 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnRollmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[3] -= 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnPitchpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[4] += 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnPitchmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[4] -= 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnYawpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[5] += 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::laBtnYawmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->la_current_cartesian;
     goal_cartesian[5] -= 0.05;
     la_get_IK_and_update_ui(goal_cartesian);
 }
 
-void MainWindow::la_get_IK_and_update_ui(std::vector<float> cartesian)
+void MainWindow::la_get_IK_and_update_ui(std::vector<double> cartesian)
 {
     trajectory_msgs::JointTrajectory Q;
     if(!qtRosNode->call_la_inverse_kinematics(cartesian, Q))
@@ -444,7 +444,7 @@ void MainWindow::la_get_IK_and_update_ui(std::vector<float> cartesian)
         std::cout << "JustinaGUI.->Cannot calculate inverse kinematics for left arm." << std::endl;
         return;
     }
-    std::vector<float> q;
+    std::vector<double> q;
     q.resize(7);
     for(int i=0; i<7; i++)
         q[i] = Q.points[Q.points.size() - 1].positions[i];
@@ -478,7 +478,7 @@ void MainWindow::laSbGripperValueChanged(double d)
 void MainWindow::laTxtArticularGoalReturnPressed()
 {
     std::vector<std::string> parts;
-    std::vector<float> q = qtRosNode->la_current_q;
+    std::vector<double> q = qtRosNode->la_current_q;
     std::string str = this->ui->laTxtArticularGoal->text().toStdString();
     
     YAML::Node yaml_node = yamlParser->nodeLaPredefined[str];
@@ -512,7 +512,7 @@ void MainWindow::laTxtCartesianGoalReturnPressed()
     std::vector<std::string> parts;
     std::string str = this->ui->laTxtCartesianGoal->text().toStdString();
     boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
-    std::vector<float> cartesian = qtRosNode->la_current_cartesian;
+    std::vector<double> cartesian = qtRosNode->la_current_cartesian;
     for(size_t i=0; i < parts.size() && i < 6; i++)
     {
         std::stringstream ss(parts[i]);
@@ -527,89 +527,89 @@ void MainWindow::laTxtCartesianGoalReturnPressed()
  */
 void MainWindow::raBtnXpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[0] += 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
       
 void MainWindow::raBtnXmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[0] -= 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnYpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[1] += 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnYmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[1] -= 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnZpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[2] += 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnZmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[2] -= 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnRollpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[3] += 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnRollmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[3] -= 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnPitchpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[4] += 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnPitchmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[4] -= 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnYawpPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[5] += 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
 void MainWindow::raBtnYawmPressed()
 {
-    std::vector<float> goal_cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> goal_cartesian = qtRosNode->ra_current_cartesian;
     goal_cartesian[5] -= 0.05;
     ra_get_IK_and_update_ui(goal_cartesian);
 }
 
-void MainWindow::ra_get_IK_and_update_ui(std::vector<float> cartesian)
+void MainWindow::ra_get_IK_and_update_ui(std::vector<double> cartesian)
 {
     trajectory_msgs::JointTrajectory Q;
     if(!qtRosNode->call_ra_inverse_kinematics(cartesian, Q))
@@ -617,7 +617,7 @@ void MainWindow::ra_get_IK_and_update_ui(std::vector<float> cartesian)
         std::cout << "JustinaGUI.->Cannot calculate inverse kinematics for right arm." << std::endl;
         return;
     }
-    std::vector<float> q;
+    std::vector<double> q;
     q.resize(7);
     for(int i=0; i<7; i++)
         q[i] = Q.points[Q.points.size()-1].positions[i];
@@ -651,7 +651,7 @@ void MainWindow::raSbGripperValueChanged(double d)
 void MainWindow::raTxtArticularGoalReturnPressed()
 {
     std::vector<std::string> parts;
-    std::vector<float> q = qtRosNode->ra_current_q;
+    std::vector<double> q = qtRosNode->ra_current_q;
     std::string str = this->ui->raTxtArticularGoal->text().toStdString();
     
     YAML::Node yaml_node = yamlParser->nodeRaPredefined[str];
@@ -686,7 +686,7 @@ void MainWindow::raTxtCartesianGoalReturnPressed()
     std::vector<std::string> parts;
     std::string str = this->ui->raTxtCartesianGoal->text().toStdString();
     boost::split(parts, str, boost::is_any_of(" ,\t\r\n"), boost::token_compress_on);
-    std::vector<float> cartesian = qtRosNode->ra_current_cartesian;
+    std::vector<double> cartesian = qtRosNode->ra_current_cartesian;
     for(size_t i=0; i < parts.size() && i < 6; i++)
     {
         std::stringstream ss(parts[i]);

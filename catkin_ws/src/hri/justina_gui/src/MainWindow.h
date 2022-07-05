@@ -32,7 +32,7 @@ public:
     void setRosNode(QtRosNode* qtRosNode);
     void setYamlParser(YamlParser* yamlParser);
     void closeEvent(QCloseEvent *event);
-    void initArmsGuiElements(std_msgs::Float32MultiArray la_q0, std_msgs::Float32MultiArray ra_q0);
+    void initArmsGuiElements(std_msgs::Float64MultiArray la_q0, std_msgs::Float64MultiArray ra_q0);
 
 public slots:
     //Slots for signals emitted in the QtRosNode (e.g. a topic is received)
@@ -69,7 +69,7 @@ public slots:
     void laBtnPitchmPressed();
     void laBtnYawpPressed();
     void laBtnYawmPressed();
-    void la_get_IK_and_update_ui(std::vector<float> cartesian);
+    void la_get_IK_and_update_ui(std::vector<double> cartesian);
     
     void raSbAnglesValueChanged(double d);
     void raSbGripperValueChanged(double d);
@@ -87,7 +87,7 @@ public slots:
     void raBtnPitchmPressed();
     void raBtnYawpPressed();
     void raBtnYawmPressed();
-    void ra_get_IK_and_update_ui(std::vector<float> cartesian);
+    void ra_get_IK_and_update_ui(std::vector<double> cartesian);
 
     void hdSbHeadValueChanged(double d);
 

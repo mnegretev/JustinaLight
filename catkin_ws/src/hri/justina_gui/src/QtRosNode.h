@@ -3,8 +3,8 @@
 #include <cmath>
 #include <QThread>
 #include "ros/ros.h"
-#include "std_msgs/Float32MultiArray.h"
-#include "std_msgs/Float32.h"
+#include "std_msgs/Float64MultiArray.h"
+#include "std_msgs/Float64.h"
 #include "std_msgs/Float64.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/PoseStamped.h"
@@ -52,10 +52,10 @@ public:
     geometry_msgs::Twist cmd_vel;
     bool publishing_cmd_vel;
     bool gui_closed;
-    std::vector<float> la_current_q;
-    std::vector<float> ra_current_q;
-    std::vector<float> la_current_cartesian;
-    std::vector<float> ra_current_cartesian;
+    std::vector<double> la_current_q;
+    std::vector<double> ra_current_q;
+    std::vector<double> la_current_cartesian;
+    std::vector<double> ra_current_cartesian;
     
     void run();
     void setNodeHandle(ros::NodeHandle* nh);
@@ -72,13 +72,13 @@ public:
     void publish_ra_goal_trajectory(trajectory_msgs::JointTrajectory Q);
     void publish_la_grip_angles(float a);
     void publish_ra_grip_angles(float a);
-    void publish_head_angles(float pan, float tilt);
-    void callback_la_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg);
-    void callback_ra_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg);
-    bool call_la_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
-    bool call_ra_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
-    bool call_la_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian);
-    bool call_ra_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian);
+    void publish_head_angles(double pan, double tilt);
+    void callback_la_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg);
+    void callback_ra_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg);
+    bool call_la_inverse_kinematics(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
+    bool call_ra_inverse_kinematics(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
+    bool call_la_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian);
+    bool call_ra_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian);
 
     bool call_find_lines();
     bool call_train_object(std::string name);

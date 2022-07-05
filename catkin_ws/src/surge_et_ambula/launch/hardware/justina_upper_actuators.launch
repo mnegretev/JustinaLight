@@ -1,20 +1,24 @@
 <launch>
   <group ns="hardware">
-    <node name="right_arm" pkg="arms" type="right_arm_real_simul_node" output="screen" respawn="false">
-      <param name="port" value="/dev/justinaRightArm"/>
-      <param name="baud" value="1000000"/>
-      <param name="bulk_enable" value="true"/>
-      <param name="sync_write_enable" value="false"/>
-      <param name="simul" value="false"/>
-      <param name="enable_torque" value="true"/>
+    <node name="right_arm" pkg="arms" type="arm_node" output="screen" respawn="false">
+      <rosparam command="load" file="$(find config_files)/arms/right_arm_params.yaml"/>
+      <remap from="/hardware/arm/goal_pose"      to="/hardware/right_arm/goal_pose"     />
+      <remap from="/hardware/arm/goal_gripper"   to="/hardware/right_arm/goal_gripper"  />
+      <remap from="/hardware/arm/torque_gripper" to="/hardware/right_arm/torque_gripper"/>
+      <remap from="/hardware/arm/current_pose"        to="/hardware/right_arm/current_pose"       />
+      <remap from="/hardware/arm/current_gripper"     to="/hardware/right_arm/current_gripper"    />
+      <remap from="/hardware/arm/object_on_hand"      to="/hardware/right_arm/object_on_hand"     />
+      <remap from="/hardware/robot_state/arm_battery" to="/hardware/robot_state/right_arm_battery"/>
     </node>
-    <node name="left_arm" pkg="arms" type="left_arm_real_simul_node" output="screen" respawn="false">
-      <param name="port" value="/dev/justinaLeftArm"/>
-      <param name="baud" value="1000000"/>
-      <param name="bulk_enable" value="true"/>
-      <param name="sync_write_enable" value="false"/>
-      <param name="simul" value="false"/>
-      <param name="enable_torque" value="true"/>
+    <node name="left_arm" pkg="arms" type="arm_node" output="screen" respawn="false">
+      <rosparam command="load" file="$(find config_files)/arms/left_arm_params.yaml"/>
+      <remap from="/hardware/arm/goal_pose"      to="/hardware/left_arm/goal_pose"     />
+      <remap from="/hardware/arm/goal_gripper"   to="/hardware/left_arm/goal_gripper"  />
+      <remap from="/hardware/arm/torque_gripper" to="/hardware/left_arm/torque_gripper"/>
+      <remap from="/hardware/arm/current_pose"        to="/hardware/left_arm/current_pose"       />
+      <remap from="/hardware/arm/current_gripper"     to="/hardware/left_arm/current_gripper"    />
+      <remap from="/hardware/arm/object_on_hand"      to="/hardware/left_arm/object_on_hand"     />
+      <remap from="/hardware/robot_state/arm_battery" to="/hardware/robot_state/left_arm_battery"/>
     </node>
     <node name="head" pkg="head" type="head_node" output="screen">
       <param name="port" value="/dev/justinaHead"/>

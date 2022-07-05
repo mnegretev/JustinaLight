@@ -25,13 +25,13 @@ void QtRosNode::run()
     ros::Rate loop(30);
     pubCmdVel     = n->advertise<geometry_msgs::Twist>("/cmd_vel", 1);
     pubTorso      = n->advertise<std_msgs::Float64>("/torso_controller/command", 1);
-    pubLaGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/left_arm/goal_pose", 1);
-    pubRaGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/right_arm/goal_pose", 1);
+    pubLaGoalQ    = n->advertise<std_msgs::Float64MultiArray>("/hardware/left_arm/goal_pose", 1);
+    pubRaGoalQ    = n->advertise<std_msgs::Float64MultiArray>("/hardware/right_arm/goal_pose", 1);
     pubLaGoalTraj = n->advertise<trajectory_msgs::JointTrajectory>("/manipulation/la_q_trajectory",1);
     pubRaGoalTraj = n->advertise<trajectory_msgs::JointTrajectory>("/manipulation/ra_q_trajectory",1);
-    pubHdGoalQ    = n->advertise<std_msgs::Float32MultiArray>("/hardware/head/goal_pose", 1);
-    pubLaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/left_arm/goal_gripper", 1);
-    pubRaGoalGrip = n->advertise<std_msgs::Float32>("/hardware/right_arm/goal_gripper", 1);
+    pubHdGoalQ    = n->advertise<std_msgs::Float64MultiArray>("/hardware/head/goal_pose", 1);
+    pubLaGoalGrip = n->advertise<std_msgs::Float64>("/hardware/left_arm/goal_gripper", 1);
+    pubRaGoalGrip = n->advertise<std_msgs::Float64>("/hardware/right_arm/goal_gripper", 1);
     subLaCurrentQ = n->subscribe("/hardware/left_arm/current_pose" , 1, &QtRosNode::callback_la_current_q, this);
     subRaCurrentQ = n->subscribe("/hardware/right_arm/current_pose", 1, &QtRosNode::callback_ra_current_q, this);
     cltLaInverseKinematics=n->serviceClient<manip_msgs::InverseKinematics>("/manipulation/la_inverse_kinematics");
@@ -113,7 +113,7 @@ void QtRosNode::publish_torso_position(float tr)
 
 void QtRosNode::publish_la_goal_angles(float a1, float a2, float a3, float a4, float a5, float a6, float a7)
 {
-    std_msgs::Float32MultiArray msg;
+    std_msgs::Float64MultiArray msg;
     msg.data.resize(7);
     msg.data[0] = a1;
     msg.data[1] = a2;
@@ -127,7 +127,7 @@ void QtRosNode::publish_la_goal_angles(float a1, float a2, float a3, float a4, f
 
 void QtRosNode::publish_ra_goal_angles(float a1, float a2, float a3, float a4, float a5, float a6, float a7)
 {
-    std_msgs::Float32MultiArray msg;
+    std_msgs::Float64MultiArray msg;
     msg.data.resize(7);
     msg.data[0] = a1;
     msg.data[1] = a2;
@@ -151,40 +151,40 @@ void QtRosNode::publish_ra_goal_trajectory(trajectory_msgs::JointTrajectory Q)
 
 void QtRosNode::publish_la_grip_angles(float a)
 {
-    std_msgs::Float32 msg;
+    std_msgs::Float64 msg;
     msg.data = a;
     pubLaGoalGrip.publish(msg);
 }
 
 void QtRosNode::publish_ra_grip_angles(float a)
 {
-    std_msgs::Float32 msg;
+    std_msgs::Float64 msg;
     msg.data = a;
     pubRaGoalGrip.publish(msg);
 }
 
-void QtRosNode::publish_head_angles(float pan, float tilt)
+void QtRosNode::publish_head_angles(double pan, double tilt)
 {
-    std_msgs::Float32MultiArray msg;
+    std_msgs::Float64MultiArray msg;
     msg.data.resize(2);
     msg.data[0] = pan;
     msg.data[1] = tilt;
     pubHdGoalQ.publish(msg);
 }
 
-void QtRosNode::callback_la_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg)
+void QtRosNode::callback_la_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg)
 {
     la_current_q = msg->data;
     call_la_forward_kinematics(la_current_q, la_current_cartesian);
 }
 
-void QtRosNode::callback_ra_current_q(const std_msgs::Float32MultiArray::ConstPtr& msg)
+void QtRosNode::callback_ra_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg)
 {
     ra_current_q = msg->data;
     call_ra_forward_kinematics(ra_current_q, ra_current_cartesian);
 }
 
-bool QtRosNode::call_la_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory)
+bool QtRosNode::call_la_inverse_kinematics(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory)
 {
     manip_msgs::InverseKinematics srv;
     srv.request.x = cartesian[0];
@@ -199,7 +199,7 @@ bool QtRosNode::call_la_inverse_kinematics(std::vector<float>& cartesian, trajec
     return true;
 }
 
-bool QtRosNode::call_ra_inverse_kinematics(std::vector<float>& cartesian, trajectory_msgs::JointTrajectory& trajectory)
+bool QtRosNode::call_ra_inverse_kinematics(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory)
 {
     manip_msgs::InverseKinematics srv;
     srv.request.x = cartesian[0];
@@ -214,7 +214,7 @@ bool QtRosNode::call_ra_inverse_kinematics(std::vector<float>& cartesian, trajec
     return true;
 }
 
-bool QtRosNode::call_la_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian)
+bool QtRosNode::call_la_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian)
 {
     cartesian.resize(6);
     for(int i=0; i<cartesian.size(); i++) cartesian[i] = 0;
@@ -238,7 +238,7 @@ bool QtRosNode::call_la_forward_kinematics(std::vector<float>& articular, std::v
 
 }
 
-bool QtRosNode::call_ra_forward_kinematics(std::vector<float>& articular, std::vector<float>& cartesian)
+bool QtRosNode::call_ra_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian)
 {
     cartesian.resize(6);
     for(int i=0; i<cartesian.size(); i++) cartesian[i] = 0;
@@ -272,7 +272,7 @@ bool QtRosNode::call_find_lines()
         return false;
     }
     srv.request.point_cloud = *ptr;
-    cltFindLines.call(srv);
+    return cltFindLines.call(srv);
 }
 
 bool QtRosNode::call_train_object(std::string name)
@@ -287,7 +287,7 @@ bool QtRosNode::call_train_object(std::string name)
     }
     srv.request.point_cloud = *ptr;
     srv.request.name = name;
-    cltTrainObject.call(srv);
+    return cltTrainObject.call(srv);
 }
 
 bool QtRosNode::call_recognize_objects()
@@ -301,7 +301,7 @@ bool QtRosNode::call_recognize_objects()
         return false;
     }
     srv.request.point_cloud = *ptr;
-    cltRecogObjects.call(srv);
+    return cltRecogObjects.call(srv);
 }
 
 bool QtRosNode::call_recognize_object(std::string name)
@@ -316,5 +316,5 @@ bool QtRosNode::call_recognize_object(std::string name)
     }
     srv.request.point_cloud = *ptr;
     srv.request.name = name;
-    cltRecogObject.call(srv);
+    return cltRecogObject.call(srv);
 }

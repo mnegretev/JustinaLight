@@ -3,6 +3,7 @@ import math
 import rospy
 from sensor_msgs.msg import Joy
 from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float64MultiArray
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Empty
@@ -160,7 +161,7 @@ def main():
     mov_shoulders=False
 
     msgSpeeds = Float32MultiArray()
-    msgHeadPos = Float32MultiArray()
+    msgHeadPos = Float64MultiArray()
     msgSpine = Float32()
     msgWaist = Float32()
     msgShoulders = Float32()	
@@ -174,7 +175,7 @@ def main():
        
     # rospy.Subscriber("/hardware/joy", Joy, callbackJoy)
     rospy.Subscriber("/hardware/joy", Joy, callbackJoy)
-    pubHeadPos = rospy.Publisher("/hardware/head/goal_pose", Float32MultiArray, queue_size=1)
+    pubHeadPos = rospy.Publisher("/hardware/head/goal_pose", Float64MultiArray, queue_size=1)
     pubSpin = rospy.Publisher("/hardware/torso/goal_spine", Float32, queue_size=1)
     pubWaist = rospy.Publisher("/hardware/torso/goal_waist", Float32, queue_size=1)
     pubShoulders = rospy.Publisher("/hardware/torso/goal_shoulders", Float32, queue_size=1)
