@@ -6,7 +6,7 @@ import tf
 import tf.transformations as tft
 import numpy
 import urdf_parser_py.urdf
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float64MultiArray
 from geometry_msgs.msg import PointStamped
 from manip_msgs.srv import *
 from tf.transformations import euler_from_quaternion
@@ -227,51 +227,30 @@ def callback_trajectory_q(req, arm, q_estim, jacob):  # Trajectory in joint spac
 
 def callback_LA_ik_for_trajectory(req):
     #req.roll, req.pitch, req.yaw = numpy.nan, numpy.nan, numpy.nan
-    print("valores rpy*********", req.roll, req.pitch, req.yaw)
-
+    print("Trying to calculate inverse kinematics for " + str([req.x, req.y, req.z, req.roll, req.pitch, req.yaw]))
+    initial_guess = rospy.wait_for_message("/hardware/left_arm/current_pose", Float64MultiArray, 5.0)
+    initial_guess = initial_guess.data
+    tt = numpy.array([0,t])
+    pi = direct_kinematics(initial_guess, 'left')
+    pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
+    vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
     if req.roll  is numpy.nan or req.pitch is numpy.nan or req.yaw is numpy.nan:
-        init_estim = rospy.wait_for_message("/hardware/left_arm/current_pose", Float32MultiArray, 5.0)
-        init_estim = init_estim.data
-        tt = numpy.array([0,t])
-        pi = direct_kinematics(init_estim, 'left')
-        pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
-        vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
-        traj_q = callback_trajectory_q(c_tr, 'left',init_estim, 3)
-        resp = InverseKinematicsResponse()
-        resp = traj_q
-        
-        joint_traj_msg = JointTrajectory()
-        joint_traj_msg = traj_q
-        #la_joint_traj_pub.publish(joint_traj_msg)
-        print("NO se pidio RPY***************")
-        return resp
-    
+        traj_q = callback_trajectory_q(c_tr, 'left',initial_guess, 3)
     else:
-        init_estim = rospy.wait_for_message("/hardware/left_arm/current_pose", Float32MultiArray, 5.0)
-        init_estim = init_estim.data
-        tt = numpy.array([0,t])
-        pi = direct_kinematics(init_estim, 'left')
-        pf = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
-        vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
-        traj_q = callback_trajectory_q(c_tr, 'left',init_estim, 6)
-        resp = InverseKinematicsResponse()
-        resp = traj_q
-        
-        joint_traj_msg = JointTrajectory()
-        joint_traj_msg = traj_q
-        #la_joint_traj_pub.publish(joint_traj_msg)
-        print("Si se pidio RPY***************")
-        return resp
+        traj_q = callback_trajectory_q(c_tr, 'left',initial_guess, 6)
+    resp = InverseKinematicsResponse()
+    resp = traj_q
+    joint_traj_msg = JointTrajectory()
+    joint_traj_msg = traj_q
+    return resp
     
 
 
 def callback_RA_ik_for_trajectory(req):
 
-    init_estim = rospy.wait_for_message("/hardware/right_arm/current_pose", Float32MultiArray, 0.5)
+    init_estim = rospy.wait_for_message("/hardware/right_arm/current_pose", Float64MultiArray, 0.5)
     init_estim = init_estim.data
     tt = numpy.array([0,t])
     pi = direct_kinematics(init_estim, 'right')
@@ -279,18 +258,17 @@ def callback_RA_ik_for_trajectory(req):
     vi, vf = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ai, af = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     c_tr = cartesian_traj(tt, pi, pf, vi, vf, ai, af)
-    traj_q = callback_trajectory_q(c_tr, 'right',init_estim)
+    if req.roll  is numpy.nan or req.pitch is numpy.nan or req.yaw is numpy.nan:
+        traj_q = callback_trajectory_q(c_tr, 'right',intial_guess, 3)
+    else:
+        traj_q = callback_trajectory_q(c_tr, 'right',intial_guess, 6)
     resp = InverseKinematicsResponse()
     resp = traj_q
-
     joint_traj_msg = JointTrajectory()
     joint_traj_msg = traj_q
-    #ra_joint_traj_pub.publish(joint_traj_msg)
-
     return resp
 
-def callback_la_ik_for_pose(req):
-    
+def callback_la_ik_single_pose(req):
     q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, 'left')
     if q is None:
         return None
@@ -298,7 +276,7 @@ def callback_la_ik_for_pose(req):
     [resp.q1, resp.q2, resp.q3, resp.q4, resp.q5, resp.q6, resp.q7] = [q[0], q[1], q[2], q[3], q[4], q[5], q[6]]
     return resp
 
-def callback_ra_ik_for_pose(req):
+def callback_ra_ik_single_pose(req):
     q = inverse_kinematics_xyzrpy(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, 'right')
     if q is None:
         return False
@@ -306,13 +284,13 @@ def callback_ra_ik_for_pose(req):
     [resp.q1, resp.q2, resp.q3, resp.q4, resp.q5, resp.q6, resp.q7] = [q[0], q[1], q[2], q[3], q[4], q[5], q[6]]
     return resp
 
-def callback_la_dk(req):
+def callback_la_fk(req):
     x = direct_kinematics([req.q1, req.q2, req.q3, req.q4, req.q5, req.q6, req.q7], 'left')
     resp = ForwardKinematicsResponse()
     [resp.x, resp.y, resp.z, resp.roll, resp.pitch, resp.yaw] = x
     return resp
 
-def callback_ra_dk(req):
+def callback_ra_fk(req):
     x = direct_kinematics([req.q1, req.q2, req.q3, req.q4, req.q5, req.q6, req.q7], 'left')
     resp = ForwardKinematicsResponse()
     [resp.x, resp.y, resp.z, resp.roll, resp.pitch, resp.yaw] = x
@@ -322,23 +300,15 @@ def main():
     print("INITIALIZING INVERSE KINEMATIC NODE BY MARCOSOFT...")
     rospy.init_node("ik_geometric")
     get_model_info()
-    #rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematicsForPose, callback_la_ik_for_pose)
-    #rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematicsForPose, callback_ra_ik_for_pose)
-    rospy.Service("/manipulation/la_forward_kinematics", ForwardKinematics, callback_la_dk)
-    rospy.Service("/manipulation/ra_forward_kinematics", ForwardKinematics, callback_ra_dk)
+    rospy.Service("/manipulation/la_forward_kinematics", ForwardKinematics, callback_la_fk)
+    rospy.Service("/manipulation/ra_forward_kinematics", ForwardKinematics, callback_ra_fk)
     # Service that generates trajectory in Cartesian space
     rospy.Service("/manipulation/cartesian_traj", GetCartesianTrajectory, callback_trajectory_3d)
-    # Service that resolves the IK for a distant point 
+    # Service that generates a cartesian trajectory and solves the IK for each point
     rospy.Service("/manipulation/la_inverse_kinematics", InverseKinematics, callback_LA_ik_for_trajectory)
     rospy.Service("/manipulation/ra_inverse_kinematics", InverseKinematics, callback_RA_ik_for_trajectory)
-    global la_joint_traj_pub, ra_joint_traj_pub
-    # Every time the inverse kinematics service is called, it will publish the joint trajectory in the topic 
-    la_joint_traj_pub = rospy.Publisher("/manipulation/la_q_trajectory",JointTrajectory, queue_size=10)
-    ra_joint_traj_pub = rospy.Publisher("/manipulation/ra_q_trajectory",JointTrajectory, queue_size=10)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
-        jacobian_3x7
-        #la_joint_traj_pub.publish(joint_traj_msg)
         loop.sleep()
 
 if __name__ == '__main__':

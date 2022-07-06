@@ -111,14 +111,15 @@ int main(int argc, char ** argv){
     if(!simul)
         jrkManager->getErrorsHalting();
 
-    std::string names[5] = {"spine_connect","waist_connect","shoulders_connect", "shoulders_left_connect", "shoulders_right_connect"};
-
+    //std::string names[5] = {"spine_connect","waist_connect","shoulders_connect", "shoulders_left_connect", "shoulders_right_connect"};
     float positions[5] = {0, 0, 0, 0, 0};
     float deltaPose[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
 
     sensor_msgs::JointState jointStates;
-    jointStates.name.insert(jointStates.name.begin(), names, names + 5);
-    jointStates.position.insert(jointStates.position.begin(), positions, positions + 5);
+    //jointStates.name.insert(jointStates.name.begin(), names, names + 5);
+    //jointStates.position.insert(jointStates.position.begin(), positions, positions + 5);
+    jointStates.name.push_back("spine_connect");
+    jointStates.position.push_back(0);
 
     std_msgs::Float32MultiArray msgCurrentPose;
     msgCurrentPose.data.resize(3);

@@ -9,6 +9,7 @@
       <remap from="/hardware/arm/current_gripper"     to="/hardware/right_arm/current_gripper"    />
       <remap from="/hardware/arm/object_on_hand"      to="/hardware/right_arm/object_on_hand"     />
       <remap from="/hardware/robot_state/arm_battery" to="/hardware/robot_state/right_arm_battery"/>
+      <remap from="/manipulation/q_trajectory"        to="/manipulation/ra_q_trajectory"/>
     </node>
     <node name="left_arm" pkg="arms" type="arm_node" output="screen" respawn="false">
       <rosparam command="load" file="$(find config_files)/arms/left_arm_params.yaml"/>
@@ -19,6 +20,7 @@
       <remap from="/hardware/arm/current_gripper"     to="/hardware/left_arm/current_gripper"    />
       <remap from="/hardware/arm/object_on_hand"      to="/hardware/left_arm/object_on_hand"     />
       <remap from="/hardware/robot_state/arm_battery" to="/hardware/robot_state/left_arm_battery"/>
+      <remap from="/manipulation/q_trajectory"        to="/manipulation/la_q_trajectory"/>
     </node>
     <node name="head" pkg="head" type="head_node" output="screen">
       <param name="port" value="/dev/justinaHead"/>

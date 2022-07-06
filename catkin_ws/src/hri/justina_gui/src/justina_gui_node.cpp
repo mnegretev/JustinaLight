@@ -22,18 +22,18 @@ int main(int argc, char** argv)
 
     std::cout << "JustinaGUI.->Waiting for arms initial positions..." << std::endl;
     std_msgs::Float64MultiArray::ConstPtr la_q0, ra_q0;
-    // while((la_q0 == NULL || ra_q0 == NULL) && ros::ok())
-    // {
-    //     la_q0 = ros::topic::waitForMessage<std_msgs::Float64MultiArray>
-    //         ("/hardware/left_arm/current_pose", ros::Duration(1.0));
-    //     ra_q0 = ros::topic::waitForMessage<std_msgs::Float64MultiArray>
-    //     ("/hardware/right_arm/current_pose", ros::Duration(1.0));
-    //     loop.sleep();
-    // }
-    // if(la_q0 == NULL || ra_q0 == NULL)
-    //     std::cout << "JustinaGUI.->Initial position is NULL" << std::endl;
-    // else
-    //     std::cout << "JustinaGUI.->Arm initial positions received..." << std::endl;
+    while((la_q0 == NULL || ra_q0 == NULL) && ros::ok())
+    {
+        la_q0 = ros::topic::waitForMessage<std_msgs::Float64MultiArray>
+            ("/hardware/left_arm/current_pose", ros::Duration(1.0));
+        ra_q0 = ros::topic::waitForMessage<std_msgs::Float64MultiArray>
+        ("/hardware/right_arm/current_pose", ros::Duration(1.0));
+        loop.sleep();
+    }
+    if(la_q0 == NULL || ra_q0 == NULL)
+        std::cout << "JustinaGUI.->Initial position is NULL" << std::endl;
+    else
+        std::cout << "JustinaGUI.->Arm initial positions received..." << std::endl;
 
     std::cout << "JustinaGUI.->Trying to load predefined positions files..." << std::endl;
     YamlParser yamlParser;
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
     MainWindow mainWindow;
     mainWindow.setRosNode(&qtRosNode);
     mainWindow.setYamlParser(&yamlParser);
-    //mainWindow.initArmsGuiElements(la_q0, ra_q0);
+    mainWindow.initArmsGuiElements(*la_q0, *ra_q0);
         
     mainWindow.show();
     return app.exec();
