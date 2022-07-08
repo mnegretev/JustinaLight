@@ -4,6 +4,9 @@ float64 z
 float64 roll
 float64 pitch
 float64 yaw
+float64 duration
+float64 time_step
+float64[] initial_guess
 ---
 trajectory_msgs/JointTrajectory articular_trajectory
 
@@ -18,4 +21,7 @@ trajectory_msgs/JointTrajectory articular_trajectory
 
 #If roll, pitch or yaw are NaN, the IK method is supposed to ignore such restriction, e.g., if
 #yaw is NaN, then the arm will try to reach the given xyz, roll and pitch, with the
-#necessary yaw to reach such configuration. 
+#necessary yaw to reach such configuration.
+
+# Initial guess is a point in the articular space inteded to be used
+# in numeric solutions. 

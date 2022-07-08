@@ -60,10 +60,10 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   FILES
   ForwardKinematics.srv
-  InverseKinematicsForPose.srv
-  InverseKinematicsForTrajectory.srv
-  InverseKinematics.srv
-  GetCartesianTrajectory.srv
+  GetPolynomialTrajectory.srv
+  InverseKinematicsPose2Pose.srv
+  InverseKinematicsPose2Traj.srv
+  InverseKinematicsTraj2Traj.srv
 )
 
 ## Generate actions in the 'action' folder

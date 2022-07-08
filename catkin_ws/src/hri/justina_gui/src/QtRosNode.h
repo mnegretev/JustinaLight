@@ -12,8 +12,8 @@
 #include "sensor_msgs/PointCloud2.h"
 #include "trajectory_msgs/JointTrajectory.h"
 #include "tf/transform_listener.h"
-#include "manip_msgs/InverseKinematicsForPose.h"
-#include "manip_msgs/InverseKinematics.h"
+#include "manip_msgs/InverseKinematicsPose2Traj.h"
+#include "manip_msgs/InverseKinematicsPose2Pose.h"
 #include "manip_msgs/ForwardKinematics.h"
 #include "vision_msgs/FindLines.h"
 #include "vision_msgs/TrainObject.h"
@@ -39,8 +39,10 @@ public:
     ros::Publisher pubRaGoalGrip;
     ros::Subscriber subLaCurrentQ;
     ros::Subscriber subRaCurrentQ;
-    ros::ServiceClient cltLaInverseKinematics;
-    ros::ServiceClient cltRaInverseKinematics;
+    ros::ServiceClient cltLaIKPose2Pose;
+    ros::ServiceClient cltRaIKPose2Pose;
+    ros::ServiceClient cltLaIKPose2Traj;
+    ros::ServiceClient cltRaIKPose2Traj;
     ros::ServiceClient cltLaForwardKinematics;
     ros::ServiceClient cltRaForwardKinematics;
     ros::ServiceClient cltFindLines;
@@ -75,8 +77,10 @@ public:
     void publish_head_angles(double pan, double tilt);
     void callback_la_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg);
     void callback_ra_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg);
-    bool call_la_inverse_kinematics(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
-    bool call_ra_inverse_kinematics(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
+    bool call_la_ik_trajectory(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
+    bool call_ra_ik_trajectory(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
+    bool call_la_ik_pose(std::vector<double>& cartesian, std::vector<double>& articular);
+    bool call_ra_ik_pose(std::vector<double>& cartesian, std::vector<double>& articular);
     bool call_la_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian);
     bool call_ra_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian);
 

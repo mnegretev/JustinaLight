@@ -1,5 +1,0 @@
-geometry_msgs/Pose p1 #Initial cartesian position
-geometry_msgs/Pose p2 #Final cartesian position
-float64 t             #Time in seconds to execute the trajectory
----
-trajectory_msgs/JointTrajectory trajectory #Polynomial trajectory in cartesian position

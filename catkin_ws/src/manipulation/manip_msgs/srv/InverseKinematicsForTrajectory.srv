@@ -1,3 +1,0 @@
-trajectory_msgs/JointTrajectory cartesian_trajectory
----
-trajectory_msgs/JointTrajectory articular_trajectory

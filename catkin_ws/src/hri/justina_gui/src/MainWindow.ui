@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>680</width>
-    <height>547</height>
+    <height>482</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -40,12 +40,12 @@ QRadioButton::indicator{
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>681</width>
-      <height>511</height>
+      <width>671</width>
+      <height>441</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>4</number>
     </property>
     <widget class="QWidget" name="tabGeneral">
      <attribute name="title">
@@ -760,8 +760,8 @@ QRadioButton::indicator{
      <widget class="QGroupBox" name="gbHead">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>290</y>
+        <x>320</x>
+        <y>0</y>
         <width>301</width>
         <height>81</height>
        </rect>
@@ -873,7 +873,7 @@ QRadioButton::indicator{
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>370</y>
+        <y>300</y>
         <width>611</width>
         <height>101</height>
        </rect>
@@ -958,7 +958,7 @@ QRadioButton::indicator{
       <property name="geometry">
        <rect>
         <x>320</x>
-        <y>300</y>
+        <y>90</y>
         <width>301</width>
         <height>71</height>
        </rect>
@@ -1620,7 +1620,7 @@ Person</string>
        <rect>
         <x>310</x>
         <y>10</y>
-        <width>361</width>
+        <width>351</width>
         <height>321</height>
        </rect>
       </property>
@@ -1630,7 +1630,7 @@ Person</string>
       <widget class="QDoubleSpinBox" name="laTxtAngles5">
        <property name="geometry">
         <rect>
-         <x>229</x>
+         <x>220</x>
          <y>30</y>
          <width>121</width>
          <height>31</height>
@@ -1718,7 +1718,7 @@ Person</string>
       <widget class="QLabel" name="laLblAngles6_6">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>181</x>
          <y>80</y>
          <width>41</width>
          <height>17</height>
@@ -1731,7 +1731,7 @@ Person</string>
       <widget class="QLabel" name="laLblAngles5_3">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>181</x>
          <y>40</y>
          <width>41</width>
          <height>17</height>
@@ -1744,7 +1744,7 @@ Person</string>
       <widget class="QDoubleSpinBox" name="laTxtAngles6">
        <property name="geometry">
         <rect>
-         <x>229</x>
+         <x>220</x>
          <y>70</y>
          <width>121</width>
          <height>31</height>
@@ -1797,7 +1797,7 @@ Person</string>
       <widget class="QDoubleSpinBox" name="laTxtAngles7">
        <property name="geometry">
         <rect>
-         <x>229</x>
+         <x>220</x>
          <y>110</y>
          <width>121</width>
          <height>31</height>
@@ -1888,7 +1888,7 @@ Person</string>
         <rect>
          <x>50</x>
          <y>220</y>
-         <width>301</width>
+         <width>291</width>
          <height>31</height>
         </rect>
        </property>
@@ -1912,7 +1912,7 @@ Person</string>
       <widget class="QLabel" name="laLblAngles6_7">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>181</x>
          <y>160</y>
          <width>41</width>
          <height>17</height>
@@ -1925,7 +1925,7 @@ Person</string>
       <widget class="QDoubleSpinBox" name="laTxtAnglesG">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>221</x>
          <y>150</y>
          <width>121</width>
          <height>31</height>
@@ -1950,7 +1950,7 @@ Person</string>
       <widget class="QLabel" name="laLblAngles0_4">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>181</x>
          <y>120</y>
          <width>41</width>
          <height>17</height>
@@ -2156,6 +2156,38 @@ Person</string>
        </property>
       </widget>
      </widget>
+     <widget class="QRadioButton" name="laRbSendTrajectory">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>340</y>
+        <width>151</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Send &amp;Trajectory</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="laRbSendSinglePose">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>340</y>
+        <width>151</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Se&amp;nd Single Pose</string>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_3">
      <attribute name="title">
@@ -2166,7 +2198,7 @@ Person</string>
        <rect>
         <x>310</x>
         <y>10</y>
-        <width>361</width>
+        <width>351</width>
         <height>321</height>
        </rect>
       </property>
@@ -2176,7 +2208,7 @@ Person</string>
       <widget class="QDoubleSpinBox" name="raTxtAngles5">
        <property name="geometry">
         <rect>
-         <x>229</x>
+         <x>219</x>
          <y>30</y>
          <width>121</width>
          <height>31</height>
@@ -2264,7 +2296,7 @@ Person</string>
       <widget class="QLabel" name="laLblAngles6_8">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>180</x>
          <y>80</y>
          <width>41</width>
          <height>17</height>
@@ -2277,7 +2309,7 @@ Person</string>
       <widget class="QLabel" name="laLblAngles5_4">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>180</x>
          <y>40</y>
          <width>41</width>
          <height>17</height>
@@ -2290,7 +2322,7 @@ Person</string>
       <widget class="QDoubleSpinBox" name="raTxtAngles6">
        <property name="geometry">
         <rect>
-         <x>229</x>
+         <x>219</x>
          <y>70</y>
          <width>121</width>
          <height>31</height>
@@ -2343,7 +2375,7 @@ Person</string>
       <widget class="QDoubleSpinBox" name="raTxtAngles7">
        <property name="geometry">
         <rect>
-         <x>229</x>
+         <x>219</x>
          <y>110</y>
          <width>121</width>
          <height>31</height>
@@ -2434,7 +2466,7 @@ Person</string>
         <rect>
          <x>50</x>
          <y>220</y>
-         <width>301</width>
+         <width>291</width>
          <height>31</height>
         </rect>
        </property>
@@ -2458,7 +2490,7 @@ Person</string>
       <widget class="QLabel" name="laLblAngles6_9">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>180</x>
          <y>160</y>
          <width>41</width>
          <height>17</height>
@@ -2471,7 +2503,7 @@ Person</string>
       <widget class="QDoubleSpinBox" name="raTxtAnglesG">
        <property name="geometry">
         <rect>
-         <x>230</x>
+         <x>220</x>
          <y>150</y>
          <width>121</width>
          <height>31</height>
@@ -2496,7 +2528,7 @@ Person</string>
       <widget class="QLabel" name="laLblAngles0_5">
        <property name="geometry">
         <rect>
-         <x>190</x>
+         <x>180</x>
          <y>120</y>
          <width>41</width>
          <height>17</height>
@@ -3138,6 +3170,35 @@ Person</string>
        </property>
       </widget>
      </widget>
+     <widget class="QRadioButton" name="raRbSendTrajectory">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>340</y>
+        <width>151</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Sen&amp;d Trajectory</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="raRbSendSinglePose">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>340</y>
+        <width>151</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Se&amp;nd Single Pose</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -3152,6 +3213,86 @@ Person</string>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <tabstops>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>btnFwd</tabstop>
+  <tabstop>btnBwd</tabstop>
+  <tabstop>btnLeft</tabstop>
+  <tabstop>btnRight</tabstop>
+  <tabstop>txtLinearX</tabstop>
+  <tabstop>txtLinearY</tabstop>
+  <tabstop>txtAngular</tabstop>
+  <tabstop>btnCmdVel</tabstop>
+  <tabstop>navTxtStartPose</tabstop>
+  <tabstop>navTxtGoalPose</tabstop>
+  <tabstop>navBtnCalcPath</tabstop>
+  <tabstop>navBtnExecPath</tabstop>
+  <tabstop>navTxtMove</tabstop>
+  <tabstop>btnStop</tabstop>
+  <tabstop>hdTxtPan</tabstop>
+  <tabstop>hdTxtTilt</tabstop>
+  <tabstop>hdTxtPredefined</tabstop>
+  <tabstop>torTxtPos</tabstop>
+  <tabstop>torTxtPredefined</tabstop>
+  <tabstop>spgTxtSay</tabstop>
+  <tabstop>sprTxtFakeRecog</tabstop>
+  <tabstop>visBtnFindLines</tabstop>
+  <tabstop>visTxtTrainObject</tabstop>
+  <tabstop>visBtnRecogObjects</tabstop>
+  <tabstop>visTxtRecognizeObject</tabstop>
+  <tabstop>tksBtnApproachTable</tabstop>
+  <tabstop>tksTxtTakeObject</tabstop>
+  <tabstop>tksBtnTakeObject</tabstop>
+  <tabstop>tksBtnApproachTable_2</tabstop>
+  <tabstop>laBtnXm</tabstop>
+  <tabstop>laBtnXp</tabstop>
+  <tabstop>laBtnYp</tabstop>
+  <tabstop>laBtnYm</tabstop>
+  <tabstop>laBtnZp</tabstop>
+  <tabstop>laBtnZm</tabstop>
+  <tabstop>laBtnRollp</tabstop>
+  <tabstop>laBtnRollm</tabstop>
+  <tabstop>laBtnPitchp</tabstop>
+  <tabstop>laBtnPitchm</tabstop>
+  <tabstop>laBtnYawp</tabstop>
+  <tabstop>laBtnYawm</tabstop>
+  <tabstop>laTxtCartesianGoal</tabstop>
+  <tabstop>laTxtAngles1</tabstop>
+  <tabstop>laTxtAngles2</tabstop>
+  <tabstop>laTxtAngles3</tabstop>
+  <tabstop>laTxtAngles4</tabstop>
+  <tabstop>laTxtAngles5</tabstop>
+  <tabstop>laTxtAngles6</tabstop>
+  <tabstop>laTxtAngles7</tabstop>
+  <tabstop>laTxtAnglesG</tabstop>
+  <tabstop>laTxtArticularGoal</tabstop>
+  <tabstop>laRbSendSinglePose</tabstop>
+  <tabstop>laRbSendTrajectory</tabstop>
+  <tabstop>raBtnXm</tabstop>
+  <tabstop>raBtnXp</tabstop>
+  <tabstop>raBtnYp</tabstop>
+  <tabstop>raBtnYm</tabstop>
+  <tabstop>raBtnZp</tabstop>
+  <tabstop>raBtnZm</tabstop>
+  <tabstop>raBtnRollp</tabstop>
+  <tabstop>raBtnRollm</tabstop>
+  <tabstop>raBtnPitchp</tabstop>
+  <tabstop>raBtnPitchm</tabstop>
+  <tabstop>raBtnYawp</tabstop>
+  <tabstop>raBtnYawm</tabstop>
+  <tabstop>raTxtCartesianGoal</tabstop>
+  <tabstop>raTxtAngles1</tabstop>
+  <tabstop>raTxtAngles2</tabstop>
+  <tabstop>raTxtAngles3</tabstop>
+  <tabstop>raTxtAngles4</tabstop>
+  <tabstop>raTxtAngles5</tabstop>
+  <tabstop>raTxtAngles6</tabstop>
+  <tabstop>raTxtAngles7</tabstop>
+  <tabstop>raTxtAnglesG</tabstop>
+  <tabstop>raTxtArticularGoal</tabstop>
+  <tabstop>raRbSendSinglePose</tabstop>
+  <tabstop>raRbSendTrajectory</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -438,16 +438,23 @@ void MainWindow::laBtnYawmPressed()
 
 void MainWindow::la_get_IK_and_update_ui(std::vector<double> cartesian)
 {
-    trajectory_msgs::JointTrajectory Q;
-    if(!qtRosNode->call_la_inverse_kinematics(cartesian, Q))
+    trajectory_msgs::JointTrajectory q_trajectory;
+    std::vector<double> q;
+    bool success;
+    if(ui->laRbSendTrajectory->isChecked())
+    {
+        success = qtRosNode->call_la_ik_trajectory(cartesian, q_trajectory);
+        q.resize(7);
+        for(int i=0; i<7; i++)
+            q[i] = q_trajectory.points[q_trajectory.points.size() - 1].positions[i];
+    }
+    else
+        success = qtRosNode->call_la_ik_pose(cartesian, q);
+    if(!success)
     {
         std::cout << "JustinaGUI.->Cannot calculate inverse kinematics for left arm." << std::endl;
         return;
     }
-    std::vector<double> q;
-    q.resize(7);
-    for(int i=0; i<7; i++)
-        q[i] = Q.points[Q.points.size() - 1].positions[i];
     ui->laGbArticular->setEnabled(false);
     ui->laTxtAngles1->setValue(q[0]);
     ui->laTxtAngles2->setValue(q[1]);
@@ -457,8 +464,9 @@ void MainWindow::la_get_IK_and_update_ui(std::vector<double> cartesian)
     ui->laTxtAngles6->setValue(q[5]);
     ui->laTxtAngles7->setValue(q[6]);
     ui->laGbArticular->setEnabled(true);
-    //qtRosNode->publish_la_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
-    qtRosNode->publish_la_goal_trajectory(Q);
+    
+    if(ui->laRbSendTrajectory->isChecked()) qtRosNode->publish_la_goal_trajectory(q_trajectory);
+    else qtRosNode->publish_la_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
 }
 
 void MainWindow::laSbAnglesValueChanged(double d)
@@ -611,16 +619,23 @@ void MainWindow::raBtnYawmPressed()
 
 void MainWindow::ra_get_IK_and_update_ui(std::vector<double> cartesian)
 {
-    trajectory_msgs::JointTrajectory Q;
-    if(!qtRosNode->call_ra_inverse_kinematics(cartesian, Q))
+    trajectory_msgs::JointTrajectory q_trajectory;
+    std::vector<double> q;
+    bool success;
+    if(ui->raRbSendTrajectory->isChecked())
+    {
+        success = qtRosNode->call_ra_ik_trajectory(cartesian, q_trajectory);
+        q.resize(7);
+        for(int i=0; i<7; i++)
+            q[i] = q_trajectory.points[q_trajectory.points.size() - 1].positions[i];
+    }
+    else
+        success = qtRosNode->call_ra_ik_pose(cartesian, q);
+    if(!success)
     {
         std::cout << "JustinaGUI.->Cannot calculate inverse kinematics for right arm." << std::endl;
         return;
     }
-    std::vector<double> q;
-    q.resize(7);
-    for(int i=0; i<7; i++)
-        q[i] = Q.points[Q.points.size()-1].positions[i];
     ui->raGbArticular->setEnabled(false);
     ui->raTxtAngles1->setValue(q[0]);
     ui->raTxtAngles2->setValue(q[1]);
@@ -630,8 +645,9 @@ void MainWindow::ra_get_IK_and_update_ui(std::vector<double> cartesian)
     ui->raTxtAngles6->setValue(q[5]);
     ui->raTxtAngles7->setValue(q[6]);
     ui->raGbArticular->setEnabled(true);
-    //qtRosNode->publish_ra_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
-    qtRosNode->publish_ra_goal_trajectory(Q);
+    
+    if(ui->raRbSendTrajectory->isChecked()) qtRosNode->publish_ra_goal_trajectory(q_trajectory);
+    else qtRosNode->publish_ra_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
 }
 
 void MainWindow::raSbAnglesValueChanged(double d)
