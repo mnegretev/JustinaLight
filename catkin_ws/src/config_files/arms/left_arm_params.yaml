@@ -43,4 +43,4 @@ joint_names:
   - "la_7_joint"
   - "la_grip_left"
   - "la_grip_right"
-max_speed: 20
+max_speed: 60

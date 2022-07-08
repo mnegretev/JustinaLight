@@ -19,10 +19,10 @@
   </node>
   
   <node name="simple_move"  pkg="simple_move"  type="simple_move_node"  output="screen">
-    <param name="max_linear_speed" value="0.8"/>
-    <param name="max_angular_speed" value="1.5"/>
-    <param name="control_alpha" value="0.4"/>
-    <param name="control_beta" value="0.15"/>
+    <param name="max_linear_speed" value="0.5"/>
+    <param name="max_angular_speed" value="0.8"/>
+    <param name="control_alpha" value="0.8"/>
+    <param name="control_beta" value="0.5"/>
   </node>
 
   <node name="obs_detector"  pkg="obstacle_detector"  type="obs_detect_node"  output="screen">
@@ -36,8 +36,8 @@
     <param name="cloud_downsampling" value="$(arg cloud_downsampling)"/>
     <param name="lidar_points_threshold" value="$(arg lidar_points_threshold)"/>
     <param name="cloud_points_threshold" value="$(arg cloud_points_threshold)"/>
-    <param name="obs_detector_debug" value="False"/>
-    <param name="min_z" value="0.05"/>
+    <param name="min_z" value="0.04"/>
+    <param name="obs_detector_debug" value="True"/>
   </node>
 
   <node name="map_augmenter"  pkg="map_augmenter"  type="map_augmenter_node"  output="screen">

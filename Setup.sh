@@ -1,11 +1,12 @@
-sudo apt install ros-noetic-serial
-sudo apt install ros-noetic-joy
-sudo apt install ros-noetic-graph-msgs
-sudo apt install ros-noetic-dynamixel-sdk
-sudo apt install ros-noetic-random-numbers
+sudo apt install ros-noetic-serial -y
+sudo apt install ros-noetic-joy -y
+sudo apt install ros-noetic-graph-msgs -y
+sudo apt install ros-noetic-dynamixel-sdk -y
+sudo apt install ros-noetic-random-numbers -y
 sudo apt install ros-noetic-tf2-bullet -y
 sudo apt install ros-noetic-map-server -y
 sudo apt install ros-noetic-amcl -y
+sudo apt install ros-noetic-gmapping -y
 sudo apt install ros-noetic-move-base -y
 sudo apt install ros-noetic-random-numbers -y
 sudo apt install ros-noetic-moveit-kinematics -y

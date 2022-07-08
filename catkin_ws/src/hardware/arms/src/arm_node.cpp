@@ -7,11 +7,21 @@
 #include "trajectory_msgs/JointTrajectory.h"
 #include "trajectory_msgs/JointTrajectoryPoint.h"
 #include "tf/transform_broadcaster.h"
+
 #define MX_CURRENT_POSITION 36
 #define MX_GOAL_POSITION 30
 #define MX_MOVING_SPEED 32
 #define MX_TORQUE_ENABLE 24
 #define MX_BITS_PER_RADIAN 651.739491961 //=4095/360*180/PI
+
+#define SM_INIT                      10
+#define SM_WRITE_ARM_POSITION        20 
+#define SM_WRITE_GRIPPER_POSITION    30
+#define SM_WRITE_GRIPPER_TORQUE      40
+#define SM_START_TRAJECTORY          45
+#define SM_WRITE_TRAJECTORY_POINT    50
+#define SM_WAIT_FOR_GOAL_REACHED     55 
+#define SM_FINISH_TASK               60
 
 std::string prompt;
 std::vector<int> servo_arm_ids;            //Servo IDs for each joint of the arm
@@ -25,10 +35,12 @@ std::vector<int> servo_zeros;              // = arm zeros  + gripper zeros
 std::vector<int> servo_directions;         // = arm directions +  gripper directions
 std::vector<int> goal_pose_arm_bits;
 std::vector<int> goal_pose_gripper_bits;
+std::vector<std::vector<int> >   goal_trajectory_bits;
 trajectory_msgs::JointTrajectory goal_trajectory;
-bool new_arm_pose     = false;
-bool new_trajectory   = false;
-bool new_gripper_pose = false;
+bool new_arm_pose       = false;
+bool new_trajectory     = false;
+bool new_gripper_pose   = false;
+bool new_gripper_torque = false;
 
 std::vector<double> positions_bits_to_radians(std::vector<int>& positions_bits, std::vector<int>& centers, std::vector<int>& directions)
 {
@@ -63,12 +75,16 @@ void callback_goal_gripper(const std_msgs::Float64::ConstPtr& msg)
 
 void callback_torque_gripper(const std_msgs::Float64::ConstPtr& msg)
 {
+    new_gripper_torque = true;
 }
 
 void callback_q_trajectory(const trajectory_msgs::JointTrajectory::ConstPtr& msg)
 {
     std::cout << prompt << "Received new goal trajectory with " << msg->points.size() << " points." << std::endl;
     goal_trajectory = *msg;
+    goal_trajectory_bits.resize(msg->points.size());
+    for(int i=0; i< msg->points.size(); i++)
+        goal_trajectory_bits[i] = positions_radians_to_bits(msg->points[i].positions, servo_arm_zeros, servo_arm_directions);
     new_trajectory = true;
 }
 
@@ -268,7 +284,8 @@ int main(int argc, char **argv)
     ros::Publisher pub_current_gripper = n.advertise<std_msgs::Float64>("/hardware/arm/current_gripper", 1);
     ros::Publisher pub_object_grasped  = n.advertise<std_msgs::Bool>("/hardware/arm/object_on_hand", 1);
     ros::Publisher pub_battery         = n.advertise<std_msgs::Float64>("/hardware/robot_state/arm_battery", 1);
-    ros::Rate rate(20);
+    ros::Publisher pub_goal_reached    = n.advertise<std_msgs::Bool>("/manipulation/arm/goal_reached", 1);
+    ros::Rate rate(40);
     sensor_msgs::JointState joint_states;
     std_msgs::Float64MultiArray msg_current_pose;
     std_msgs::Float64 msg_current_gripper;
@@ -276,28 +293,74 @@ int main(int argc, char **argv)
     joint_states.position = positions_bits_to_radians(current_position_bits, servo_zeros, servo_directions);
     msg_current_pose.data.resize(servo_arm_ids.size());
 
+    int state = SM_INIT;
+    int trajectory_idx = 0;
+    ros::Time start_time;
     while(ros::ok())
     {
-        if(!get_current_position_bits(groupBulkRead, servo_ids, current_position_bits))
-            std::cout<<prompt << "Cannot get arm current position..." << std::endl;
-
-        if(new_arm_pose && !new_trajectory)
+        switch(state)
         {
+        case SM_INIT:
+            if(new_arm_pose)
+                state = SM_WRITE_ARM_POSITION;
+            else if(new_trajectory)
+                state = SM_START_TRAJECTORY;
+            else if(new_gripper_pose)
+                state = SM_WRITE_GRIPPER_POSITION;
+            else if(new_gripper_torque)
+                state = SM_WRITE_GRIPPER_TORQUE;
+            break;
+
+        case SM_WRITE_ARM_POSITION:
             new_arm_pose = false;
             if(!write_goal_position_bits(portHandler, packetHandler, servo_arm_ids, goal_pose_arm_bits))
                 std::cout << prompt << "Cannot write goal position to arms servos" << std::endl;
-        }
-        if(new_trajectory && !new_arm_pose)
-        {
-            new_trajectory = false;
-        }
-        if(new_gripper_pose)
-        {
+            state = SM_WAIT_FOR_GOAL_REACHED;
+            break;
+
+        case SM_WRITE_GRIPPER_POSITION:
             new_gripper_pose = false;
             if(!write_goal_position_bits(portHandler, packetHandler, servo_gripper_ids, goal_pose_gripper_bits))
                 std::cout << prompt << "Cannot write goal position to gripper servos" << std::endl;
+            state = SM_WAIT_FOR_GOAL_REACHED;
+            break;
+
+        case SM_WRITE_GRIPPER_TORQUE:
+            new_gripper_torque = false;
+            state = SM_INIT;
+            break;
+
+        case SM_START_TRAJECTORY:
+            new_trajectory = false;
+            std::cout << prompt << "Starting execution of joint trajectory" << std::endl;
+            trajectory_idx = 0;
+            start_time = ros::Time::now();
+            state = SM_WRITE_TRAJECTORY_POINT;
+            break;
+
+        case SM_WRITE_TRAJECTORY_POINT:
+            if((ros::Time::now() - start_time) > goal_trajectory.points[trajectory_idx].time_from_start)
+            {                
+                if(!write_goal_position_bits(portHandler, packetHandler, servo_arm_ids, goal_trajectory_bits[trajectory_idx]))
+                    std::cout << prompt << "Cannot write trajectory point to arms servos" << std::endl;
+                if(++trajectory_idx >=goal_trajectory.points.size())
+                    state = SM_FINISH_TASK;
+            }
+            break;
+
+        case SM_WAIT_FOR_GOAL_REACHED:
+            state = SM_FINISH_TASK;
+            break;
+
+        case SM_FINISH_TASK:
+            std::cout << prompt << "Task finished. " << std::endl;
+            state = SM_INIT;
+            break;
         }
-        
+
+        //Get current servo position and publish the corresponding topics 
+        if(!get_current_position_bits(groupBulkRead, servo_ids, current_position_bits))
+            std::cout<<prompt << "Cannot get arm current position..." << std::endl;
         joint_states.position = positions_bits_to_radians(current_position_bits, servo_zeros, servo_directions);
         joint_states.header.stamp = ros::Time::now();
         for(int i=0; i<servo_arm_ids.size(); i++) msg_current_pose.data[i] = joint_states.position[i];
@@ -306,6 +369,7 @@ int main(int argc, char **argv)
         pub_joint_state.publish(joint_states);
         pub_current_pose.publish(msg_current_pose);
         pub_current_gripper.publish(msg_current_gripper);
+        
         ros::spinOnce();
         rate.sleep();
     }

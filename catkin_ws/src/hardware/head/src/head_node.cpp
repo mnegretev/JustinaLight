@@ -1,301 +1,284 @@
-#include <ros/ros.h>
-#include <vector>
-#include <hardware_tools/DynamixelManager.hpp>
-#include <std_msgs/Float64MultiArray.h>
-#include <std_msgs/Float64.h>
-#include <std_msgs/Bool.h>
-#include <sensor_msgs/JointState.h>
-#include <tf/transform_broadcaster.h>
+#include "dynamixel_sdk/dynamixel_sdk.h"
+#include "ros/ros.h"
+#include "std_msgs/Bool.h"
+#include "std_msgs/Float64.h"
+#include "std_msgs/Float64MultiArray.h"
+#include "sensor_msgs/JointState.h"
+#include "trajectory_msgs/JointTrajectory.h"
+#include "trajectory_msgs/JointTrajectoryPoint.h"
 
-bool newGoalPose = true;
-bool readSimul = false;
-bool simul = false;
+#define MX_CURRENT_POSITION 36
+#define MX_GOAL_POSITION 30
+#define MX_MOVING_SPEED 32
+#define MX_TORQUE_ENABLE 24
+#define MX_BITS_PER_RADIAN 651.739491961 //=4095/360*180/PI
 
-int goalPos[2] = {0, 0};
-int goalSpeeds[2] = {90, 75};
-int PID[2][3] = {{24, 0, 128}, {64, 0, 32}};
-int minLimits[2] = {1023, 0};
-int maxLimits[2] = {3069, 4095};
+#define SM_INIT                      10
+#define SM_WRITE_HEAD_POSITION       20 
+#define SM_START_TRAJECTORY          45
+#define SM_WRITE_TRAJECTORY_POINT    50
+#define SM_WAIT_FOR_GOAL_REACHED     55 
+#define SM_FINISH_TASK               60
 
-double goalPos_simul[2] = {0.0, 0.0};
-double goalSpeeds_simul[2] = {0.3, 0.3};
+std::string prompt;
+std::vector<int> servo_ids;        
+std::vector<int> servo_zeros;      
+std::vector<int> servo_directions; 
+std::vector<int> goal_pose_bits;
+std::vector<std::vector<int> >   goal_trajectory_bits;
+trajectory_msgs::JointTrajectory goal_trajectory;
+bool new_pose       = false;
+bool new_trajectory     = false;
 
-int zero_head[2] = {2040, 2520};
-//float offset = -0.07671; // This for help me carry
-//float offset = -0.10671; // This for help me carry
-double offset = 0.0;
-//float offset = -0.04; // This is for p and g 
-double offsetReadSimul = -0.04;
-
-void callbackHeadGoalPose(const std_msgs::Float64MultiArray::ConstPtr &msg){
-    // std::cout << "head_node.-> Reciving new goal head pose." << std::endl;
-    if(!(msg->data.size() == 2))
-        std::cout << "Can not process the goal poses for the head" << std::endl;
-    else{
-        if(!simul ||(!simul && readSimul)){
-            double goalPan = msg->data[0];
-            double goalTilt = msg->data[1];
-            if(goalPan < -1.1)
-                goalPan = -1.1;
-            if(goalPan > 1.1)
-                goalPan = 1.1;
-            if(goalTilt < -0.9)
-                goalTilt = -0.9;
-            if(goalTilt > 0.0)
-                goalTilt = 0.0;
-
-            goalPos[0] = int( (goalPan /(360.0/4095.0*M_PI/180.0)) + zero_head[0]);
-            goalPos[1] = int( (goalTilt/(360.0/4095.0*M_PI/180.0)) + zero_head[1]);
-            //std::cout << "head_node.->goal pose [0]:" << goalPos[0] << ", goal pose [1]:" << goalPos[1] << std::endl;
-            //for(int i = 0; i < 2; i++)
-                //goalSpeeds[i] = 80;
-
-            if(readSimul){
-                goalPos_simul[0] = msg->data[0];
-                goalSpeeds_simul[0] = 0.1;
-                goalPos_simul[1] = msg->data[1];
-                goalSpeeds_simul[1] = 0.1;
-            }
-
-            if(goalPos[0] >= minLimits[0] && goalPos[0] <= maxLimits[0] && goalPos[1] >= minLimits[1] && goalPos[1] <= maxLimits[1])
-                newGoalPose = true;
-        }
-        else{
-            goalPos_simul[0] = msg->data[0];
-            goalSpeeds_simul[0] = 0.1;
-            goalPos_simul[1] = msg->data[1];
-            goalSpeeds_simul[1] = 0.1;
-        }
-    }
+std::vector<double> positions_bits_to_radians(std::vector<int>& positions_bits, std::vector<int>& centers, std::vector<int>& directions)
+{
+    std::vector<double> positions_radians;
+    positions_radians.resize(positions_bits.size());
+    for(int i=0; i<positions_bits.size(); i++)
+        positions_radians[i] = directions[i]*(positions_bits[i] - centers[i])/MX_BITS_PER_RADIAN;
+    return positions_radians;
 }
 
-void callback_simulated(const std_msgs::Bool::ConstPtr &msg){
-    simul = msg->data;
+std::vector<int> positions_radians_to_bits(const std::vector<double>& positions_rads, std::vector<int>& centers, std::vector<int>& directions)
+{
+    std::vector<int> positions_bits;
+    positions_bits.resize(positions_rads.size());
+    for(int i=0; i<positions_rads.size(); i++)
+        positions_bits[i] = directions[i]*positions_rads[i]*MX_BITS_PER_RADIAN + centers[i];
+    return positions_bits;
 }
 
-int main(int argc, char ** argv){
+void callback_goal_pose(const std_msgs::Float64MultiArray::ConstPtr& msg)
+{
+    goal_pose_bits = positions_radians_to_bits(msg->data, servo_zeros, servo_directions);
+    new_pose = true;
+}
 
-    ros::init(argc, argv, "head_node");
-    ros::NodeHandle n;
+void callback_q_trajectory(const trajectory_msgs::JointTrajectory::ConstPtr& msg)
+{
+    std::cout << prompt << "Received new goal trajectory with " << msg->points.size() << " points." << std::endl;
+    goal_trajectory = *msg;
+    goal_trajectory_bits.resize(msg->points.size());
+    for(int i=0; i< msg->points.size(); i++)
+        goal_trajectory_bits[i] = positions_radians_to_bits(msg->points[i].positions, servo_zeros, servo_directions);
+    new_trajectory = true;
+}
+
+bool get_current_position_bits(dynamixel::GroupBulkRead& groupBulkRead, std::vector<int>& ids, std::vector<int>& current_positions)
+{
+    if(groupBulkRead.txRxPacket() != COMM_SUCCESS)
+        return false;
+    for(int i=0; i<ids.size(); i++)
+        if(groupBulkRead.isAvailable(ids[i], MX_CURRENT_POSITION, 2))
+            current_positions[i] = groupBulkRead.getData(ids[i], MX_CURRENT_POSITION, 2);
+        else
+            return false;
+    return true;
+}
+
+bool write_goal_position_bits(dynamixel::PortHandler* port, dynamixel::PacketHandler* packet, std::vector<int>& ids, std::vector<int> positions)
+{
+    for(int i=0; i < ids.size(); i++)
+        if(packet->write2ByteTxOnly(port, ids[i], MX_GOAL_POSITION, positions[i]) != COMM_SUCCESS)
+            return false;
+    return true;
+}
+
+bool write_moving_speed_bits(dynamixel::PortHandler* port, dynamixel::PacketHandler* packet, std::vector<int>& ids, int moving_speed)
+{
+    for(int i=0; i < ids.size(); i++)
+        if(packet->write2ByteTxOnly(port, ids[i], MX_MOVING_SPEED, moving_speed) != COMM_SUCCESS)
+            return false;
+    return true;
+}
+
+bool on_shutting_down(dynamixel::PortHandler* port, dynamixel::PacketHandler* packet, std::vector<int>& ids, std::vector<int>& zeros)
+{
+    for(int i=0; i < ids.size(); i++)
+        packet->write1ByteTxOnly(port, ids[i], MX_TORQUE_ENABLE, 0);
+    return true;
+}
+
+int main(int argc, char **argv)
+{
+    bool correct_params = true;
+    int baudrate = 1000000;
+    bool torque_enable = false;
+    int max_speed;
+    std::string port_name;
+    std::vector<std::string> joint_names;
     
-    std::string port;
-    int baudRate;
-    bool bulkEnable = false;
-    bool syncWriteEnable = false;
-    bool correctParams = false;
-    offset = 0.0;
-    simul = false;
-
-    if(ros::param::has("~port")){
-        ros::param::get("~port", port);
-        correctParams = true;
+    ros::init(argc, argv, "head_node");    
+    ros::NodeHandle n("~");
+    prompt = ros::this_node::getName() + ".->";
+    std::cout << "INTIALIZING " << ros::this_node::getName() << " NODE BY MARCOSOFT..." << std::endl;
+    if(!n.getParam("port", port_name))
+    {
+        std::cout<<prompt<<"Missing port name. Specifying a port with param 'port' is mandatory."<<std::endl;
+        correct_params = false;
     }
-    if(ros::param::has("~baud")){
-        ros::param::get("~baud", baudRate);
-        correctParams &= true;
+    if(!n.getParam("baudrate", baudrate))
+    {
+        std::cout<<prompt<<"Missing port baudrate. Specifying a port with param 'baudrate' is mandatory."<<std::endl;
+        correct_params = false;
+    }
+    if(!n.getParam("servo_ids",servo_ids))
+    {
+        std::cout<<prompt<<"Missing servo IDs. Specifying servo IDs with param 'servo_ids' is mandatory."<<std::endl;
+        correct_params = false;
+    }
+    if(!n.getParam("servo_zeros",servo_zeros))
+    {
+        std::cout<<prompt<<"Missing servo zeros. Specifying servo centers with param 'servo_zeros' is mandatory."<<std::endl;
+        correct_params = false;
+    }
+    if(!n.getParam("servo_directions",servo_directions))
+    {
+        std::cout<<prompt<<"Missing directions. Specifying moving directions with param 'servo_directions' is mandatory."<<std::endl;
+        correct_params = false;
+    }
+    if(!n.getParam("joint_names", joint_names))
+    {
+        std::cout<<prompt<<"Missing joint names. Specifying joint names with param 'joint_names' is mandatory."<<std::endl;
+        correct_params = false;
+    }
+    if(!correct_params)
+        return -1;
+    n.param("torque_enable", torque_enable, true);
+    n.param("max_speed"    , max_speed    , 150);
+    
+    std::cout<<prompt << "Servo IDs: ";
+    for(size_t i=0; i<servo_ids.size(); i++) std::cout << servo_ids[i] << "   ";
+    std::cout << std::endl;
+    std::cout<<prompt << "Servo zeros: ";
+    for(size_t i=0; i<servo_zeros.size(); i++) std::cout << servo_zeros[i] << "   ";
+    std::cout << std::endl;
+    std::cout<<prompt << "Servo directions: ";
+    for(size_t i=0; i<servo_directions.size(); i++) std::cout << servo_directions[i] << "   ";
+    std::cout << std::endl;
+    std::cout<<prompt << "Joint names: ";
+    for(size_t i=0; i<joint_names.size(); i++) std::cout << joint_names[i] << "   ";
+    std::cout << std::endl;
+    std::cout<<prompt << "Torque enable: " << (torque_enable? "True" : "False") << std::endl;
+    std::cout<<prompt << "Max moving speed: " << max_speed << std::endl;
+    std::cout<<prompt << "Trying to open port " << port_name << " at " << baudrate << std::endl;
+
+    //Set port, select protocol, set baudrate and create objects for bulk reading and writing
+    dynamixel::PortHandler   *portHandler   = dynamixel::PortHandler::getPortHandler(port_name.c_str());
+    dynamixel::PacketHandler *packetHandler = dynamixel::PacketHandler::getPacketHandler(1.0);
+    dynamixel::GroupBulkRead groupBulkRead(portHandler, packetHandler);
+    portHandler->setBaudRate(baudrate);
+    //Setting parameters for bulk reading current head position. 
+    for(int i=0; i<servo_ids.size(); i++)
+        if(!groupBulkRead.addParam(servo_ids[i], MX_CURRENT_POSITION, 2))
+        {
+            std::cout<<prompt << "Cannot add bulk read param for id=" << servo_ids[i] << std::endl;
+            return -1;
+        }
+
+    //Reading startup servo positions and setting them as a goal position
+    std::vector<int>  current_position_bits;
+    current_position_bits.resize(servo_ids.size());
+    std::cout<<prompt << "Trying to get initial servo positions..." << std::endl;
+    if(!get_current_position_bits(groupBulkRead, servo_ids, current_position_bits))
+    {
+        std::cout<<prompt << "Cannot get head initial position..." << std::endl;
+        return -1;
     }
     else
-        correctParams &= true;
-
-    if(ros::param::has("~head_offset"))
-    	ros::param::get("~head_offset", offset);
-
-    if(ros::param::has("~bulk_enable"))
-        ros::param::get("~bulk_enable", bulkEnable);
-    
-    if(ros::param::has("~sync_write_enable"))
-        ros::param::get("~sync_write_enable", syncWriteEnable);
-
-    if(ros::param::has("~simul"))
-        ros::param::get("~simul", simul);
-    
-    if(ros::param::has("~read_simul"))
-        ros::param::get("~read_simul", readSimul);
-
-    if(!correctParams){
-        std::cerr << "Can not initialized the head node, please put correct params to this node, for example." << std::endl;
-        std::cerr << "port : tty01" << std::endl;
-        std::cerr << "baud : 1000000" << std::endl;
+    {
+        std::cout<<prompt << "Initial head position: ";
+        for(int i=0; i<current_position_bits.size(); i++) std::cout << current_position_bits[i] << "  ";
+        std::cout << std::endl;
+    }
+    goal_pose_bits.resize(servo_ids.size());
+    for(int i=0; i< servo_ids.size(); i++) goal_pose_bits[i] = current_position_bits[i];
+    //If torque is enabled, send current position as servo goal position
+    if(torque_enable)
+        if(!write_goal_position_bits(portHandler, packetHandler, servo_ids, goal_pose_bits))
+        {
+            std::cout << prompt << "Cannot set initial head position as goal position" << std::endl;
+            return -1;
+        }
+    if(!write_moving_speed_bits(portHandler, packetHandler, servo_ids, max_speed))
+    {
+        std::cout << prompt << "Cannot write moving speed to head servos" << std::endl;
         return -1;
     }
 
-    ros::Subscriber subGoalPos = n.subscribe("/hardware/head/goal_pose", 1, callbackHeadGoalPose);
-    ros::Subscriber subSimul = n.subscribe("/simulated", 1, callback_simulated); 
-    ros::Publisher joint_pub = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
-    ros::Publisher pubHeadPose = n.advertise<std_msgs::Float64MultiArray>("head/current_pose", 1);
-    ros::Publisher pubBattery = n.advertise<std_msgs::Float64>("/hardware/robot_state/head_battery", 1);
+    ros::Subscriber sub_goal_pose      = n.subscribe("/hardware/head/goal_pose"     , 1, callback_goal_pose     );
+    ros::Subscriber sub_q_trajectory   = n.subscribe("/manipulation/hd_q_trajectory"  , 1, callback_q_trajectory  );
+    ros::Publisher pub_joint_state     = n.advertise<sensor_msgs::JointState>("/joint_states", 1);
+    ros::Publisher pub_current_pose    = n.advertise<std_msgs::Float64MultiArray>("/hardware/head/current_pose", 1);
+    ros::Publisher pub_battery         = n.advertise<std_msgs::Float64>("/hardware/robot_state/head_battery", 1);
+    ros::Publisher pub_goal_reached    = n.advertise<std_msgs::Bool>("/manipulation/head/goal_reached", 1);
+    ros::Rate rate(40);
+    sensor_msgs::JointState joint_states;
+    std_msgs::Float64MultiArray msg_current_pose;
+    joint_states.name.insert(joint_states.name.end(), joint_names.begin(), joint_names.end());
+    joint_states.position = positions_bits_to_radians(current_position_bits, servo_zeros, servo_directions);
+    msg_current_pose.data.resize(servo_ids.size());
 
-    ros::Rate rate(30);
+    int state = SM_INIT;
+    int trajectory_idx = 0;
+    ros::Time start_time;
+    while(ros::ok())
+    {
+        switch(state)
+        {
+        case SM_INIT:
+            if(new_pose)
+                state = SM_WRITE_HEAD_POSITION;
+            else if(new_trajectory)
+                state = SM_START_TRAJECTORY;
+            break;
 
-    std::vector<int> ids;
-    ids.push_back(0);
-    ids.push_back(1);
-    DynamixelManager dynamixelManager;
-    if(!simul){
-        //dynamixelManager.enableInfoLevelDebug();
-        dynamixelManager.init(port, baudRate, bulkEnable, ids, syncWriteEnable);
-    }
+        case SM_WRITE_HEAD_POSITION:
+            new_pose = false;
+            if(!write_goal_position_bits(portHandler, packetHandler, servo_ids, goal_pose_bits))
+                std::cout << prompt << "Cannot write goal position to head servos" << std::endl;
+            state = SM_WAIT_FOR_GOAL_REACHED;
+            break;
 
-    uint16_t curr_position[2];
-    for(int i = 0; i < 2; i++){
-        curr_position[i] = zero_head[i];
-        goalPos[i] = zero_head[i];
-    }
+        case SM_START_TRAJECTORY:
+            new_trajectory = false;
+            std::cout << prompt << "Starting execution of joint trajectory" << std::endl;
+            trajectory_idx = 0;
+            start_time = ros::Time::now();
+            state = SM_WRITE_TRAJECTORY_POINT;
+            break;
 
-    double bitsPerRadian = 4095.0/360.0*180.0/M_PI;
-
-    std::string names[2] = {"head_pan", "head_tilt"};
-    double positions[2] = {0, 0};
-    
-    sensor_msgs::JointState jointStates;
-    jointStates.name.insert(jointStates.name.begin(), names, names + 2);
-    jointStates.position.insert(jointStates.position.begin(), positions, positions + 2);
-
-    // Setup features for init the servos of left arm
-    if(!simul){
-        for(int i = 0; i < 2; i++){
-            dynamixelManager.enableTorque(i); 
-            dynamixelManager.setPGain(i, PID[i][0]);
-            dynamixelManager.setIGain(i, PID[i][1]);
-            dynamixelManager.setDGain(i, PID[i][2]);
-            dynamixelManager.setMaxTorque(i, 1023);
-            dynamixelManager.setTorqueLimit(i, 512);
-            dynamixelManager.setHighestLimitTemperature(i, 80);
-            dynamixelManager.setAlarmShutdown(i, 0b00000100);
-            dynamixelManager.setMovingSpeed(i, 100);
-            dynamixelManager.setCWAngleLimit(i, minLimits[i]);
-            dynamixelManager.setCCWAngleLimit(i, maxLimits[i]);
-        }
-    }
-
-    std_msgs::Float64MultiArray msgCurrPose;
-    msgCurrPose.data.resize(2);
-    std_msgs::Float64 msgBattery;
-    
-
-    //initialize simulation variables
-    double Pos[2] = {0.0, 0.0};
-    double deltaPos[2] = {0.0, 0.0};
-    for(int i = 0; i < 2; i++){
-        goalPos_simul[i] = 0.0;
-        goalSpeeds_simul[i] = 0.1;
-    }
-
-    while(ros::ok()){
-        if(!simul){
-            if(newGoalPose){
-                //std::cout << "head_pose.->send newGoalPose" << std::endl;
-                for(int i = 0; i < 2; i++){
-                    dynamixelManager.setMovingSpeed(i, goalSpeeds[i]);
-                    dynamixelManager.setGoalPosition(i, goalPos[i]);
-                }
-                if(syncWriteEnable){
-                    dynamixelManager.writeSyncGoalPosesData();
-                    dynamixelManager.writeSyncSpeedsData();
-                }
-                newGoalPose = false;
+        case SM_WRITE_TRAJECTORY_POINT:
+            if((ros::Time::now() - start_time) > goal_trajectory.points[trajectory_idx].time_from_start)
+            {                
+                if(!write_goal_position_bits(portHandler, packetHandler, servo_ids, goal_trajectory_bits[trajectory_idx]))
+                    std::cout << prompt << "Cannot write trajectory point to head servos" << std::endl;
+                if(++trajectory_idx >=goal_trajectory.points.size())
+                    state = SM_FINISH_TASK;
             }
-        }
-        if(!simul && !readSimul){
-            if(bulkEnable)
-                dynamixelManager.readBulkData();
-            bool readData = true;
-            for(int i = 0; i < 2 && readData; i++)
-                readData = dynamixelManager.getPresentPosition(i, curr_position[i]);
-            if(!readData)
-                std::cout << "head_node.->Read data not found." << std::endl;
+            break;
 
-            jointStates.header.stamp = ros::Time::now();
-            //std::cout << "head_node.->curr pose [0]:" << curr_position[0] << ", curr pose [1]:" << curr_position[1] << std::endl;
-            jointStates.position[0] = (- (zero_head[0]-curr_position[0]))/bitsPerRadian;
-            jointStates.position[1] = (- (zero_head[1]-curr_position[1]))/bitsPerRadian;
-            
-            msgCurrPose.data[0] = jointStates.position[0]; 
-            msgCurrPose.data[1] = -jointStates.position[1]; 
-            
-            jointStates.position[1] = jointStates.position[1] + offset;
+        case SM_WAIT_FOR_GOAL_REACHED:
+            state = SM_FINISH_TASK;
+            break;
 
-            uint8_t voltage;
-            dynamixelManager.getPresentVoltage(1, voltage);
-            msgBattery.data = voltage / 10.0;
-            pubBattery.publish(msgBattery);
-
-            joint_pub.publish(jointStates);
-            pubHeadPose.publish(msgCurrPose);
-        }
-        else{
-            for(int i = 0; i < 2; i++){
-                deltaPos[i] = goalPos_simul[i] - Pos[i];
-                if(deltaPos[i] > goalSpeeds_simul[i])
-                    deltaPos[i] = goalSpeeds_simul[i];
-                if(deltaPos[i] < -goalSpeeds_simul[i])
-                    deltaPos[i] = -goalSpeeds_simul[i];
-                Pos[i] += deltaPos[i];
-                if(i == 0)
-                    jointStates.position[i] = Pos[i];
-                else{ 
-                    if(readSimul)
-                        jointStates.position[i] = -Pos[i] + offsetReadSimul;
-                    else
-                        jointStates.position[i] = -Pos[i];
-                }
-                msgCurrPose.data[i] = Pos[i]; 
-            }
-                
-            jointStates.header.stamp = ros::Time::now();
-            joint_pub.publish(jointStates);
-            pubHeadPose.publish(msgCurrPose);
-            msgBattery.data =  11.6;
-            pubBattery.publish(msgBattery);
-
+        case SM_FINISH_TASK:
+            std::cout << prompt << "Task finished. " << std::endl;
+            state = SM_INIT;
+            break;
         }
 
-        rate.sleep();
+        //Get current servo position and publish the corresponding topics 
+        if(!get_current_position_bits(groupBulkRead, servo_ids, current_position_bits))
+            std::cout<<prompt << "Cannot get head current position..." << std::endl;
+        joint_states.position = positions_bits_to_radians(current_position_bits, servo_zeros, servo_directions);
+        joint_states.header.stamp = ros::Time::now();
+        msg_current_pose.data = joint_states.position;
+        pub_joint_state.publish(joint_states);
+        pub_current_pose.publish(msg_current_pose);
+        
         ros::spinOnce();
+        rate.sleep();
     }
-
-    std::cout << "head_node.->Shutdowning the head node" << std::endl;
-    std::cout << "head_node.->Writing the shutdowning pose" << std::endl;
-    goalPos[0] = int(zero_head[0]);
-    goalPos[1] = int( (-0.9/(360.0/4095.0*M_PI/180.0)) + zero_head[1]);
-    for(int i = 0; i < 2; i++){
-        dynamixelManager.setGoalPosition(i, goalPos[i]);
-        dynamixelManager.setMovingSpeed(i, 100);
-    }
-    if(syncWriteEnable){
-        dynamixelManager.writeSyncGoalPosesData();
-        dynamixelManager.writeSyncSpeedsData();
-    }
-    
-    bool validatePosition [2] = {0, 0};
-    int countValidate = 0;
-    boost::posix_time::ptime prev = boost::posix_time::second_clock::local_time();
-    boost::posix_time::ptime curr = prev;
-    do{
-        for(int i = 0; i < 2; i++){
-            if(!validatePosition[i]){
-                unsigned short position;
-                if(bulkEnable)
-                    dynamixelManager.readBulkData();
-                dynamixelManager.getPresentPosition(i, position);
-                double error = fabs(position - goalPos[i]);
-                //std::cout << "left_arm_pose.->Moto:" <<  i << ", error: " << error << std::endl;
-                if(error < 10){
-                    validatePosition[i] = true;
-                    countValidate++;
-                }
-            }
-        }
-        curr = boost::posix_time::second_clock::local_time();
-    }while(countValidate < 2 && (curr - prev).total_milliseconds() < 7500);
-
-    std::cout << "head_node.->The head have reached the finish pose" << std::endl;
-
-    for(int i = 0; i < 2; i++)
-        dynamixelManager.disableTorque(i); 
-
-    dynamixelManager.close();
-
-    return 1;
+    on_shutting_down(portHandler, packetHandler, servo_ids, servo_zeros);
 }
-

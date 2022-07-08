@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     uint16_t info;
 
     //Write value of 2 bytes
-    dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, id, addr,value, &dxl_error_write);
+    dxl_comm_result = packetHandler->write2ByteTxOnly(portHandler, id, addr,value);
 
     if(dxl_comm_result != COMM_SUCCESS)
     {
