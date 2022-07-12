@@ -26,21 +26,9 @@
     <arg name="lidar_points_threshold" value="5"/>
   </include>
 
-  <node name="la_inverse_kinematics" pkg="inverse_kinematics" type="ik_numeric.py" output="screen">
-    <rosparam command="load" file="$(find config_files)/manipulation/la_inverse_kinematics.yaml"/>
-    <remap from="/manipulation/forward_kinematics" to="/manipulation/la_forward_kinematics"/>
-    <remap from="/manipulation/ik_trajectory"      to="/manipulation/la_ik_trajectory"     />
-    <remap from="/manipulation/ik_pose"            to="/manipulation/la_ik_pose"           />
-    <remap from="/manipulation/polynomial_trajectory" to="/manipulation/la_polynomial_trajectory"/>
-  </node>
-  <node name="ra_inverse_kinematics" pkg="inverse_kinematics" type="ik_numeric.py" output="screen">
-    <rosparam command="load" file="$(find config_files)/manipulation/ra_inverse_kinematics.yaml"/>
-    <remap from="/manipulation/forward_kinematics" to="/manipulation/ra_forward_kinematics"/>
-    <remap from="/manipulation/ik_trajectory"      to="/manipulation/ra_ik_trajectory"     />
-    <remap from="/manipulation/ik_pose"            to="/manipulation/ra_ik_pose"           />
-    <remap from="/manipulation/polynomial_trajectory" to="/manipulation/ra_polynomial_trajectory"/>
-  </node>
-  <!-- <node name="arm_trajectory_tracking" pkg="trajectory_tracking" type="traj_tracking.py" output="screen"/> -->
+  <include file="$(find surge_et_ambula)/launch/manipulation.launch"/>
+  <node name="traj_tracking" pkg="trajectory_tracking" type="traj_tracking.py" output="screen"/>
+  
   <!--node name="obj_reco" pkg="obj_reco" type="obj_reco_node" output="screen">
     <param name="training_dir" value="$(find obj_reco)/training_simul"/>
   </node-->

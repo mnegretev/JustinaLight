@@ -40,10 +40,12 @@ void QtRosNode::run()
     cltRaIKPose2Pose      =n->serviceClient<manip_msgs::InverseKinematicsPose2Pose>("/manipulation/ra_ik_pose");
     cltLaForwardKinematics=n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/la_forward_kinematics");
     cltRaForwardKinematics=n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/ra_forward_kinematics");
+    cltGetPolynomialTraj  =n->serviceClient<manip_msgs::GetPolynomialTrajectory>("/manipulation/polynomial_trajectory");
     cltFindLines          =n->serviceClient<vision_msgs::FindLines>       ("/vision/line_finder/find_lines_ransac");
     cltTrainObject        =n->serviceClient<vision_msgs::TrainObject>     ("/vision/obj_reco/train_object");
     cltRecogObjects       =n->serviceClient<vision_msgs::RecognizeObjects>("/vision/obj_reco/recognize_objects");
     cltRecogObject        =n->serviceClient<vision_msgs::RecognizeObject >("/vision/obj_reco/recognize_object");
+    
     int pub_zero_counter = 5;
     while(ros::ok() && !this->gui_closed)
     {
@@ -278,6 +280,23 @@ bool QtRosNode::call_ra_forward_kinematics(std::vector<double>& articular, std::
     cartesian[3] = srv.response.roll;
     cartesian[4] = srv.response.pitch;
     cartesian[5] = srv.response.yaw;
+    return true;
+}
+
+bool QtRosNode::call_get_polynomial_traj(std::vector<double>& p1, std::vector<double>& p2, trajectory_msgs::JointTrajectory& trajectory)
+{
+    manip_msgs::GetPolynomialTrajectory srv;
+    srv.request.p1 = p1;
+    srv.request.p2 = p2;
+    srv.request.time_step  = 0.05;
+    double max_delta = -1;
+    for(size_t i=0; i < p1.size(); i++)
+        if(fabs(p1[i] - p2[i]) > max_delta)
+            max_delta = fabs(p1[i] - p2[i]);
+    srv.request.duration = max_delta / 0.7 + 0.5;
+    if(!cltGetPolynomialTraj.call(srv))
+        return false;
+    trajectory = srv.response.trajectory;
     return true;
 }
 

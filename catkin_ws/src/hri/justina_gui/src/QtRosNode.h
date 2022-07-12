@@ -15,6 +15,7 @@
 #include "manip_msgs/InverseKinematicsPose2Traj.h"
 #include "manip_msgs/InverseKinematicsPose2Pose.h"
 #include "manip_msgs/ForwardKinematics.h"
+#include "manip_msgs/GetPolynomialTrajectory.h"
 #include "vision_msgs/FindLines.h"
 #include "vision_msgs/TrainObject.h"
 #include "vision_msgs/RecognizeObjects.h"
@@ -45,6 +46,7 @@ public:
     ros::ServiceClient cltRaIKPose2Traj;
     ros::ServiceClient cltLaForwardKinematics;
     ros::ServiceClient cltRaForwardKinematics;
+    ros::ServiceClient cltGetPolynomialTraj;
     ros::ServiceClient cltFindLines;
     ros::ServiceClient cltTrainObject;
     ros::ServiceClient cltRecogObjects;
@@ -83,6 +85,7 @@ public:
     bool call_ra_ik_pose(std::vector<double>& cartesian, std::vector<double>& articular);
     bool call_la_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian);
     bool call_ra_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian);
+    bool call_get_polynomial_traj(std::vector<double>& p1, std::vector<double>& p2, trajectory_msgs::JointTrajectory& trajectory);
 
     bool call_find_lines();
     bool call_train_object(std::string name);

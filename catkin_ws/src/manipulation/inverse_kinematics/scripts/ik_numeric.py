@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import math
 import sys
 import rospy
@@ -51,18 +51,8 @@ def jacobian(q):
      
     return J
 
-def jacobian_3x7(q):   
-    delta_q = 0.000001   
-    J = numpy.asarray([[0.0 for a in q] for i in range(3)])   # 3x7
-    qn = numpy.asarray([q,]*len(q)) + delta_q*numpy.identity(len(q))  # 7x7
-    qp = numpy.asarray([q,]*len(q)) - delta_q*numpy.identity(len(q))  # 7x7
-    for i in range(len(q)):
-        x, y,z, R, P, Y = (forward_kinematics(qn[i]) - forward_kinematics(qp[i]))/delta_q/2.0
-        J[:,i] = x, y, z
-    return J
-
 def inverse_kinematics(x, y, z, roll, pitch, yaw, initial_guess=numpy.zeros(7), max_iterations=20):
-    only_xyz = roll is numpy.nan or pitch is numpy.nan or yaw is numpy.nan
+    only_xyz = math.isnan(roll) or math.isnan(pitch) or math.isnan(yaw)
     q = [qi for qi in initial_guess]
     pd = numpy.asarray([x,y,z,roll,pitch,yaw])
     p  = forward_kinematics(q)
@@ -74,7 +64,7 @@ def inverse_kinematics(x, y, z, roll, pitch, yaw, initial_guess=numpy.zeros(7), 
         J = jacobian(q)
         err = p - pd
         if only_xyz:
-            J = [0:3, :]
+            J = J[0:3]
             err = err[0:3]
         else:
             err[3:6] = (err[3:6] + math.pi)%(2*math.pi) - math.pi
@@ -84,35 +74,7 @@ def inverse_kinematics(x, y, z, roll, pitch, yaw, initial_guess=numpy.zeros(7), 
         if only_xyz:
             err = err[0:3]
         iterations +=1
-    return q if iterations < max_iterations and angles_in_joint_limits(q) else False
-
-
-def inverse_kinematics_xyz(x, y, z, initial_guess=numpy.zeros(7), max_iterations=20):
-    q_J3x7 = [qi for qi in initial_guess]
-    pd = numpy.asarray([x,y,z])
-    p  = forward_kinematics(q, arm)
-    iterations = 0
-    err_xyz = p[0:3]-pd[0:3]
-    while numpy.linalg.norm(err_xyz) > 0.00001 and iterations < max_iterations:
-        J_3x7 = jacobian_3x7(q, arm)
-        err_xyz = p[0:3]-pd[0:3]
-        q_J3x7 = q_J3x7 - numpy.dot(numpy.linalg.pinv(J_3x7), err_xyz)
-        p = forward_kinematics(q_J3x7)
-        err_xyz = p[0:3]-pd[0:3]
-        iterations +=1
-    return q if iterations < max_iterations and angles_in_joint_limits(q) else False
-
-def callback_la_fk(req):
-    x = forward_kinematics([req.q1, req.q2, req.q3, req.q4, req.q5, req.q6, req.q7], 'left')
-    resp = ForwardKinematicsResponse()
-    [resp.x, resp.y, resp.z, resp.roll, resp.pitch, resp.yaw] = x
-    return resp
-
-def callback_ra_fk(req):
-    x = forward_kinematics([req.q1, req.q2, req.q3, req.q4, req.q5, req.q6, req.q7], 'left')
-    resp = ForwardKinematicsResponse()
-    [resp.x, resp.y, resp.z, resp.roll, resp.pitch, resp.yaw] = x
-    return resp
+    return iterations < max_iterations and angles_in_joint_limits(q), q
 
 def get_polynomial_trajectory(q_initial, q_final, qp_initial=0, qp_final=0, qpp_initial=0, qpp_final=0, duration=1.0, time_step=0.05):
     #
@@ -143,25 +105,25 @@ def get_polynomial_trajectory(q_initial, q_final, qp_initial=0, qp_final=0, qpp_
 
     return T, Q
     
-def get_polynomial_trajectory_multi_dof(Q_initial, Q_final, Qp_initial=[], Qp_final=[], Qpp_initial=[], Qpp_final=[], duration=1.0, time_step=0.05):
+def get_polynomial_trajectory_multi_dof(Q_start, Q_end, Qp_start=[], Qp_end=[], Qpp_start=[], Qpp_end=[], duration=1.0, time_step=0.05):
     Q = []
     T = []
-    if Qp_initial == []:
-        Qp_initial = numpy.zeros(len(Q_initial))
-    if Qpp_initial == []:
-        Qpp_initial = numpy.zeros(len(Q_initial))
-    if Qp_final == []:
-        Qp_final = numpy.zeros(len(Q_final))
-    if Qpp_final == []:
-        Qpp_final = numpy.zeros(len(Q_final))
-    for i in rante(len(Q_initial)):
-        T, Qi = get_polynomial_trajectory(Q_initial[i], Q_final[i], Qp_initial[i], Qp_final[i], Qpp_initial[i], Qpp_final[i], duration, time_step)
+    if Qp_start == []:
+        Qp_start = numpy.zeros(len(Q_start))
+    if Qpp_start == []:
+        Qpp_start = numpy.zeros(len(Q_start))
+    if Qp_end == []:
+        Qp_end = numpy.zeros(len(Q_end))
+    if Qpp_end == []:
+        Qpp_end = numpy.zeros(len(Q_end))
+    for i in range(len(Q_start)):
+        T, Qi = get_polynomial_trajectory(Q_start[i], Q_end[i], Qp_start[i], Qp_end[i], Qpp_start[i], Qpp_end[i], duration, time_step)
         Q.append(Qi)
     Q = numpy.asarray(Q)
     Q = Q.transpose()
     return Q,T
 
-def callback_fk(req):
+def callback_forward_kinematics(req):
     if len(req.q) != 7:
         print(prompt+"By the moment, only 7-DOF arm is supported")
         return False
@@ -173,40 +135,52 @@ def get_trajectory_time(p1, p2, speed_factor):
     p1 = numpy.asarray(p1)
     p2 = numpy.asarray(p2)
     m = max(numpy.absolute(p1 - p2))
-    return m/speed_factor
+    return m/speed_factor + 0.5
 
 def callback_ik_for_trajectory(req):
+    global max_iterations
     print(prompt+"Calculating inverse kinematics and trajectory for " + str([req.x, req.y, req.z, req.roll, req.pitch, req.yaw]))
-    if req.initial_guess == [] or req.initial_guess == None:
-        initial_guess = rospy.wait_for_message("/hardware/left_arm/current_pose", Float64MultiArray, 5.0)
+    if len(req.initial_guess) <= 0 or req.initial_guess == None:
+        initial_guess = rospy.wait_for_message("/hardware/arm/current_pose", Float64MultiArray)
         initial_guess = initial_guess.data
     else:
         initial_guess = req.initial_guess
-    t = req.duration if req.duration > 0 else get_trajectory_time([req.x, req.y, req.z, req.roll, req.pitch, req.yaw], forward_kinematics(initial_guess))
     p1 = forward_kinematics(initial_guess)
     p2 = [req.x, req.y, req.z, req.roll, req.pitch, req.yaw]
-    cartesian_traj = get_polynomial_trajectory_multi_dof(p1, p2, duration=req.duration, time_step=req.time_step)
-    print(cartesian_traj)
-    return False
-        
-def callback_ik_for_pose(req):    
-    print(prompt+"Calculating inverse kinematics for pose")
-    return False
-
-def callback_polynomial_trajectory(req):
-    print(prompt+"Calculating polynomial trajectory")
-    Q, T = get_polynomial_trajectory_multi_dof(req.p1, req.p2, req.v1, req.v2, req.a1, req.a2, req.duration, req.time_step)
+    t  = req.duration if req.duration > 0 else get_trajectory_time(p1, p2, 0.25)
+    dt = req.time_step if req.time_step > 0 else 0.05
+    X,T = get_polynomial_trajectory_multi_dof(p1, p2, duration=t, time_step=dt)
     trj = JointTrajectory()
     trj.header.stamp = rospy.Time.now()
-    for i in range(len(Q)):
+    q = initial_guess
+    for i in range(len(X)):
+        x, y, z, roll, pitch, yaw = X[i]
+        success, q = inverse_kinematics(x, y, z, roll, pitch, yaw, q, max_iterations)
+        if not success:
+            return False
         p = JointTrajectoryPoint()
-        p.positions = Q[i]
+        p.positions = q
         p.time_from_start = rospy.Duration.from_sec(T[i])
         trj.points.append(p)
-    resp = GetPolynomialTrajectoryResponse()
-    resp.trajectory = trj
+    resp = InverseKinematicsPose2TrajResponse()
+    resp.articular_trajectory = trj
     return resp
+    
         
+def callback_ik_for_pose(req):
+    global max_iterations
+    print(prompt+"Calculating inverse kinematics for pose: " + str([req.x, req.y, req.z, req.roll, req.pitch, req.yaw]))
+    if len(req.initial_guess) <= 0 or req.initial_guess == None:
+        initial_guess = rospy.wait_for_message("/hardware/arm/current_pose", Float64MultiArray, 5.0)
+        initial_guess = initial_guess.data
+    else:
+        initial_guess = req.initial_guess
+    resp = InverseKinematicsPose2PoseResponse()
+    success, q = inverse_kinematics(req.x, req.y, req.z, req.roll, req.pitch, req.yaw, initial_guess, max_iterations)
+    if not success:
+        return False
+    resp.q = q
+    return resp        
     
 
 def main():
@@ -224,10 +198,9 @@ def main():
         print("Inverse kinematics.->Cannot get model info from parameter server")
         sys.exit(-1)
 
-    rospy.Service("/manipulation/forward_kinematics"   , ForwardKinematics, callback_fk)    
+    rospy.Service("/manipulation/forward_kinematics"   , ForwardKinematics, callback_forward_kinematics)    
     rospy.Service("/manipulation/ik_trajectory"        , InverseKinematicsPose2Traj, callback_ik_for_trajectory)
     rospy.Service("/manipulation/ik_pose"              , InverseKinematicsPose2Pose, callback_ik_for_pose)
-    rospy.Service("/manipulation/polynomial_trajectory", GetPolynomialTrajectory   , callback_polynomial_trajectory)
     loop = rospy.Rate(10)
     while not rospy.is_shutdown():
         loop.sleep()

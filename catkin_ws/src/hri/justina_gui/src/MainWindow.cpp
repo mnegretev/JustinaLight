@@ -444,9 +444,12 @@ void MainWindow::la_get_IK_and_update_ui(std::vector<double> cartesian)
     if(ui->laRbSendTrajectory->isChecked())
     {
         success = qtRosNode->call_la_ik_trajectory(cartesian, q_trajectory);
-        q.resize(7);
-        for(int i=0; i<7; i++)
-            q[i] = q_trajectory.points[q_trajectory.points.size() - 1].positions[i];
+        if(success)
+        {
+            q.resize(7);
+            for(int i=0; i<7; i++)
+                q[i] = q_trajectory.points[q_trajectory.points.size() - 1].positions[i];
+        }
     }
     else
         success = qtRosNode->call_la_ik_pose(cartesian, q);
@@ -472,9 +475,28 @@ void MainWindow::la_get_IK_and_update_ui(std::vector<double> cartesian)
 void MainWindow::laSbAnglesValueChanged(double d)
 {
     if(ui->laGbArticular->isEnabled())
-        qtRosNode->publish_la_goal_angles(ui->laTxtAngles1->value(), ui->laTxtAngles2->value(), ui->laTxtAngles3->value(),
-                                          ui->laTxtAngles4->value(), ui->laTxtAngles5->value(), ui->laTxtAngles6->value(),
-                                          ui->laTxtAngles7->value());
+    {
+        std::vector<double> goal_q;
+        goal_q.resize(7);
+        goal_q[0] = ui->laTxtAngles1->value();
+        goal_q[1] = ui->laTxtAngles2->value();
+        goal_q[2] = ui->laTxtAngles3->value();
+        goal_q[3] = ui->laTxtAngles4->value();
+        goal_q[4] = ui->laTxtAngles5->value();
+        goal_q[5] = ui->laTxtAngles6->value();
+        goal_q[6] = ui->laTxtAngles7->value();
+        if(ui->laRbSendTrajectory->isChecked())
+        {
+            trajectory_msgs::JointTrajectory trj;
+            if(!qtRosNode->call_get_polynomial_traj(qtRosNode->la_current_q, goal_q, trj))
+                return;
+            qtRosNode->publish_la_goal_trajectory(trj);
+        }
+        else 
+            qtRosNode->publish_la_goal_angles(ui->laTxtAngles1->value(), ui->laTxtAngles2->value(), ui->laTxtAngles3->value(),
+                                              ui->laTxtAngles4->value(), ui->laTxtAngles5->value(), ui->laTxtAngles6->value(),
+                                              ui->laTxtAngles7->value());
+    }
 }
 
 void MainWindow::laSbGripperValueChanged(double d)
@@ -512,7 +534,17 @@ void MainWindow::laTxtArticularGoalReturnPressed()
     ui->laTxtAngles6->setValue(q[5]);
     ui->laTxtAngles7->setValue(q[6]);
     ui->laGbArticular->setEnabled(true);
-    qtRosNode->publish_la_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+    if(ui->laRbSendTrajectory->isChecked())
+    {
+        trajectory_msgs::JointTrajectory trj;
+        if(!qtRosNode->call_get_polynomial_traj(qtRosNode->la_current_q, q, trj))
+            return;
+        qtRosNode->publish_la_goal_trajectory(trj);
+    }
+    else 
+        qtRosNode->publish_la_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+    
+    
 }
 
 void MainWindow::laTxtCartesianGoalReturnPressed()
@@ -523,9 +555,14 @@ void MainWindow::laTxtCartesianGoalReturnPressed()
     std::vector<double> cartesian = qtRosNode->la_current_cartesian;
     for(size_t i=0; i < parts.size() && i < 6; i++)
     {
-        std::stringstream ss(parts[i]);
-        if(!(ss >> cartesian[i]))
-            cartesian[i] = qtRosNode->la_current_cartesian[i];
+        boost::algorithm::to_lower(parts[i]);
+        if(parts[i] == "nan")
+            cartesian[i] = std::nan("1");
+        else{
+            std::stringstream ss(parts[i]);
+            if(!(ss >> cartesian[i]))
+                cartesian[i] = qtRosNode->la_current_cartesian[i];
+        }
     }
     la_get_IK_and_update_ui(cartesian);
 }
@@ -625,9 +662,12 @@ void MainWindow::ra_get_IK_and_update_ui(std::vector<double> cartesian)
     if(ui->raRbSendTrajectory->isChecked())
     {
         success = qtRosNode->call_ra_ik_trajectory(cartesian, q_trajectory);
-        q.resize(7);
-        for(int i=0; i<7; i++)
-            q[i] = q_trajectory.points[q_trajectory.points.size() - 1].positions[i];
+        if(success)
+        {
+            q.resize(7);
+            for(int i=0; i<7; i++)
+                q[i] = q_trajectory.points[q_trajectory.points.size() - 1].positions[i];
+        }
     }
     else
         success = qtRosNode->call_ra_ik_pose(cartesian, q);
@@ -653,9 +693,28 @@ void MainWindow::ra_get_IK_and_update_ui(std::vector<double> cartesian)
 void MainWindow::raSbAnglesValueChanged(double d)
 {
     if(ui->raGbArticular->isEnabled())
-        qtRosNode->publish_ra_goal_angles(ui->raTxtAngles1->value(), ui->raTxtAngles2->value(), ui->raTxtAngles3->value(),
-                                          ui->raTxtAngles4->value(), ui->raTxtAngles5->value(), ui->raTxtAngles6->value(),
-                                          ui->raTxtAngles7->value());
+    {
+        std::vector<double> goal_q;
+        goal_q.resize(7);
+        goal_q[0] = ui->raTxtAngles1->value();
+        goal_q[1] = ui->raTxtAngles2->value();
+        goal_q[2] = ui->raTxtAngles3->value();
+        goal_q[3] = ui->raTxtAngles4->value();
+        goal_q[4] = ui->raTxtAngles5->value();
+        goal_q[5] = ui->raTxtAngles6->value();
+        goal_q[6] = ui->raTxtAngles7->value();
+        if(ui->raRbSendTrajectory->isChecked())
+        {
+            trajectory_msgs::JointTrajectory trj;
+            if(!qtRosNode->call_get_polynomial_traj(qtRosNode->ra_current_q, goal_q, trj))
+                return;
+            qtRosNode->publish_ra_goal_trajectory(trj);
+        }
+        else 
+            qtRosNode->publish_ra_goal_angles(ui->raTxtAngles1->value(), ui->raTxtAngles2->value(), ui->raTxtAngles3->value(),
+                                              ui->raTxtAngles4->value(), ui->raTxtAngles5->value(), ui->raTxtAngles6->value(),
+                                              ui->raTxtAngles7->value());
+    }
 }
 
 void MainWindow::raSbGripperValueChanged(double d)
@@ -694,7 +753,15 @@ void MainWindow::raTxtArticularGoalReturnPressed()
     ui->raTxtAngles6->setValue(q[5]);
     ui->raTxtAngles7->setValue(q[6]);
     ui->raGbArticular->setEnabled(true);
-    qtRosNode->publish_ra_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+    if(ui->raRbSendTrajectory->isChecked())
+    {
+        trajectory_msgs::JointTrajectory trj;
+        if(!qtRosNode->call_get_polynomial_traj(qtRosNode->ra_current_q, q, trj))
+            return;
+        qtRosNode->publish_ra_goal_trajectory(trj);
+    }
+    else 
+        qtRosNode->publish_ra_goal_angles(q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
 }
 
 void MainWindow::raTxtCartesianGoalReturnPressed()
