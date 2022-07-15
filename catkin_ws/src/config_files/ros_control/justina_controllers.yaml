@@ -4,22 +4,6 @@
     type: joint_state_controller/JointStateController
     publish_rate: 30
 
-  # Omnidirectional Mobile Base Controllers ---------------------------------------
-  base_left_wheel_controller:
-    type: velocity_controllers/JointVelocityController
-    joint: wheel_left_joint
-    pid: {d: 0.0, i: 0.0, p: 10.0}
-
-  base_back_wheel_controller:
-    type: velocity_controllers/JointVelocityController
-    joint: wheel_back_joint
-    pid: {d: 0.0, i: 0.0, p: 10.0}
-
-  base_right_wheel_controller:
-    type: velocity_controllers/JointVelocityController
-    joint: wheel_right_joint
-    pid: {d: 0.0, i: 0.0, p: 10.0}
-
   # Torso Position Controllers ---------------------------------------
   torso_controller:
     type: effort_controllers/JointPositionController

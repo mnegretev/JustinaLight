@@ -5,6 +5,7 @@ from std_msgs.msg import Float64MultiArray, Float64
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import Twist
 from gazebo_msgs.srv import *
+import tf
 
 RATE = 100
 WHEEL_RADIUS = 0.08
@@ -14,24 +15,29 @@ ALPHA_RIGHT  = -math.pi/3
 ALPHA_BACK   =  math.pi
 
 def callback_twist(msg):
-    global goal_x, goal_y, goal_a
+    global goal_vx, goal_vy, goal_va
     goal_x = msg.linear.x
     goal_y = msg.linear.y
     goal_a = msg.angular.z
 
 def main():
-    global goal_x, goal_y, goal_a
+    global goal_vx, goal_vy, goal_va
     print("INITIALIZING OMNI BASE GAZEBO CONTROL BY MARCOSOFT...")
     rospy.init_node("omni_base_gazebo_control")
     rospy.Subscriber("/cmd_vel", Twist, callback_twist)
+    rospy.wait_for_service("/gazebo/apply_joint_effort")
+    rospy.wait_for_service("/gazebo/get_joint_properties")
+    rospy.wait_for_service("/gazebo/get_model_state")
     clt_apply_effort   = rospy.ServiceProxy("/gazebo/apply_joint_effort", ApplyJointEffort)
     clt_get_properties = rospy.ServiceProxy("/gazebo/get_joint_properties", GetJointProperties)
+    clt_model_state    = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
+    br = tf.TransformBroadcaster()
     req_effort_left  = ApplyJointEffortRequest()
     req_effort_right = ApplyJointEffortRequest()
     req_effort_back  = ApplyJointEffortRequest()
     req_effort_left.joint_name  = 'justina::wheel_left_joint'
     req_effort_right.joint_name = 'justina::wheel_right_joint'
-    req_effort_back.joint_name  = 'justina::wheel_right_joint'
+    req_effort_back.joint_name  = 'justina::wheel_back_joint'
     req_effort_left.duration  = rospy.Duration(1.0/RATE)
     req_effort_right.duration = rospy.Duration(1.0/RATE)
     req_effort_back.duration  = rospy.Duration(1.0/RATE)
@@ -42,7 +48,17 @@ def main():
     req_prop_right.joint_name = 'justina::wheel_right_joint'
     req_prop_back.joint_name  = 'justina::wheel_back_joint'
     loop = rospy.Rate(RATE)
-    goal_x, goal_y, goal_a = 0,0,0
+    
+    req_model_state = GetModelStateRequest()
+    req_model_state.model_name = 'justina'
+    resp_model_state = clt_model_state(req_model_state)
+    # robot_x = resp_model_state.pose.position.x
+    # robot_y = resp_model_state.pose.position.y
+    # robot_a = math.atan2(resp_model_state.pose.orientation.z, resp_model_state.pose.orientation.w)*2
+    # print("OmniBaseControl.->Initial position: " + str([robot_x, robot_y, robot_a]))
+    robot_x, robot_y, robot_a = 0,0,0
+    
+    goal_vx, goal_vy, goal_va = 0,0,0
     last_error_left  = 0
     last_error_right = 0
     last_error_back  = 0
@@ -53,14 +69,18 @@ def main():
     c_alpha_right = math.cos(ALPHA_RIGHT)
     c_alpha_back  = math.cos(ALPHA_BACK)
     
+    
     while not rospy.is_shutdown():
+        # Get current wheel speeds
         resp_left  = clt_get_properties(req_prop_left)
         resp_right = clt_get_properties(req_prop_right)
         resp_back  = clt_get_properties(req_prop_back)
         current_left, current_right, current_back = resp_left.rate[0], resp_right.rate[0], resp_back.rate[0]
-        goal_left  = -(-s_alpha_left *goal_x + c_alpha_left *goal_y + BASE_RADIUS*goal_a)/WHEEL_RADIUS
-        goal_right = -(-s_alpha_right*goal_x + c_alpha_right*goal_y + BASE_RADIUS*goal_a)/WHEEL_RADIUS
-        goal_back  = -(-s_alpha_back *goal_x + c_alpha_back *goal_y + BASE_RADIUS*goal_a)/WHEEL_RADIUS
+        # Calculate goal speed from cmd_vel
+        goal_left  = -(-s_alpha_left *goal_vx + c_alpha_left *goal_vy + BASE_RADIUS*goal_va)/WHEEL_RADIUS
+        goal_right = -(-s_alpha_right*goal_vx + c_alpha_right*goal_vy + BASE_RADIUS*goal_va)/WHEEL_RADIUS
+        goal_back  = -(-s_alpha_back *goal_vx + c_alpha_back *goal_vy + BASE_RADIUS*goal_va)/WHEEL_RADIUS
+        # Calculate error and derivative
         error_left  = goal_left  - current_left
         error_right = goal_right - current_right
         error_back  = goal_back  - current_back
@@ -69,17 +89,23 @@ def main():
         d_error_back  = error_back  - last_error_back
         last_error_left  = error_left  
         last_error_right = error_right 
-        last_error_back  = error_back  
-        #print([error_left, error_right, error_back])
-        req_effort_left.effort  = 0.5*(goal_left  - current_left ) + 0.1*d_error_left
-        req_effort_right.effort = 0.5*(goal_right - current_right) + 0.1*d_error_right
-        req_effort_back.effort  = 0.5*(goal_back  - current_back ) + 0.1*d_error_back
-        # req_effort_left.effort  = 0.0
-        # req_effort_right.effort = 0.0
-        # req_effort_back.effort  = 0.0
+        last_error_back  = error_back
+        # Calculate and send PD control laws
+        req_effort_left.effort  = 0.7*(goal_left  - current_left ) + 0.1*d_error_left
+        req_effort_right.effort = 0.7*(goal_right - current_right) + 0.1*d_error_right
+        req_effort_back.effort  = 0.7*(goal_back  - current_back ) + 0.1*d_error_back
         clt_apply_effort(req_effort_left)
         clt_apply_effort(req_effort_right)
         clt_apply_effort(req_effort_back)
+        #Get current linear and angular robot speed to integrate and calculate odometry.
+        resp_model_state = clt_model_state(req_model_state)
+        xp = resp_model_state.twist.linear.x
+        yp = resp_model_state.twist.linear.y
+        ap = resp_model_state.twist.angular.z
+        robot_x += xp / RATE
+        robot_y += yp / RATE
+        robot_a += ap / RATE
+        br.sendTransform((robot_x, robot_y, 0), tf.transformations.quaternion_from_euler(0,0,robot_a), rospy.Time.now(), "base_link", "odom")
         loop.sleep()
 
 
