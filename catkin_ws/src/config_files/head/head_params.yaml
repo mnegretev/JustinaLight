@@ -4,8 +4,8 @@ servo_ids:
   - 0
   - 1
 servo_zeros:
-  - 2024
-  - 2559
+  - 2000
+  - 2600
 servo_directions:
   - 1
   - 1
