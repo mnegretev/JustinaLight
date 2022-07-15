@@ -37,7 +37,7 @@
     <param name="lidar_points_threshold" value="$(arg lidar_points_threshold)"/>
     <param name="cloud_points_threshold" value="$(arg cloud_points_threshold)"/>
     <param name="min_z" value="0.04"/>
-    <param name="obs_detector_debug" value="True"/>
+    <param name="obs_detector_debug" value="False"/>
   </node>
 
   <node name="map_augmenter"  pkg="map_augmenter"  type="map_augmenter_node"  output="screen">
