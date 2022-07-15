@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:include filename="$(find justina_description)/urdf/justina_base_roller.xacro"/>
+  <xacro:property name="rim_radius" value="0.08"/>
+  <xacro:property name="rim_width" value="0.0221"/>
+  <xacro:property name="PI" value="3.14159265358979323846"/>
+
+  <xacro:macro name="rim_macro" params="name color xyz rpy"	>
+    <link name="rim_${name}_link">
+      <inertial>
+        <origin xyz="0 0 0"/>
+        <mass value="0.1"/>
+        <xacro:cylinder_inertia m="0.1" r="${rim_radius}" h="${rim_width}"/>
+      </inertial>
+      <visual>
+	<geometry>
+	  <mesh filename="package://justina_description/stl/justina_base_rim.stl" scale="5 5 2"/>
+	</geometry>
+	<material name="rim_${name}_material">
+	  <color rgba="${color} 1"/>
+	</material>
+      </visual>
+      <collision>
+	<geometry>
+	  <mesh filename="package://justina_description/stl/justina_base_rim.stl" scale ="5 5 2"/>
+	</geometry>
+      </collision>
+    </link>
+    <joint name="wheel_${name}_joint" type="continuous">
+      <parent link="base_center" />
+      <child link="rim_${name}_link" />
+      <axis xyz="0 0 1"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+    <xacro:roller_macro parent="${name}" name="e"  xyz="${ rim_radius}       0        ${ rim_width/2}" rpy="${-PI/2} 0 0"/>
+    <xacro:roller_macro	parent="${name}" name="n"  xyz="          0    ${ rim_radius} ${ rim_width/2}" rpy="${-PI/2} 0 ${PI/2}"/>
+    <xacro:roller_macro parent="${name}" name="w"  xyz="${-rim_radius}       0        ${ rim_width/2}" rpy="${-PI/2} 0 ${PI}"/>
+    <xacro:roller_macro	parent="${name}" name="s"  xyz="          0    ${-rim_radius} ${ rim_width/2}" rpy="${-PI/2} 0 ${3*PI/2}"/>
+    <xacro:roller_macro parent="${name}" name="ne" xyz="${ rim_radius/sqrt(2)} ${ rim_radius/sqrt(2)} ${-rim_width/2}" rpy="${-PI/2} 0 ${PI/4}"/>
+    <xacro:roller_macro parent="${name}" name="nw" xyz="${-rim_radius/sqrt(2)} ${ rim_radius/sqrt(2)} ${-rim_width/2}" rpy="${-PI/2} 0 ${3*PI/4}"/>
+    <xacro:roller_macro parent="${name}" name="sw" xyz="${-rim_radius/sqrt(2)} ${-rim_radius/sqrt(2)} ${-rim_width/2}" rpy="${-PI/2} 0 ${5*PI/4}"/>
+    <xacro:roller_macro parent="${name}" name="se" xyz="${ rim_radius/sqrt(2)} ${-rim_radius/sqrt(2)} ${-rim_width/2}" rpy="${-PI/2} 0 ${7*PI/4}"/>
+    
+    <transmission name="rim_${name}_transmission">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="wheel_${name}_joint">
+	<hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="rim_${name}_motor">
+	<hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+	<mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+    <gazebo reference="rim_${name}_link">
+      <material>Gazebo/Gray</material>
+      <selfCollide>false</selfCollide>
+      <gravity>true</gravity>
+    </gazebo>
+  </xacro:macro>
+</robot>
