@@ -23,8 +23,8 @@
     </actuator>
   </transmission>
       
-  <gazebo reference="kinect_base">
-    <sensor name="kinect_justina" type="depth">
+  <gazebo reference="camera_link">
+    <sensor name="realsense_justina" type="depth">
       <update_rate>30</update_rate>
       <visualize>true</visualize>
       <always_on>1</always_on>
@@ -40,13 +40,13 @@
         <baseline>0.2</baseline>
         <alwaysOn>true</alwaysOn>
         <updateRate>0.0</updateRate>
-        <cameraName>hardware/kinect</cameraName>
+        <cameraName>hardware/realsense</cameraName>
         <imageTopicName>rgb/image_raw</imageTopicName>
         <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
         <depthImageTopicName>depth/image_raw</depthImageTopicName>
         <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
-        <pointCloudTopicName>rgbd_wrt_kinect</pointCloudTopicName>
-        <frameName>kinect_link</frameName>
+        <pointCloudTopicName>points</pointCloudTopicName>
+        <frameName>realsense_link</frameName>
         <pointCloudCutoffMax>3.5</pointCloudCutoffMax>
         <pointCloudCutoff>0.5</pointCloudCutoff>
         <CxPrime>0</CxPrime>
@@ -70,8 +70,8 @@
   <gazebo reference="kinect_base">
     <material>Gazebo/Black</material>
   </gazebo>
-  <gazebo reference="kinect_link">
-    <material>Gazebo/Black</material>
+  <gazebo reference="camera_link">
+    <material>Gazebo/Gray</material>
   </gazebo>
 </robot>
   

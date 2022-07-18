@@ -1,5 +1,5 @@
 <launch>
-  <rosparam file="$(find config_files)/ros_control/justina_controllers.yaml" command="load"/>
+  <rosparam file="$(find config_files)/ros_control/justina_gazebo_controllers.yaml" command="load"/>
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
         output="screen" ns="/" args="head_pan_controller head_tilt_controller la_1_controller la_2_controller la_3_controller
                                             la_4_controller la_5_controller la_6_controller la_7_controller la_grip_left_controller

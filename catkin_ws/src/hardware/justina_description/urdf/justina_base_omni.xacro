@@ -45,7 +45,7 @@
   <joint name="base_joint" type="fixed">
     <parent link="base_link" />
     <child link="base_center" />
-    <origin xyz="0 0 0.1905"/>
+    <origin xyz="0 0 0.13"/>
   </joint>
   <joint name="base_torso_support_joint" type="fixed">
     <parent link="base_center" />
@@ -73,8 +73,8 @@
     <child link="left_wheel_link" />
     <axis xyz="0 0 1"/>
     <origin xyz="${(base_radius+0.03)*cos( PI/3)} ${(base_radius+0.03)*sin( PI/3)} -0.05" rpy="${PI/2} 0 ${ PI/3+PI/2}"/>
-    <limit velocity="30.0" effort="1.0"/>
-    <dynamics damping="1.0" friction="0.01"/>
+    <limit velocity="30.0" effort="5.0"/>
+    <dynamics damping="0.5" friction="0.01"/>
   </joint>  
   
   <!-- RIGHT WHEEL ACTUATOR-->
@@ -97,8 +97,8 @@
     <child link="right_wheel_link" />
     <axis xyz="0 0 1"/>
     <origin xyz="${(base_radius+0.03)*cos(-PI/3)} ${(base_radius+0.03)*sin(-PI/3)} -0.05" rpy="${PI/2} 0 ${-PI/3+PI/2}"/>
-    <limit velocity="30.0" effort="1.0"/>
-    <dynamics damping="1.0" friction="0.01"/>
+    <limit velocity="30.0" effort="5.0"/>
+    <dynamics damping="0.5" friction="0.01"/>
   </joint>
 
   <!-- BACK WHEEL ACTUATOR-->
@@ -121,8 +121,8 @@
     <child link="back_wheel_link" />
     <axis xyz="0 0 1"/>
     <origin xyz="${(base_radius+0.03)*cos(PI)} ${(base_radius+0.03)*sin(PI)} -0.05" rpy="${PI/2} 0 ${PI+PI/2}"/>
-    <limit velocity="30.0" effort="1.0"/>
-    <dynamics damping="1.0" friction="0.01"/>
+    <limit velocity="30.0" effort="5.0"/>
+    <dynamics damping="0.5" friction="0.01"/>
   </joint>
 
   <!-- LASER LINK AND JOINTS-->

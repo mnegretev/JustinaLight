@@ -45,7 +45,7 @@ QRadioButton::indicator{
      </rect>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tabGeneral">
      <attribute name="title">
@@ -57,7 +57,7 @@ QRadioButton::indicator{
         <x>10</x>
         <y>0</y>
         <width>301</width>
-        <height>291</height>
+        <height>341</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -70,7 +70,7 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>215</x>
-         <y>185</y>
+         <y>210</y>
          <width>81</width>
          <height>31</height>
         </rect>
@@ -83,7 +83,7 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>89</x>
-         <y>150</y>
+         <y>180</y>
          <width>121</width>
          <height>23</height>
         </rect>
@@ -93,7 +93,7 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>89</x>
-         <y>175</y>
+         <y>210</y>
          <width>121</width>
          <height>23</height>
         </rect>
@@ -103,7 +103,7 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>150</y>
+         <y>180</y>
          <width>81</width>
          <height>17</height>
         </rect>
@@ -116,7 +116,7 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>214</x>
-         <y>150</y>
+         <y>170</y>
          <width>81</width>
          <height>31</height>
         </rect>
@@ -129,7 +129,7 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>175</y>
+         <y>210</y>
          <width>81</width>
          <height>17</height>
         </rect>
@@ -142,7 +142,7 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>200</y>
+         <y>245</y>
          <width>101</width>
          <height>17</height>
         </rect>
@@ -155,8 +155,8 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>110</x>
-         <y>200</y>
-         <width>101</width>
+         <y>245</y>
+         <width>181</width>
          <height>27</height>
         </rect>
        </property>
@@ -187,7 +187,7 @@ QRadioButton::indicator{
         <string>X:</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnRight">
+      <widget class="QPushButton" name="btnTurnRight">
        <property name="geometry">
         <rect>
          <x>125</x>
@@ -225,7 +225,7 @@ QRadioButton::indicator{
         </size>
        </property>
       </widget>
-      <widget class="QPushButton" name="btnLeft">
+      <widget class="QPushButton" name="btnTurnLeft">
        <property name="geometry">
         <rect>
          <x>5</x>
@@ -332,7 +332,7 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>230</y>
+         <y>280</y>
          <width>281</width>
          <height>51</height>
         </rect>
@@ -469,6 +469,15 @@ QRadioButton::indicator{
           <colorrole role="ToolTipText">
            <brush brushstyle="SolidPattern">
             <color alpha="255">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
+          <colorrole role="PlaceholderText">
+           <brush brushstyle="NoBrush">
+            <color alpha="128">
              <red>0</red>
              <green>0</green>
              <blue>0</blue>
@@ -612,6 +621,15 @@ QRadioButton::indicator{
             </color>
            </brush>
           </colorrole>
+          <colorrole role="PlaceholderText">
+           <brush brushstyle="NoBrush">
+            <color alpha="128">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
          </inactive>
          <disabled>
           <colorrole role="WindowText">
@@ -749,11 +767,58 @@ QRadioButton::indicator{
             </color>
            </brush>
           </colorrole>
+          <colorrole role="PlaceholderText">
+           <brush brushstyle="NoBrush">
+            <color alpha="128">
+             <red>0</red>
+             <green>0</green>
+             <blue>0</blue>
+            </color>
+           </brush>
+          </colorrole>
          </disabled>
         </palette>
        </property>
        <property name="text">
         <string>S T O P</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnRight">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>100</y>
+         <width>50</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnLeft">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>100</y>
+         <width>50</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
        </property>
       </widget>
      </widget>
@@ -872,10 +937,10 @@ QRadioButton::indicator{
      <widget class="QGroupBox" name="gbSpeech">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>300</y>
-        <width>611</width>
-        <height>101</height>
+        <x>320</x>
+        <y>160</y>
+        <width>341</width>
+        <height>181</height>
        </rect>
       </property>
       <property name="title">
@@ -884,9 +949,9 @@ QRadioButton::indicator{
       <widget class="QLineEdit" name="spgTxtSay">
        <property name="geometry">
         <rect>
-         <x>85</x>
+         <x>90</x>
          <y>20</y>
-         <width>511</width>
+         <width>241</width>
          <height>23</height>
         </rect>
        </property>
@@ -908,7 +973,7 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>45</y>
+         <y>50</y>
          <width>71</width>
          <height>16</height>
         </rect>
@@ -917,25 +982,12 @@ QRadioButton::indicator{
         <string>Fake Reco:</string>
        </property>
       </widget>
-      <widget class="QLabel" name="sprLblLastRecog">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>70</y>
-         <width>471</width>
-         <height>20</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Please bring me the orange juice from the kitchen</string>
-       </property>
-      </widget>
       <widget class="QLineEdit" name="sprTxtFakeRecog">
        <property name="geometry">
         <rect>
-         <x>85</x>
-         <y>45</y>
-         <width>511</width>
+         <x>90</x>
+         <y>50</y>
+         <width>241</width>
          <height>23</height>
         </rect>
        </property>
@@ -944,13 +996,32 @@ QRadioButton::indicator{
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>70</y>
+         <y>80</y>
          <width>81</width>
          <height>17</height>
         </rect>
        </property>
        <property name="text">
         <string>Last Recog:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="sprLblLastRecog">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>100</y>
+         <width>321</width>
+         <height>61</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Please bring me the orange juice from the kitchen</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
        </property>
       </widget>
      </widget>
@@ -3217,8 +3288,8 @@ Person</string>
   <tabstop>tabWidget</tabstop>
   <tabstop>btnFwd</tabstop>
   <tabstop>btnBwd</tabstop>
-  <tabstop>btnLeft</tabstop>
-  <tabstop>btnRight</tabstop>
+  <tabstop>btnTurnLeft</tabstop>
+  <tabstop>btnTurnRight</tabstop>
   <tabstop>txtLinearX</tabstop>
   <tabstop>txtLinearY</tabstop>
   <tabstop>txtAngular</tabstop>
