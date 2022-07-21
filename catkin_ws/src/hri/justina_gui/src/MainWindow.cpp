@@ -15,13 +15,19 @@ MainWindow::MainWindow(QWidget *parent) :
     QIcon icoTurnRight(":/images/btnTurnRight");
     ui->btnFwd->setIcon(icoFwd);
     ui->btnBwd->setIcon(icoBwd);
-    ui->btnTurnLeft->setIcon(icoLeft);
-    ui->btnTurnRight->setIcon(icoRight);
+    ui->btnTurnLeft->setIcon(icoTurnLeft);
+    ui->btnTurnRight->setIcon(icoTurnRight);
+    ui->btnLeft->setIcon(icoLeft);
+    ui->btnRight->setIcon(icoRight);
 
     QObject::connect(ui->btnFwd, SIGNAL(pressed()), this, SLOT(btnFwdPressed()));
     QObject::connect(ui->btnFwd, SIGNAL(released()), this, SLOT(btnFwdReleased()));
     QObject::connect(ui->btnBwd, SIGNAL(pressed()), this, SLOT(btnBwdPressed()));
     QObject::connect(ui->btnBwd, SIGNAL(released()), this, SLOT(btnBwdReleased()));
+    QObject::connect(ui->btnLeft, SIGNAL(pressed()), this, SLOT(btnLeftPressed()));
+    QObject::connect(ui->btnLeft, SIGNAL(released()), this, SLOT(btnLeftReleased()));
+    QObject::connect(ui->btnRight, SIGNAL(pressed()), this, SLOT(btnRightPressed()));
+    QObject::connect(ui->btnRight, SIGNAL(released()), this, SLOT(btnRightReleased()));
     QObject::connect(ui->btnTurnLeft, SIGNAL(pressed()), this, SLOT(btnTurnLeftPressed()));
     QObject::connect(ui->btnTurnLeft, SIGNAL(released()), this, SLOT(btnTurnLeftReleased()));
     QObject::connect(ui->btnTurnRight, SIGNAL(pressed()), this, SLOT(btnTurnRightPressed()));
@@ -198,6 +204,26 @@ void MainWindow::btnBwdPressed()
 }
 
 void MainWindow::btnBwdReleased()
+{
+    qtRosNode->stop_publishing_cmd_vel();
+}
+
+void MainWindow::btnLeftPressed()
+{
+    qtRosNode->start_publishing_cmd_vel(0, 0.3, 0);
+}
+
+void MainWindow::btnLeftReleased()
+{
+    qtRosNode->stop_publishing_cmd_vel();
+}
+
+void MainWindow::btnRightPressed()
+{
+    qtRosNode->start_publishing_cmd_vel(0, -0.3, 0);
+}
+
+void MainWindow::btnRightReleased()
 {
     qtRosNode->stop_publishing_cmd_vel();
 }

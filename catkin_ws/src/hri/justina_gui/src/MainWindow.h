@@ -41,6 +41,10 @@ public slots:
     void btnFwdReleased();
     void btnBwdPressed();    
     void btnBwdReleased();
+    void btnLeftPressed();
+    void btnLeftReleased();
+    void btnRightPressed();
+    void btnRightReleased();
     void btnTurnLeftPressed();
     void btnTurnLeftReleased();
     void btnTurnRightPressed();
