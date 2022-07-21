@@ -11,19 +11,21 @@ MainWindow::MainWindow(QWidget *parent) :
     QIcon icoBwd(":/images/btnDown");
     QIcon icoLeft(":/images/btnLeft");
     QIcon icoRight(":/images/btnRight");
+    QIcon icoTurnLeft(":/images/btnTurnLeft");
+    QIcon icoTurnRight(":/images/btnTurnRight");
     ui->btnFwd->setIcon(icoFwd);
     ui->btnBwd->setIcon(icoBwd);
-    ui->btnLeft->setIcon(icoLeft);
-    ui->btnRight->setIcon(icoRight);
+    ui->btnTurnLeft->setIcon(icoLeft);
+    ui->btnTurnRight->setIcon(icoRight);
 
     QObject::connect(ui->btnFwd, SIGNAL(pressed()), this, SLOT(btnFwdPressed()));
     QObject::connect(ui->btnFwd, SIGNAL(released()), this, SLOT(btnFwdReleased()));
     QObject::connect(ui->btnBwd, SIGNAL(pressed()), this, SLOT(btnBwdPressed()));
     QObject::connect(ui->btnBwd, SIGNAL(released()), this, SLOT(btnBwdReleased()));
-    QObject::connect(ui->btnLeft, SIGNAL(pressed()), this, SLOT(btnLeftPressed()));
-    QObject::connect(ui->btnLeft, SIGNAL(released()), this, SLOT(btnLeftReleased()));
-    QObject::connect(ui->btnRight, SIGNAL(pressed()), this, SLOT(btnRightPressed()));
-    QObject::connect(ui->btnRight, SIGNAL(released()), this, SLOT(btnRightReleased()));
+    QObject::connect(ui->btnTurnLeft, SIGNAL(pressed()), this, SLOT(btnTurnLeftPressed()));
+    QObject::connect(ui->btnTurnLeft, SIGNAL(released()), this, SLOT(btnTurnLeftReleased()));
+    QObject::connect(ui->btnTurnRight, SIGNAL(pressed()), this, SLOT(btnTurnRightPressed()));
+    QObject::connect(ui->btnTurnRight, SIGNAL(released()), this, SLOT(btnTurnRightReleased()));
     QObject::connect(ui->btnCmdVel, SIGNAL(pressed()), this, SLOT(btnCmdVelPressed()));
     QObject::connect(ui->btnCmdVel, SIGNAL(released()), this, SLOT(btnCmdVelReleased()));
 
@@ -207,22 +209,22 @@ void MainWindow::btnBwdReleased()
     qtRosNode->stop_publishing_cmd_vel();
 }
 
-void MainWindow::btnLeftPressed()
+void MainWindow::btnTurnLeftPressed()
 {
     qtRosNode->start_publishing_cmd_vel(0, 0, 0.5);
 }
 
-void MainWindow::btnLeftReleased()
+void MainWindow::btnTurnLeftReleased()
 {
     qtRosNode->stop_publishing_cmd_vel();
 }
 
-void MainWindow::btnRightPressed()
+void MainWindow::btnTurnRightPressed()
 {
     qtRosNode->start_publishing_cmd_vel(0, 0, -0.5);
 }
 
-void MainWindow::btnRightReleased()
+void MainWindow::btnTurnRightReleased()
 {
     qtRosNode->stop_publishing_cmd_vel();
 }

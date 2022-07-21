@@ -13,14 +13,16 @@
   <arg name="lidar_downsampling" default="2"/>
   <arg name="cloud_points_threshold" default="100"/>
   <arg name="lidar_points_threshold" default="20"/>
+  <arg name="max_linear_speed" default="0.5"/>
+  <arg name="max_angular_speed" default="0.8"/>
 
   <node name="path_planner" pkg="path_planner" type="path_planner_node" output="screen">
     <param name="diagonal_paths" value="False"/>
   </node>
   
   <node name="simple_move"  pkg="simple_move"  type="simple_move_node"  output="screen">
-    <param name="max_linear_speed" value="0.5"/>
-    <param name="max_angular_speed" value="0.8"/>
+    <param name="max_linear_speed" value="$(arg max_linear_speed)"/>
+    <param name="max_angular_speed" value="$(arg max_angular_speed)"/>
     <param name="control_alpha" value="0.8"/>
     <param name="control_beta" value="0.5"/>
   </node>
