@@ -12,6 +12,10 @@ QtRosNode::QtRosNode()
     cmd_vel.angular.z = 0;
     la_current_q.resize(7);
     ra_current_q.resize(7);
+    la_voltage = 0;
+    // la_voltage_bar = 0;
+    ra_voltage = 0;
+    //ra_voltage_bar = 0;
     la_current_cartesian.resize(6);
     ra_current_cartesian.resize(6);
 }
@@ -33,7 +37,9 @@ void QtRosNode::run()
     pubLaGoalGrip = n->advertise<std_msgs::Float64>("/hardware/left_arm/goal_gripper", 1);
     pubRaGoalGrip = n->advertise<std_msgs::Float64>("/hardware/right_arm/goal_gripper", 1);
     subLaCurrentQ = n->subscribe("/hardware/left_arm/current_pose" , 1, &QtRosNode::callback_la_current_q, this);
+    subLaVoltage  = n->subscribe("/hardware/left_arm_voltage",1, &QtRosNode::callback_la_voltage,this);
     subRaCurrentQ = n->subscribe("/hardware/right_arm/current_pose", 1, &QtRosNode::callback_ra_current_q, this);
+    subRaVoltage  = n->subscribe("/hardware/right_arm_voltage",1, &QtRosNode::callback_ra_voltage,this);
     cltLaIKPose2Traj      =n->serviceClient<manip_msgs::InverseKinematicsPose2Traj>("/manipulation/la_ik_trajectory");
     cltRaIKPose2Traj      =n->serviceClient<manip_msgs::InverseKinematicsPose2Traj>("/manipulation/ra_ik_trajectory");
     cltLaIKPose2Pose      =n->serviceClient<manip_msgs::InverseKinematicsPose2Pose>("/manipulation/la_ik_pose");
@@ -182,10 +188,21 @@ void QtRosNode::callback_la_current_q(const std_msgs::Float64MultiArray::ConstPt
     call_la_forward_kinematics(la_current_q, la_current_cartesian);
 }
 
+void QtRosNode::callback_la_voltage(const std_msgs::Float64::ConstPtr& msg)
+{
+    la_voltage = msg->data;
+//    la_voltage_bar= (10*(msg->data));
+}
 void QtRosNode::callback_ra_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg)
 {
     ra_current_q = msg->data;
     call_ra_forward_kinematics(ra_current_q, ra_current_cartesian);
+}
+
+void QtRosNode::callback_ra_voltage(const std_msgs::Float64::ConstPtr& msg)
+{
+    ra_voltage = msg->data;
+//    ra_voltage_bar = (10*(msg->data));
 }
 
 bool QtRosNode::call_la_ik_trajectory(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory)

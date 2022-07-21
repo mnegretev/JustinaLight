@@ -13,6 +13,7 @@
 #define MX_MOVING_SPEED 32
 #define MX_TORQUE_ENABLE 24
 #define MX_BITS_PER_RADIAN 651.739491961 //=4095/360*180/PI
+#define MX_CURRENT_VOLTAGE 42
 
 #define SM_INIT                      10
 #define SM_WRITE_ARM_POSITION        20 
@@ -88,18 +89,30 @@ void callback_q_trajectory(const trajectory_msgs::JointTrajectory::ConstPtr& msg
     new_trajectory = true;
 }
 
-bool get_current_position_bits(dynamixel::GroupBulkRead& groupBulkRead, std::vector<int>& ids, std::vector<int>& current_positions)
+bool get_current_position_bits(dynamixel::GroupBulkRead& groupBulkReadPosition, std::vector<int>& ids, std::vector<int>& current_positions)
 {
-    if(groupBulkRead.txRxPacket() != COMM_SUCCESS)
+    if(groupBulkReadPosition.txRxPacket() != COMM_SUCCESS)
         return false;
     for(int i=0; i<ids.size(); i++)
-        if(groupBulkRead.isAvailable(ids[i], MX_CURRENT_POSITION, 2))
-            current_positions[i] = groupBulkRead.getData(ids[i], MX_CURRENT_POSITION, 2);
+        if(groupBulkReadPosition.isAvailable(ids[i], MX_CURRENT_POSITION, 2))
+            current_positions[i] = groupBulkReadPosition.getData(ids[i], MX_CURRENT_POSITION, 2);
         else
             return false;
     return true;
 }
-
+bool get_current_voltage_bits(dynamixel::GroupBulkRead& groupBulkReadVoltages, std::vector<int>& ids, double& current_voltage)
+{
+    current_voltage= 0;
+    if(groupBulkReadVoltages.txRxPacket() != COMM_SUCCESS)
+        return false;
+    for(int i=0; i<ids.size(); i++)
+        if(groupBulkReadVoltages.isAvailable(ids[i], MX_CURRENT_VOLTAGE, 1))
+            current_voltage += groupBulkReadVoltages.getData(ids[i], MX_CURRENT_VOLTAGE, 1);
+        else
+            return false;
+    current_voltage/= 10*(ids.size());
+    return true;
+}
 bool write_goal_position_bits(dynamixel::PortHandler* port, dynamixel::PacketHandler* packet, std::vector<int>& ids, std::vector<int> positions)
 {
     for(int i=0; i < ids.size(); i++)
@@ -217,7 +230,8 @@ int main(int argc, char **argv)
     //Set port, select protocol, set baudrate and create objects for bulk reading and writing
     dynamixel::PortHandler   *portHandler   = dynamixel::PortHandler::getPortHandler(port_name.c_str());
     dynamixel::PacketHandler *packetHandler = dynamixel::PacketHandler::getPacketHandler(1.0);
-    dynamixel::GroupBulkRead groupBulkRead(portHandler, packetHandler);
+    dynamixel::GroupBulkRead groupBulkReadPosition(portHandler, packetHandler);
+    dynamixel::GroupBulkRead groupBulkReadVoltages(portHandler, packetHandler);
     portHandler->setBaudRate(baudrate);
     //Joint arm and gripper servo parameters in one array
     servo_ids        = servo_arm_ids;
@@ -228,17 +242,23 @@ int main(int argc, char **argv)
     servo_directions.insert(servo_directions.end(), servo_gripper_directions.begin(), servo_gripper_directions.end());
     //Setting parameters for bulk reading current arm position. 
     for(int i=0; i<servo_ids.size(); i++)
-        if(!groupBulkRead.addParam(servo_ids[i], MX_CURRENT_POSITION, 2))
+        if(!groupBulkReadPosition.addParam(servo_ids[i], MX_CURRENT_POSITION, 2))
         {
-            std::cout<<prompt << "Cannot add bulk read param for id=" << servo_ids[i] << std::endl;
+            std::cout<<prompt << "Cannot add bulk read position param for id=" << servo_ids[i] << std::endl;
             return -1;
         }
-
+    //Setting parameters for bulk reading current voltage 
+    for(int i=0; i<servo_ids.size(); i++)
+        if(!groupBulkReadVoltages.addParam(servo_ids[i], MX_CURRENT_VOLTAGE, 1))
+        {
+            std::cout<<prompt <<"Cannot add bulk read voltage param for id=" << servo_ids[i] << std::endl;
+            return -1;
+        }
     //Reading startup servo positions and setting them as a goal position
     std::vector<int>    current_position_bits;
     current_position_bits.resize(servo_ids.size());
     std::cout<<prompt << "Trying to get initial servo positions..." << std::endl;
-    if(!get_current_position_bits(groupBulkRead, servo_ids, current_position_bits))
+    if(!get_current_position_bits(groupBulkReadPosition, servo_ids, current_position_bits))
     {
         std::cout<<prompt << "Cannot get arm initial position..." << std::endl;
         return -1;
@@ -285,10 +305,12 @@ int main(int argc, char **argv)
     ros::Publisher pub_object_grasped  = n.advertise<std_msgs::Bool>("/hardware/arm/object_on_hand", 1);
     ros::Publisher pub_battery         = n.advertise<std_msgs::Float64>("/hardware/robot_state/arm_battery", 1);
     ros::Publisher pub_goal_reached    = n.advertise<std_msgs::Bool>("/manipulation/arm/goal_reached", 1);
+    ros::Publisher pub_current_voltage = n.advertise<std_msgs::Float64>("/hardware/arm_voltage",1);
     ros::Rate rate(40);
     sensor_msgs::JointState joint_states;
     std_msgs::Float64MultiArray msg_current_pose;
     std_msgs::Float64 msg_current_gripper;
+    std_msgs::Float64 msg_voltage;
     joint_states.name.insert(joint_states.name.end(), joint_names.begin(), joint_names.end());
     joint_states.position = positions_bits_to_radians(current_position_bits, servo_zeros, servo_directions);
     msg_current_pose.data.resize(servo_arm_ids.size());
@@ -359,8 +381,10 @@ int main(int argc, char **argv)
         }
 
         //Get current servo position and publish the corresponding topics 
-        if(!get_current_position_bits(groupBulkRead, servo_ids, current_position_bits))
+        if(!get_current_position_bits(groupBulkReadPosition, servo_ids, current_position_bits))
             std::cout<<prompt << "Cannot get arm current position..." << std::endl;
+        if(!get_current_voltage_bits(groupBulkReadVoltages, servo_ids, msg_voltage.data))
+            std::cout<<prompt<< "Cannot get arm current voltage"<< std::endl;
         joint_states.position = positions_bits_to_radians(current_position_bits, servo_zeros, servo_directions);
         joint_states.header.stamp = ros::Time::now();
         for(int i=0; i<servo_arm_ids.size(); i++) msg_current_pose.data[i] = joint_states.position[i];
@@ -369,7 +393,7 @@ int main(int argc, char **argv)
         pub_joint_state.publish(joint_states);
         pub_current_pose.publish(msg_current_pose);
         pub_current_gripper.publish(msg_current_gripper);
-        
+        pub_current_voltage.publish(msg_voltage);
         ros::spinOnce();
         rate.sleep();
     }

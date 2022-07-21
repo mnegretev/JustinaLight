@@ -39,7 +39,9 @@ public:
     ros::Publisher pubLaGoalGrip;
     ros::Publisher pubRaGoalGrip;
     ros::Subscriber subLaCurrentQ;
+    ros::Subscriber subLaVoltage;
     ros::Subscriber subRaCurrentQ;
+    ros::Subscriber subRaVoltage;
     ros::ServiceClient cltLaIKPose2Pose;
     ros::ServiceClient cltRaIKPose2Pose;
     ros::ServiceClient cltLaIKPose2Traj;
@@ -60,6 +62,8 @@ public:
     std::vector<double> ra_current_q;
     std::vector<double> la_current_cartesian;
     std::vector<double> ra_current_cartesian;
+    double la_voltage;
+    double ra_voltage;
     
     void run();
     void setNodeHandle(ros::NodeHandle* nh);
@@ -78,7 +82,9 @@ public:
     void publish_ra_grip_angles(float a);
     void publish_head_angles(double pan, double tilt);
     void callback_la_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg);
+    void callback_la_voltage(const std_msgs::Float64::ConstPtr& msg);
     void callback_ra_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg);
+    void callback_ra_voltage(const std_msgs::Float64::ConstPtr& msg);
     bool call_la_ik_trajectory(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
     bool call_ra_ik_trajectory(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory);
     bool call_la_ik_pose(std::vector<double>& cartesian, std::vector<double>& articular);
