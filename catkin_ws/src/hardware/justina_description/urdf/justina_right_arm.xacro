@@ -300,7 +300,7 @@
     <limit effort="6.0" velocity="3.0" lower="-2.5" upper="2.5"/>
   </joint>
   <joint name="ra_4_joint" type="revolute"> 
-    <origin xyz="0 0.0 -0.065" rpy="0 0 0"/>
+    <origin xyz="0.005 0.0 -0.013" rpy="0 0 0"/>
     <parent link="right_arm_link3"/>
     <child link="right_arm_link4"/>
     <axis xyz="0 -1 0" />

@@ -186,6 +186,13 @@ void MainWindow::updateGraphicsReceived()
     ui->raLblCurrentRoll ->setText(QString::number(qtRosNode->ra_current_cartesian[3], 'f',3));
     ui->raLblCurrentPitch->setText(QString::number(qtRosNode->ra_current_cartesian[4], 'f',3));
     ui->raLblCurrentYaw  ->setText(QString::number(qtRosNode->ra_current_cartesian[5], 'f',3));
+
+    ui->laLblVoltage->setText(QString::number(qtRosNode->la_voltage,'f',1));
+    ui->raLblVoltage->setText(QString::number(qtRosNode->ra_voltage,'f',1));
+    ui->laPbVoltage ->setValue(qtRosNode->la_voltage*10);
+    ui->raPbVoltage ->setValue(qtRosNode->ra_voltage*10);
+    
+    
 }   
 
 void MainWindow::btnFwdPressed()
