@@ -141,6 +141,28 @@ bool write_goal_torque_bits(dynamixel::PortHandler* port, dynamixel::PacketHandl
 }
 
 
+bool on_shutting_down(dynamixel::PortHandler* port, dynamixel::PacketHandler* packet, std::vector<int>& ids)
+{
+    for(int i=0; i < ids.size(); i++)
+        packet->write1ByteTxOnly(port, ids[i], MX_TORQUE_ENABLE, 0);
+    return true;
+
+    for(int i=0; i < ids.size(); i++)
+        packet->write2ByteTxOnly(port, ids[i], MX_TORQUE_CTL_ENABLE , 0);
+}
+
+// hHabilita el control por par en todos los DNX
+bool turning_on(dynamixel::PortHandler* port, dynamixel::PacketHandler* packet, std::vector<int>& ids)
+{
+    for(int i=0; i < ids.size(); i++)
+        packet->write1ByteTxOnly(port, ids[i], MX_TORQUE_ENABLE, 1);
+    return true;
+
+    for(int i=0; i < ids.size(); i++)
+        packet->write2ByteTxOnly(port, ids[i], MX_TORQUE_CTL_ENABLE , 1);
+}
+
+
 int main(int argc, char **argv)
 {
     bool correct_params = true;
@@ -295,6 +317,8 @@ int main(int argc, char **argv)
 
     int trajectory_idx = 0;
     ros::Time start_time;
+    turning_on(portHandler, packetHandler, servo_ids)
+
     while(ros::ok())
     {
         //Get current servo position and publish the corresponding topics 
@@ -314,5 +338,5 @@ int main(int argc, char **argv)
         ros::spinOnce();
         rate.sleep();
     }
-    //on_shutting_down(portHandler, packetHandler, servo_ids, servo_zeros);
+    on_shutting_down(portHandler, packetHandler, servo_ids);
 }
