@@ -19,6 +19,7 @@ sudo apt install ros-noetic-gazebo-ros
 sudo apt install ros-noetic-gazebo-ros-control
 sudo apt install ros-noetic-gazebo-ros-pkgs
 sudo apt install ros-noetic-rgbd-launch
+sudo apt install ros-noetic-urg-node -y
 sudo apt install ros-noetic-ros-control ros-noetic-ros-controllers ros-noetic-controller-manager ros-noetic-controller-interface ros-noetic-effort-controllers ros-noetic-joint-state-controller ros-noetic-joint-state-publisher
 sudo apt-get install ros-noetic-realsense2-camera
 #sudo apt install portaudio19-dev

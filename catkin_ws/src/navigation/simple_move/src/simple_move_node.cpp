@@ -107,12 +107,12 @@ geometry_msgs::Twist calculate_speeds(float robot_x, float robot_y, float robot_
     else angle_error = (atan2(goal_y - robot_y, goal_x - robot_x)-robot_t);
     if(angle_error >   M_PI) angle_error -= 2*M_PI;
     if(angle_error <= -M_PI) angle_error += 2*M_PI;
-    if(move_lateral) angle_error -= M_PI/2;
+    if(lateral) angle_error -= M_PI/2;
     if(angle_error <= -M_PI) angle_error += 2*M_PI;
 
     if(backwards) max_linear_speed *= -1;
     geometry_msgs::Twist result;
-    if(move_lateral)
+    if(lateral)
         result.linear.y  = max_linear_speed  * exp(-(angle_error * angle_error) / (alpha));
     else result.linear.x  = max_linear_speed  * exp(-(angle_error * angle_error) / (alpha));
     if(fabs(result.linear.y) < min_linear_speed)
