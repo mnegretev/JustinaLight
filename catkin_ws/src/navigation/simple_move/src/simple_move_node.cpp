@@ -99,19 +99,24 @@ void callback_collision_risk(const std_msgs::Bool::ConstPtr& msg)
 }
 
 geometry_msgs::Twist calculate_speeds(float robot_x, float robot_y, float robot_t, float goal_x, float goal_y,
-                                      float min_linear_speed, float max_linear_speed, float angular_speed, float alpha, float beta, bool backwards)
+                                      float min_linear_speed, float max_linear_speed, float angular_speed, float alpha, float beta, bool backwards,
+                                      bool lateral=false)
 {
     float angle_error = 0;
-    if(backwards) angle_error = atan2(robot_y - goal_y, robot_x - goal_x) - robot_t;
-    else angle_error = atan2(goal_y - robot_y, goal_x - robot_x) - robot_t;
+    if(backwards) angle_error = (atan2(robot_y - goal_y, robot_x -goal_x)-robot_t);
+    else angle_error = (atan2(goal_y - robot_y, goal_x - robot_x)-robot_t);
     if(angle_error >   M_PI) angle_error -= 2*M_PI;
+    if(angle_error <= -M_PI) angle_error += 2*M_PI;
+    if(move_lateral) angle_error -= M_PI/2;
     if(angle_error <= -M_PI) angle_error += 2*M_PI;
 
     if(backwards) max_linear_speed *= -1;
     geometry_msgs::Twist result;
-    result.linear.x  = max_linear_speed  * exp(-(angle_error * angle_error) / alpha);
-    if(fabs(result.linear.x) < min_linear_speed)
-        result.linear.x = 0;
+    if(move_lateral)
+        result.linear.y  = max_linear_speed  * exp(-(angle_error * angle_error) / (alpha));
+    else result.linear.x  = max_linear_speed  * exp(-(angle_error * angle_error) / (alpha));
+    if(fabs(result.linear.y) < min_linear_speed)
+        result.linear.y = 0;
     result.angular.z = angular_speed * (2 / (1 + exp(-angle_error / beta)) - 1);
     return result;
 }
@@ -124,7 +129,7 @@ geometry_msgs::Twist calculate_speeds(float robot_angle, float goal_angle, float
 
     geometry_msgs::Twist result;
     result.linear.x  = 0;
-    result.angular.z = angular_speed * (2 / (1 + exp(-angle_error / beta)) - 1);
+     result.angular.z = angular_speed * (2 / (1 + exp(-angle_error / beta)) - 1);
     return result;
 }
 

@@ -191,9 +191,27 @@ void MainWindow::updateGraphicsReceived()
     ui->raLblVoltage->setText(QString::number(qtRosNode->ra_voltage,'f',1));
     ui->laPbVoltage ->setValue(qtRosNode->la_voltage*10);
     ui->raPbVoltage ->setValue(qtRosNode->ra_voltage*10);
-    
-    
-}   
+   /*if(ui->laPbVoltage->value()<100)
+        ui->laPbVoltage->setStyleSheet(danger);
+     else
+        ui->laPbVoltage->setStyleSheet(safe);*/
+    ui->laLblVoltage->setStyleSheet("QLabel{font: 24pt;}");
+    ui->raLblVoltage->setStyleSheet("QLabel{font: 24pt;}");
+     if(qtRosNode->la_voltage*10<105)
+   {
+       ui->laLblVoltage->setStyleSheet("QLabel{ color: red; font: 24pt;}");
+   }else
+     {
+       ui->laLblVoltage->setStyleSheet("QLabel{ color : black; font: 24pt;}");
+   }
+if(qtRosNode->ra_voltage*10<105)
+   {
+       ui->raLblVoltage->setStyleSheet("QLabel{ color: red; font: 24pt;}");
+   }else
+   {
+       ui->raLblVoltage->setStyleSheet("QLabel{ color: black; font: 24pt;}");
+   }
+}
 
 void MainWindow::btnFwdPressed()
 {

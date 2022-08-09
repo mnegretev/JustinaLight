@@ -18,8 +18,17 @@ QtRosNode::QtRosNode()
     //ra_voltage_bar = 0;
     la_current_cartesian.resize(6);
     ra_current_cartesian.resize(6);
+    /* QString danger = QProgressBar::chunk
+        {
+            background-color: rgb(115, 210, 22);
+            width: 20px;
+        };
+    QString safe= QProgressBar::chunk
+        {
+            background-color: rgb(204, 0, 0);
+            width: 20px;
+         }*/
 }
-
 QtRosNode::~QtRosNode()
 {
 }
@@ -321,7 +330,7 @@ bool QtRosNode::call_find_lines()
 {
     vision_msgs::FindLines srv;
     boost::shared_ptr<sensor_msgs::PointCloud2 const> ptr;
-    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect", ros::Duration(1.0));
+    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/camera/depth_registered/points", ros::Duration(1.0));
     if(ptr==NULL)
     {
         std::cout << "JustinaGUI.->Cannot get point cloud before calling train object service..." << std::endl;
@@ -335,7 +344,7 @@ bool QtRosNode::call_train_object(std::string name)
 {
     vision_msgs::TrainObject srv;
     boost::shared_ptr<sensor_msgs::PointCloud2 const> ptr;
-    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect", ros::Duration(1.0));
+    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/camera/depth_registered/points", ros::Duration(1.0));
     if(ptr==NULL)
     {
         std::cout << "JustinaGUI.->Cannot get point cloud before calling train object service..." << std::endl;
@@ -350,7 +359,7 @@ bool QtRosNode::call_recognize_objects()
 {
     vision_msgs::RecognizeObjects srv;
     boost::shared_ptr<sensor_msgs::PointCloud2 const> ptr;
-    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect", ros::Duration(1.0));
+    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/camera/depth_registered/points", ros::Duration(1.0));
     if(ptr==NULL)
     {
         std::cout << "JustinaGUI.->Cannot get point cloud before calling train object service..." << std::endl;
@@ -364,7 +373,7 @@ bool QtRosNode::call_recognize_object(std::string name)
 {
     vision_msgs::RecognizeObject srv;
     boost::shared_ptr<sensor_msgs::PointCloud2 const> ptr;
-    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/hardware/kinect/rgbd_wrt_kinect", ros::Duration(1.0));
+    ptr = ros::topic::waitForMessage<sensor_msgs::PointCloud2>("/camera/depth_registered/points", ros::Duration(1.0));
     if(ptr==NULL)
     {
         std::cout << "JustinaGUI.->Cannot get point cloud before calling train object service..." << std::endl;
