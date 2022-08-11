@@ -32,6 +32,7 @@ float goal_angle     = 0;
 bool  new_pose       = false;
 bool  new_path       = false;
 bool  collision_risk = false;
+bool  move_lat       = false;
 nav_msgs::Path goal_path;
 bool stop = false;
 std::string base_link_name = "base_footprint";
@@ -42,6 +43,7 @@ void callback_general_stop(const std_msgs::Empty::ConstPtr& msg)
     stop     = true;
     new_pose = false;
     new_path = false;
+    move_lat = false;
 }
 
 void callback_navigation_stop(const std_msgs::Empty::ConstPtr& msg)
@@ -50,6 +52,7 @@ void callback_navigation_stop(const std_msgs::Empty::ConstPtr& msg)
     stop     = true;
     new_pose = false;
     new_path = false;
+    move_lat = false;
 }
 
 void callback_simple_move_stop(const std_msgs::Empty::ConstPtr& msg)
@@ -67,6 +70,7 @@ void callback_goal_dist(const std_msgs::Float32::ConstPtr& msg)
     goal_angle    = 0;
     new_pose = true;
     new_path = false;
+    move_lat = false;
 }
 
 void callback_goal_dist_angle(const std_msgs::Float32MultiArray::ConstPtr& msg)
@@ -76,11 +80,13 @@ void callback_goal_dist_angle(const std_msgs::Float32MultiArray::ConstPtr& msg)
     goal_angle    = msg->data[1];
     new_pose = true;
     new_path = false;
+    move_lat = false;
 }
 
 void callback_goal_path(const nav_msgs::Path::ConstPtr& msg)
 {
     std::cout << "SimpleMove.->New path received with " << msg->poses.size() << " points with id=" << msg->header.seq << std::endl;
+    move_lat = false;
     if (msg->poses.size() <= 0)
     {
         new_pose = false;
@@ -92,14 +98,20 @@ void callback_goal_path(const nav_msgs::Path::ConstPtr& msg)
     }
 }
 
+void callback_move_lateral(const std_msgs::Float32::ConstPtr& msg)
+{
+    goal_distance = msg->data;
+    goal_angle    = 0;
+    new_pose = true;
+    new_path = false;
+    move_lat = true;
+}
 void callback_collision_risk(const std_msgs::Bool::ConstPtr& msg)
 {
     collision_risk = msg->data;
 }
 
-geometry_msgs::Twist calculate_speeds(float robot_x, float robot_y, float robot_t, float goal_x, float goal_y,
-                                      float min_linear_speed, float max_linear_speed, float angular_speed, float alpha, float beta, bool backwards,
-                                      bool lateral=false)
+geometry_msgs::Twist calculate_speeds(float robot_x, float robot_y, float robot_t, float goal_x, float goal_y,float min_linear_speed, float max_linear_speed, float angular_speed, float alpha, float beta, bool backwards, bool lateral)
 {
     float angle_error = 0;
     if(backwards) angle_error = (atan2(robot_y - goal_y, robot_x -goal_x)-robot_t);
@@ -120,7 +132,7 @@ geometry_msgs::Twist calculate_speeds(float robot_x, float robot_y, float robot_
     return result;
 }
 
-geometry_msgs::Twist calculate_speeds(float robot_angle, float goal_angle, float angular_speed, float beta)
+geometry_msgs::Twist calculate_speeds(float robot_angle, float goal_angle, float angular_speed, float beta, bool move_lat)
 {
     float angle_error = goal_angle - robot_angle;
     if(angle_error >   M_PI) angle_error -= 2*M_PI;
@@ -161,12 +173,14 @@ void get_goal_position_wrt_odom(float goal_distance, float goal_angle, tf::Trans
     float robot_y = transform.getOrigin().y();
     tf::Quaternion q = transform.getRotation();
     float robot_t = atan2((float)q.z(), (float)q.w()) * 2;
-
-    goal_x = robot_x + goal_distance * cos(robot_t + goal_angle);
-    goal_y = robot_y + goal_distance * sin(robot_t + goal_angle);
     goal_t = robot_t + goal_angle;
     if(goal_t >   M_PI) goal_t -= 2*M_PI;
     if(goal_t <= -M_PI) goal_t += 2*M_PI;
+    
+    goal_x = robot_x + goal_distance * cos(robot_t + goal_angle + (move_lat?M_PI/2:0));
+    goal_y = robot_y + goal_distance * sin(robot_t + goal_angle + (move_lat?M_PI/2:0));
+    
+
 }
 
 float get_path_total_distance(nav_msgs::Path& path)
@@ -230,6 +244,7 @@ int main(int argc, char** argv)
     ros::Subscriber sub_navCtrlStop      = n.subscribe("/navigation/stop",  1, callback_navigation_stop);
     ros::Subscriber sub_navSimpleMvStop  = n.subscribe("/simple_move/stop", 1, callback_simple_move_stop);               
     ros::Subscriber sub_gollisionRisk    = n.subscribe("/navigation/obs_detector/collision_risk", 10, callback_collision_risk);
+    ros::Subscriber sub_moveLateral      = n.subscribe("/simple_move/goal_dist_lateral" , 1, callback_move_lateral);
     tf::TransformListener tf_listener;
     ros::Rate loop(RATE);
 
@@ -366,7 +381,7 @@ int main(int argc, char** argv)
                 std::cout << "SimpleMove.->Timeout exceeded while trying to reach goal position. Current state: GOAL_POSE_ACCEL." << std::endl;
             }
             pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
-                                                     max_angular_speed, alpha, beta, goal_distance < 0));
+                                                 max_angular_speed, alpha, beta, goal_distance < 0, move_lat));
             current_linear_speed += linear_acceleration/RATE;
             break;
 
@@ -387,7 +402,7 @@ int main(int argc, char** argv)
                 std::cout << "SimpleMove.->Timeout exceeded while trying to reach goal position. Current state: GOAL_POSE_CRUISE." << std::endl;
             }
             pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
-                                                     max_angular_speed, alpha, beta, goal_distance < 0));
+                                                 max_angular_speed, alpha, beta, goal_distance < 0, move_lat));
             break;
 
             
@@ -404,7 +419,7 @@ int main(int argc, char** argv)
             current_linear_speed = temp_k * sqrt(global_error);
             if(current_linear_speed < min_linear_speed) current_linear_speed = min_linear_speed;
             pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
-                                                     max_angular_speed, alpha, beta, goal_distance < 0));
+                                                 max_angular_speed, alpha, beta, goal_distance < 0, move_lat));
             break;
 
 
@@ -416,7 +431,7 @@ int main(int argc, char** argv)
             global_error = fabs(global_error);
             if(global_error < angle_tolerance)
                 state = SM_GOAL_POSE_FINISH;
-            pub_cmd_vel.publish(calculate_speeds(robot_t, goal_t, max_angular_speed, beta));
+            pub_cmd_vel.publish(calculate_speeds(robot_t, goal_t, max_angular_speed, beta, move_lat));
             if(--attempts <= 0)
             {
                 state = SM_GOAL_POSE_FAILED;
@@ -474,7 +489,7 @@ int main(int argc, char** argv)
                     std::cout<<"SimpleMove.->Timeout exceeded while trying to reach goal path. Current state: GOAL_PATH_ACCEL."<<std::endl;
                 }
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
-                                                     max_angular_speed, alpha, beta, false));
+                                                     max_angular_speed, alpha, beta, false, move_lat));
                 if(move_head) pub_head_goal_pose.publish(get_next_goal_head_angles(robot_x, robot_y, robot_t, next_pose_idx));
                 current_linear_speed += linear_acceleration/RATE;
             }
@@ -506,7 +521,7 @@ int main(int argc, char** argv)
                     std::cout<<"SimpleMove.->Timeout exceeded while trying to reach goal path. Current state: GOAL_PATH_CRUISE."<<std::endl;
                 }
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, current_linear_speed,
-                                                     max_angular_speed, alpha, beta, false));
+                                                     max_angular_speed, alpha, beta, false,move_lat));
                 if(move_head) pub_head_goal_pose.publish(get_next_goal_head_angles(robot_x, robot_y, robot_t, next_pose_idx));
             }
             break;
@@ -534,7 +549,7 @@ int main(int argc, char** argv)
                 current_linear_speed = temp_k * sqrt(global_error);
                 if(current_linear_speed < min_linear_speed) current_linear_speed = min_linear_speed;
                 pub_cmd_vel.publish(calculate_speeds(robot_x, robot_y, robot_t, goal_x, goal_y, min_linear_speed, 
-                                                     current_linear_speed, max_angular_speed, alpha, beta, false));
+                                                     current_linear_speed, max_angular_speed, alpha, beta, false,move_lat));
                 if(move_head) pub_head_goal_pose.publish(get_next_goal_head_angles(robot_x, robot_y, robot_t, next_pose_idx));
             }
             break;
