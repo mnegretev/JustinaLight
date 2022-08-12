@@ -24,6 +24,14 @@ servo_arm_directions:
   - -1
   - 1
   - -1
+servo_arm_bits_per_Nm:
+  - -78.83
+  - 157.67
+  - 157.67
+  - 157.67
+  - 193.40
+  - 193.40
+  - 193.40
 servo_gripper_ids:
   - 7
   - 8
