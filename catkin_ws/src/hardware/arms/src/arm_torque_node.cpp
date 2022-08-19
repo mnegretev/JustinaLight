@@ -4,34 +4,27 @@
 #include "std_msgs/Float64.h"
 #include "std_msgs/Float64MultiArray.h"
 #include "sensor_msgs/JointState.h"
-#include "trajectory_msgs/JointTrajectory.h"
 #include "trajectory_msgs/JointTrajectoryPoint.h"
+#include "trajectory_msgs/JointTrajectory.h"
 #include "tf/transform_broadcaster.h"
 #include "iostream"
+#include <cmath>
 
 #define MX_CURRENT_POSITION 36
-#define MX_GOAL_POSITION 30
-#define MX_GOAL_TORQUE 0
-#define MX_MOVING_SPEED 32
+#define MX_GOAL_TORQUE 71
 #define MX_TORQUE_ENABLE 24
+#define MX_TORQUE_CTL_ENABLE 70
 #define MX_BITS_PER_RADIAN 651.739491961 //=4095/360*180/PI
-#define MX_BITS_PER_NM 222.222222222
-#define K 1
+#define MX_BITS_PER_A 222.222222222
+#define MX_64_K 1.149
+#define MX_106_K 1.408  //for ID:0,1,3
 #define MX_CURRENT_VOLTAGE 42
 
-#define SM_INIT                      10
-#define SM_WRITE_ARM_POSITION        20 
-#define SM_WRITE_GRIPPER_POSITION    30
-#define SM_WRITE_GRIPPER_TORQUE      40
-#define SM_START_TRAJECTORY          45
-#define SM_WRITE_TRAJECTORY_POINT    50
-#define SM_WAIT_FOR_GOAL_REACHED     55 
-#define SM_FINISH_TASK               60
-
 std::string prompt;
-std::vector<int> servo_arm_ids;            //Servo IDs for each joint of the arm
-std::vector<int> servo_arm_zeros;          //Bits corresponding to the 0 rad value
-std::vector<int> servo_arm_directions;     //1 for clockwise, -1 for counter clockwise
+std::vector<int>   servo_arm_ids;            //Servo IDs for each joint of the arm
+std::vector<int>   servo_arm_zeros;          //Bits corresponding to the 0 rad value
+std::vector<int>   servo_arm_directions;     //1 for clockwise, -1 for counter clockwise
+std::vector<float> servo_arm_bits_Nm;        //Bits per Newton-m for each servo model (for torque control)
 std::vector<int> servo_gripper_ids;        //Servo IDs for each joint of the gripper
 std::vector<int> servo_gripper_zeros;      //Bits corresponding to the 0 rad value
 std::vector<int> servo_gripper_directions; //1 for clockwise, -1 for counter clockwise
@@ -43,6 +36,7 @@ std::vector<int> goal_pose_arm_bits;       //***********************************
 std::vector<int> goal_pose_gripper_bits;
 std::vector<std::vector<int> >   goal_trajectory_bits;
 trajectory_msgs::JointTrajectory goal_trajectory;
+
 bool new_arm_torque     = false;
 bool new_arm_pose       = false;
 bool new_trajectory     = false;
@@ -72,8 +66,37 @@ std::vector<int> torque_Nm_to_bits(const std::vector<double>& torque_NM,  std::v
 {
     std::vector<int> torque_bits;
     torque_bits.resize(torque_NM.size());
-    for(int i=0; i<torque_NM.size(); i++)
-        torque_bits[i] = directions[i]*torque_NM[i]*MX_BITS_PER_NM*K;
+    for(int i=0; i < torque_NM.size(); i++)
+        if(torque_NM[i]*directions[i]*servo_arm_bits_Nm[i] < 0)
+            torque_bits[i] = -torque_NM[i]*directions[i]*servo_arm_bits_Nm[i] + 1024;
+        else torque_bits[i] =  torque_NM[i]*directions[i]*servo_arm_bits_Nm[i];
+
+    return torque_bits;
+    for(int i = 0; i<torque_NM.size(); i++)
+    {   
+        if((i == 0) || (i == 1) || (i == 3))
+            if((torque_NM[i] < 0) && (torque_NM[i] > -6.488))
+                torque_bits[i] = abs((torque_NM[i]*MX_BITS_PER_A*(1/MX_106_K))) + 1024;   //CW
+            else
+            {
+                if((torque_NM[i] > 0) &&  (torque_NM[i] < 6.488))
+                    torque_bits[i] = torque_NM[i]*MX_BITS_PER_A*(1/MX_106_K);            //CCW
+                else
+                    torque_bits[i] = 1024;
+            }
+        else
+        {
+            if((torque_NM[i] < 0 )&& (torque_NM[i] > -5.8) )
+                torque_bits[i] = abs((torque_NM[i]*MX_BITS_PER_A*(1/MX_64_K))) + 1024;   //CW
+            else
+            {
+                if((torque_NM[i] > 0) &&  (torque_NM[i] < 5.8))
+                    torque_bits[i] = torque_NM[i]*MX_BITS_PER_A*(1/MX_64_K);            //CCW
+                else
+                    torque_bits[i] = 1024;
+            }
+        }
+    }
     return torque_bits;
 }
 
@@ -81,6 +104,11 @@ std::vector<int> torque_Nm_to_bits(const std::vector<double>& torque_NM,  std::v
 void callback_goal_torque(const std_msgs::Float64MultiArray::ConstPtr& msg)
 {
     goal_torque_arm_bits = torque_Nm_to_bits(msg->data, servo_arm_directions);
+
+    for(int i = 0; i < goal_torque_arm_bits.size(); i++)
+    {
+        std::cout<<prompt<<"Torque in bits ****   ******"<< goal_torque_arm_bits[i] << std::endl;
+    }
     //new_arm_torque = true;
 }
 
@@ -126,10 +154,34 @@ bool get_current_voltage_bits(dynamixel::GroupBulkRead& groupBulkReadVoltages, s
 bool write_goal_torque_bits(dynamixel::PortHandler* port, dynamixel::PacketHandler* packet, std::vector<int>& ids, std::vector<int> torque)
 {
     for(int i=0; i < ids.size(); i++)
-        //if(packet->write2ByteTxOnly(port, ids[i], MX_GOAL_TORQUE, torque[i]) != COMM_SUCCESS)
-        //std::cout << "Torque Value" << torque << std::endl;
+        if(packet->write2ByteTxOnly(port, ids[i], MX_GOAL_TORQUE, torque[i]) != COMM_SUCCESS)
             return false;
     return true;
+}
+
+
+bool on_shutting_down(dynamixel::PortHandler* port, dynamixel::PacketHandler* packet, std::vector<int>& ids)
+{
+    for(int i=0; i < ids.size(); i++)
+        packet->write1ByteTxOnly(port, ids[i], MX_TORQUE_ENABLE, 0);
+    //return true;
+
+    for(int i=0; i < ids.size(); i++)
+        packet->write2ByteTxOnly(port, ids[i], MX_TORQUE_CTL_ENABLE , 0);
+}
+
+// hHabilita par y control por par en todos los DNX
+bool turning_on(dynamixel::PortHandler* port, dynamixel::PacketHandler* packet, std::vector<int>& ids)
+{
+    for(int i=0; i < ids.size(); i++)
+        packet->write1ByteTxOnly(port, ids[i], MX_TORQUE_ENABLE, 1);
+    //return true;
+
+    for(int i=0; i < ids.size(); i++)
+        packet->write1ByteTxOnly(port, ids[i], MX_TORQUE_CTL_ENABLE , 1);
+
+    for(int i=0; i < ids.size(); i++)
+        packet->write2ByteTxOnly(port, ids[i], MX_GOAL_TORQUE, 0);
 }
 
 
@@ -138,14 +190,14 @@ int main(int argc, char **argv)
     bool correct_params = true;
     int baudrate = 1000000;
     bool torque_enable = false;
-    bool torque_ctl_enable = false;   //**********************                  //**********************
+    bool torque_ctl_enable = false;   //**********************      
     std::string port_name;
     std::vector<std::string> joint_names;
     
     ros::init(argc, argv, "arm_torque_node");    
     ros::NodeHandle n("~");
     prompt = ros::this_node::getName() + ".->";
-    std::cout << "INTIALIZING " << ros::this_node::getName() << " NODE BY MARCOSOFT..." << std::endl;
+    
     if(!n.getParam("port", port_name))
     {
         std::cout<<prompt<<"Missing port name. Specifying a port with param 'port' is mandatory."<<std::endl;
@@ -158,7 +210,7 @@ int main(int argc, char **argv)
     }
     if(!n.getParam("servo_arm_ids",servo_arm_ids))
     {
-        std::cout<<prompt<<"Missing servo IDs. Specifying servo IDs with param 'servo_arm_ids' is mandatory."<<std::endl;
+    std::cout<<prompt<<"Missing servo IDs. Specifying servo IDs with param 'servo_arm_ids' is mandatory."<<std::endl;
         correct_params = false;
     }
     if(!n.getParam("servo_arm_zeros",servo_arm_zeros))
@@ -169,6 +221,11 @@ int main(int argc, char **argv)
     if(!n.getParam("servo_arm_directions",servo_arm_directions))
     {
         std::cout<<prompt<<"Missing directions. Specifying moving directions with param 'servo_arm_directions' is mandatory."<<std::endl;
+        correct_params = false;
+    }
+    if(!n.getParam("servo_arm_bits_per_Nm",servo_arm_bits_Nm))
+    {
+        std::cout<<prompt<<"Missing bits/(N-m) constants. Specifying these constants with param 'servo_arm_bits_per_Nm' is mandatory."<<std::endl;
         correct_params = false;
     }
     if(!n.getParam("servo_gripper_ids",servo_gripper_ids))
@@ -195,7 +252,6 @@ int main(int argc, char **argv)
         return -1;
     n.param("torque_enable", torque_enable, true);
     n.param("torque_ctl_enable", torque_ctl_enable, true);
-        //*************************************
     
     std::cout<<prompt << "Servo arm IDs: ";
     for(size_t i=0; i<servo_arm_ids.size(); i++) std::cout << servo_arm_ids[i] << "   ";
@@ -205,6 +261,9 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     std::cout<<prompt << "Servo arm directions: ";
     for(size_t i=0; i<servo_arm_directions.size(); i++) std::cout << servo_arm_directions[i] << "   ";
+    std::cout << std::endl;
+    std::cout<<prompt << "Servo arm bits/(N-m): ";
+    for(size_t i=0; i<servo_arm_bits_Nm.size(); i++) std::cout << servo_arm_bits_Nm[i] << "   ";
     std::cout << std::endl;
     std::cout<<prompt << "Servo gripper IDs: ";
     for(size_t i=0; i<servo_gripper_ids.size(); i++) std::cout << servo_gripper_ids[i] << "   ";
@@ -220,7 +279,6 @@ int main(int argc, char **argv)
     std::cout << std::endl;
     std::cout<<prompt << "Torque enable: " << (torque_enable? "True" : "False") << std::endl;
     std::cout<<prompt << "Torque control enable: " << (torque_ctl_enable? "True" : "False") << std::endl;
-    //std::cout<<prompt << "Max moving speed: " << max_speed << std::endl;    //************************************
     std::cout<<prompt << "Trying to open port " << port_name << " at " << baudrate << std::endl;
 
     //Set port, select protocol, set baudrate and create objects for bulk reading and writing
@@ -231,7 +289,7 @@ int main(int argc, char **argv)
     portHandler->setBaudRate(baudrate);
     //Joint arm and gripper servo parameters in one array
     servo_ids        = servo_arm_ids;
-    servo_zeros      = servo_arm_zeros;
+    servo_zeros      = servo_arm_zeros;  //*****************
     servo_directions = servo_arm_directions;
     servo_ids.insert(servo_ids.end(), servo_gripper_ids.begin(), servo_gripper_ids.end());
     servo_zeros.insert(servo_zeros.end(), servo_gripper_zeros.begin(), servo_gripper_zeros.end());
@@ -266,15 +324,13 @@ int main(int argc, char **argv)
         std::cout << std::endl;
     }
     
-    goal_pose_arm_bits.resize(servo_arm_ids.size());    //****************************************************
+    //goal_pose_arm_bits.resize(servo_arm_ids.size());    //****************************************************
     goal_pose_gripper_bits.resize(servo_gripper_ids.size());
-    for(int i=0; i< servo_arm_ids.size(); i++) goal_pose_arm_bits[i] = current_position_bits[i];
+    //for(int i=0; i< servo_arm_ids.size(); i++) goal_pose_arm_bits[i] = current_position_bits[i];
     for(int i=0; i< servo_gripper_ids.size(); i++) goal_pose_gripper_bits[i] = current_position_bits[servo_arm_ids.size() + i];
     //If torque is enabled, send current position as servo goal position
     
-
     tf::TransformBroadcaster br;
-    //**************************************
     ros::Subscriber sub_goal_torque    = n.subscribe("/hardware/arm/goal_torque"   , 1, callback_goal_torque   );
     ros::Subscriber sub_goal_gripper   = n.subscribe("/hardware/arm/goal_gripper"  , 1, callback_goal_gripper  );
     ros::Subscriber sub_torque_gripper = n.subscribe("/hardware/arm/torque_gripper", 1, callback_torque_gripper);
@@ -294,75 +350,17 @@ int main(int argc, char **argv)
     joint_states.position = positions_bits_to_radians(current_position_bits, servo_zeros, servo_directions);
     msg_current_pose.data.resize(servo_arm_ids.size());
 
-    int state = SM_INIT;
     int trajectory_idx = 0;
     ros::Time start_time;
+    
+    for(int i=0; i < servo_arm_ids.size(); i++)
+        goal_torque_arm_bits.push_back(0);
+
+    
+    turning_on(portHandler, packetHandler, servo_ids);
+    
     while(ros::ok())
     {
-        switch(state)
-        {
-        case SM_INIT:
-            if(new_arm_pose)
-                state = SM_WRITE_ARM_POSITION;
-            //else if(new_trajectory)
-            //    state = SM_START_TRAJECTORY;
-            //else if(new_gripper_pose)
-            //    state = SM_WRITE_GRIPPER_POSITION;
-            else if(new_gripper_torque)
-                state = SM_WRITE_GRIPPER_TORQUE;
-            break;
-
-        case SM_WRITE_ARM_POSITION: //****************************************************************
-            new_arm_pose = false;
-            if(!write_goal_torque_bits(portHandler, packetHandler, servo_arm_ids, goal_torque_arm_bits))
-                std::cout << prompt << "Cannot write goal torque to arms servos" << std::endl;
-            state = SM_WAIT_FOR_GOAL_REACHED;
-            break;
-        /*
-        case SM_WRITE_GRIPPER_POSITION:
-            new_gripper_pose = false;
-            if(!write_goal_position_bits(portHandler, packetHandler, servo_gripper_ids, goal_pose_gripper_bits))
-                std::cout << prompt << "Cannot write goal position to gripper servos" << std::endl;
-            state = SM_WAIT_FOR_GOAL_REACHED;
-            break;
-
-        */
-
-        case SM_WRITE_GRIPPER_TORQUE:
-            new_gripper_torque = false;
-            state = SM_INIT;
-            break;
-        /*
-        case SM_START_TRAJECTORY:
-            new_trajectory = false;
-            std::cout << prompt << "Starting execution of joint trajectory" << std::endl;
-            trajectory_idx = 0;
-            start_time = ros::Time::now();
-            state = SM_WRITE_TRAJECTORY_POINT;
-            break;
-
-        
-        case SM_WRITE_TRAJECTORY_POINT:
-            if((ros::Time::now() - start_time) > goal_trajectory.points[trajectory_idx].time_from_start)
-            {                
-                if(!write_goal_position_bits(portHandler, packetHandler, servo_arm_ids, goal_trajectory_bits[trajectory_idx]))
-                    std::cout << prompt << "Cannot write trajectory point to arms servos" << std::endl;
-                if(++trajectory_idx >=goal_trajectory.points.size())
-                    state = SM_FINISH_TASK;
-            }
-            break;
-        */
-
-        case SM_WAIT_FOR_GOAL_REACHED:
-            state = SM_FINISH_TASK;
-            break;
-
-        case SM_FINISH_TASK:
-            std::cout << prompt << "Task finished. " << std::endl;
-            state = SM_INIT;
-            break;
-        }
-
         //Get current servo position and publish the corresponding topics 
         if(!get_current_position_bits(groupBulkReadPosition, servo_ids, current_position_bits))
             std::cout<<prompt << "Cannot get arm current position..." << std::endl;
@@ -370,6 +368,7 @@ int main(int argc, char **argv)
             std::cout<<prompt<< "Cannot get arm current voltage"<< std::endl;
         joint_states.position = positions_bits_to_radians(current_position_bits, servo_zeros, servo_directions);
         joint_states.header.stamp = ros::Time::now();
+
         for(int i=0; i<servo_arm_ids.size(); i++) msg_current_pose.data[i] = joint_states.position[i];
         msg_current_gripper.data  = joint_states.position[servo_arm_ids.size()    ] * servo_gripper_directions[0];
         msg_current_gripper.data += joint_states.position[servo_arm_ids.size() + 1] * servo_gripper_directions[1];
@@ -377,8 +376,13 @@ int main(int argc, char **argv)
         pub_current_pose.publish(msg_current_pose);
         pub_current_gripper.publish(msg_current_gripper);
         pub_current_voltage.publish(msg_voltage);
+
+        //Move torque********************************************
+        write_goal_torque_bits(portHandler, packetHandler, servo_arm_ids, goal_torque_arm_bits);
+        //  std::cout << prompt << "Cannot write goal torque to arms servos" << std::endl;
+
         ros::spinOnce();
         rate.sleep();
     }
-    //on_shutting_down(portHandler, packetHandler, servo_ids, servo_zeros);
+    on_shutting_down(portHandler, packetHandler, servo_ids);
 }
