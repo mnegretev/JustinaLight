@@ -274,7 +274,7 @@
             </contact>
           </surface>
         </collision>
-        <visual name='x08y10a_bottom_frame'>
+        <visual name='x08y10a_bottom_frame_01'>
           <pose>5.9925 8.23 0.05 0 0 1.5708</pose>
           <geometry>
             <box>
@@ -353,7 +353,7 @@
             </script>
           </material>
         </visual>
-        <collision name='x08y10a_collision_bottom_frame'>
+        <collision name='x08y10a_collision_bottom_frame_01'>
           <pose>5.9925 8.23 0.05 0 0 1.5708</pose>
           <geometry>
             <box>
@@ -371,7 +371,7 @@
             </contact>
           </surface>
         </collision>
-        <visual name='x08y10a_wall'>
+        <visual name='x08y10a_wall_01'>
           <pose>5.9925 8.23 1.095 0 0 1.5708</pose>
           <geometry>
             <box>
@@ -386,7 +386,7 @@
             </script>
           </material>
         </visual>
-        <collision name='x08y10a_collision_wall'>
+        <collision name='x08y10a_collision_wall_01'>
           <pose>5.9925 8.23 1.095 0 0 1.5708</pose>
           <geometry>
             <box>

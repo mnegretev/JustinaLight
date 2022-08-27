@@ -3,7 +3,7 @@
 import os
 import rospy
 import rospkg
-from std_msgs.msg import String
+from std_msgs.msg import UInt8MultiArray
 from hri_msgs.msg import RecognizedSpeech
 from pocketsphinx.pocketsphinx import *
 from sphinxbase.sphinxbase import *
@@ -33,7 +33,7 @@ def main():
 
     in_speech_bf = False
     l_model   = ""
-    hmm_folder= "/usr/local/lib/python2.7/dist-packages/pocketsphinx/model/en-us/"
+    hmm_folder= "/usr/local/lib/python3.8/dist-packages/pocketsphinx/model/en-us/"
     dict_file = rospack.get_path("sprec_pocketsphinx") + "/vocab/gpsr.dic"
     gram_file = rospack.get_path("sprec_pocketsphinx") + "/vocab/gpsr.gram"
     gram_rule = "simple_command"
@@ -68,7 +68,7 @@ def main():
     decoder.set_search(gram)
     decoder.start_utt()
     print("SpRec.->Decoder started successfully")
-    rospy.Subscriber("/hri/sphinx_audio", String, callback_sphinx_audio)
+    rospy.Subscriber("/hri/sphinx_audio", UInt8MultiArray, callback_sphinx_audio)
     rospy.spin()
 
 if __name__ == "__main__":
