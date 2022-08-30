@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   actionlib_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -137,6 +138,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(simple_move_node src/simple_move_node.cpp)
+add_executable(random_poses src/random_pooses.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -147,9 +149,13 @@ add_executable(simple_move_node src/simple_move_node.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(simple_move_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(random_poses ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(simple_move_node
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(random_poses
   ${catkin_LIBRARIES}
 )
 

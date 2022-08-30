@@ -159,6 +159,11 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
+add_executable(random_navigation_node src/practice_navegation.cpp)
+ add_dependencies(random_navigation_node ${random_navigation_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+ target_link_libraries(random_navigation_node
+   ${catkin_LIBRARIES}
+ )
 
 #############
 ## Install ##
