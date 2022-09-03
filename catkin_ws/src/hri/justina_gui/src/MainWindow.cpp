@@ -91,6 +91,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->hdTxtPan, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
     QObject::connect(ui->hdTxtTilt, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
 
+    QObject::connect(ui->spgTxtSay, SIGNAL(returnPressed()), this, SLOT(spgTxtSayReturntPressed()));
+
     QObject::connect(ui->visBtnFindLines, SIGNAL(clicked()), this, SLOT(visFindLinesClicked()));
     QObject::connect(ui->visTxtTrainObject, SIGNAL(returnPressed()), this, SLOT(visTrainObjectReturnPressed()));
     QObject::connect(ui->visBtnRecogObjects, SIGNAL(clicked()), this, SLOT(visRecognizeObjectsClicked()));
@@ -838,6 +840,11 @@ void MainWindow::raTxtCartesianGoalReturnPressed()
 void MainWindow::hdSbHeadValueChanged(double d)
 {
     qtRosNode->publish_head_angles(ui->hdTxtPan->value(), ui->hdTxtTilt->value());
+}
+
+void MainWindow::spgTxtSayReturntPressed()
+{
+    qtRosNode->say(ui->spgTxtSay->text().toStdString());
 }
 
 void MainWindow::visFindLinesClicked()

@@ -11,6 +11,7 @@
 #include "nav_msgs/GetPlan.h"
 #include "sensor_msgs/PointCloud2.h"
 #include "trajectory_msgs/JointTrajectory.h"
+#include "sound_play/SoundRequest.h"
 #include "tf/transform_listener.h"
 #include "manip_msgs/InverseKinematicsPose2Traj.h"
 #include "manip_msgs/InverseKinematicsPose2Pose.h"
@@ -38,6 +39,7 @@ public:
     ros::Publisher pubHdGoalQ;
     ros::Publisher pubLaGoalGrip;
     ros::Publisher pubRaGoalGrip;
+    ros::Publisher pubSpeechGen;
     ros::Subscriber subLaCurrentQ;
     ros::Subscriber subLaVoltage;
     ros::Subscriber subRaCurrentQ;
@@ -92,6 +94,8 @@ public:
     bool call_la_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian);
     bool call_ra_forward_kinematics(std::vector<double>& articular, std::vector<double>& cartesian);
     bool call_get_polynomial_traj(std::vector<double>& p1, std::vector<double>& p2, trajectory_msgs::JointTrajectory& trajectory);
+
+    void say(std::string text_to_say);
 
     bool call_find_lines();
     bool call_train_object(std::string name);

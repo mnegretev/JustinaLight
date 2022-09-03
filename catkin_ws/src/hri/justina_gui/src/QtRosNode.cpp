@@ -37,6 +37,7 @@ void QtRosNode::run()
 {    
     ros::Rate loop(30);
     pubCmdVel     = n->advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+    
     pubTorso      = n->advertise<std_msgs::Float64>("/torso_controller/command", 1);
     pubLaGoalQ    = n->advertise<std_msgs::Float64MultiArray>("/hardware/left_arm/goal_pose", 1);
     pubRaGoalQ    = n->advertise<std_msgs::Float64MultiArray>("/hardware/right_arm/goal_pose", 1);
@@ -56,10 +57,13 @@ void QtRosNode::run()
     cltLaForwardKinematics=n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/la_forward_kinematics");
     cltRaForwardKinematics=n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/ra_forward_kinematics");
     cltGetPolynomialTraj  =n->serviceClient<manip_msgs::GetPolynomialTrajectory>("/manipulation/polynomial_trajectory");
-    cltFindLines          =n->serviceClient<vision_msgs::FindLines>       ("/vision/line_finder/find_lines_ransac");
-    cltTrainObject        =n->serviceClient<vision_msgs::TrainObject>     ("/vision/obj_reco/train_object");
-    cltRecogObjects       =n->serviceClient<vision_msgs::RecognizeObjects>("/vision/obj_reco/recognize_objects");
-    cltRecogObject        =n->serviceClient<vision_msgs::RecognizeObject >("/vision/obj_reco/recognize_object");
+
+    pubSpeechGen = n->advertise<sound_play::SoundRequest>("/hri/speech_generator", 1);
+    
+    cltFindLines     = n->serviceClient<vision_msgs::FindLines>       ("/vision/line_finder/find_lines_ransac");
+    cltTrainObject   = n->serviceClient<vision_msgs::TrainObject>     ("/vision/obj_reco/train_object");
+    cltRecogObjects  = n->serviceClient<vision_msgs::RecognizeObjects>("/vision/obj_reco/recognize_objects");
+    cltRecogObject   = n->serviceClient<vision_msgs::RecognizeObject >("/vision/obj_reco/recognize_object");
     
     int pub_zero_counter = 5;
     while(ros::ok() && !this->gui_closed)
@@ -324,6 +328,17 @@ bool QtRosNode::call_get_polynomial_traj(std::vector<double>& p1, std::vector<do
         return false;
     trajectory = srv.response.trajectory;
     return true;
+}
+
+void QtRosNode::say(std::string text_to_say)
+{
+    sound_play::SoundRequest msg;
+    msg.sound   = -3;
+    msg.volume  = 1.0;
+    msg.command = 1;
+    msg.arg     = text_to_say;
+    msg.arg2    = "voice_cmu_us_slt_arctic_hts";
+    pubSpeechGen.publish(msg);
 }
 
 bool QtRosNode::call_find_lines()
