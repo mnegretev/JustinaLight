@@ -29,11 +29,11 @@ include_directories(
 
 add_executable(obj_reco_node
   src/obj_reco_node.cpp
-  src/ObjExtractor.cpp
-  src/PlanarSegment.cpp
-  src/Plane3D.cpp
-  src/DetectedObject.cpp
-  src/ObjRecognizer.cpp
+  src/PlaneExtractor.cpp
+  # src/PlanarSegment.cpp
+  # src/Plane3D.cpp
+  # src/DetectedObject.cpp
+  # src/ObjRecognizer.cpp
 )
 
 add_dependencies(obj_reco_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})

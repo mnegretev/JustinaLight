@@ -7,153 +7,52 @@
 #include "vision_msgs/TrainObject.h"
 #include "visualization_msgs/MarkerArray.h"
 #include "justina_tools/JustinaTools.h"
-#include "ObjExtractor.hpp"
-#include "ObjRecognizer.hpp"
+#include "PlaneExtractor.h"
 
 tf::TransformListener* tf_listener;
-bool debug_mode = false;
-ObjRecognizer object_recognizer;
 
-visualization_msgs::MarkerArray get_detected_objs_markers(std::vector<DetectedObject>& objs, std::vector<std::string> ids)
+void transform_cloud_wrt_base(sensor_msgs::PointCloud2& cloud, cv::Mat& bgr_dest, cv::Mat& cloud_dest)
 {
-    visualization_msgs::MarkerArray mrks;
-    for(size_t i=0; i< objs.size(); i++)
+    std::cout <<"ObjReco.->Point cloud frame: " << cloud.header.frame_id << std::endl;
+    if(cloud.header.frame_id != "base_link")
     {
-        visualization_msgs::Marker m;
-        m.header.frame_id = "base_link";
-	m.header.stamp = ros::Time::now();
-        m.ns = "recog_objects";
-        m.id = i;
-        m.type = visualization_msgs::Marker::SPHERE;
-	m.action = visualization_msgs::Marker::ADD;
-        m.pose.position.x = objs[i].centroid.x;
-        m.pose.position.y = objs[i].centroid.y;
-	m.pose.position.z = objs[i].centroid.z;
-        m.scale.x = 0.05;
-        m.scale.y = 0.05;
-	m.scale.z = 0.05;
-        m.color.r = 1.0;
-        m.color.g = 0.0;
-        m.color.b = 0.0;
-        m.color.a = 0.70;
-        m.lifetime = ros::Duration(20.0, 20.0);
-        mrks.markers.push_back(m);
-        m.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-        m.text = ids[i];
-        m.scale.z = 0.05;
+        std::cout << "ObjReco.->Transforming point cloud to robot reference" << std::endl;
+        pcl_ros::transformPointCloud("base_link", cloud, cloud, *tf_listener);
     }
-    return mrks;
+    JustinaTools::PointCloud2Msg_ToCvMat(cloud, bgr_dest, cloud_dest);
+    PlaneExtractor::filter_by_distance(cloud_dest, bgr_dest, cloud_dest, bgr_dest);
+}
+
+visualization_msgs::MarkerArray get_detected_objs_markers()
+{
+
 }
 
 bool callback_find_lines(vision_msgs::FindLines::Request& req, vision_msgs::FindLines::Response& resp)
 {
-    std::cout << "ObjReco.->Executing srvFindLines (Yisus Version)" << std::endl;
-    if(req.point_cloud.header.frame_id != "base_link")
-    {
-        std::cout << "ObjReco.->Transforming point cloud to robot reference" << std::endl;
-        pcl_ros::transformPointCloud("base_link", req.point_cloud, req.point_cloud, *tf_listener);
-    }
-    cv::Mat bgrImg;
-    cv::Mat xyzCloud;
-    JustinaTools::PointCloud2Msg_ToCvMat(req.point_cloud, bgrImg, xyzCloud);
-    ObjExtractor::DebugMode = debug_mode;
-    cv::Vec4i pointsLine = ObjExtractor::GetLine( xyzCloud );
-    if( pointsLine == cv::Vec4i(0,0,0,0) )
-    {
-        std::cout << "ObjReco.->Line not Detected" << std::endl;
-        cv::imshow("Found Line", bgrImg );
-	return false;
-    }
-    cv::Point3f iniLine = xyzCloud.at<cv::Vec3f>( cv::Point(pointsLine[0], pointsLine[1]) );
-    cv::Point3f endLine = xyzCloud.at<cv::Vec3f>( cv::Point(pointsLine[2], pointsLine[3]) );
-    geometry_msgs::Point p1;
-    p1.x = iniLine.x;
-    p1.y = iniLine.y;
-    p1.z = iniLine.z;
-    geometry_msgs::Point p2;
-    p2.x = endLine.x;
-    p2.y = endLine.y;
-    p2.z = endLine.z;
-    resp.lines.push_back(p1);
-    resp.lines.push_back(p2);
-    cv::line(bgrImg,cv::Point(pointsLine[0], pointsLine[1]),cv::Point(pointsLine[2], pointsLine[3]),cv::Scalar(0,255,0),3,8);
-    cv::imshow("Found Line", bgrImg );
-    std::cout << "ObjReco.->Line found:" << std::endl;
-    std::cout << "ObjReco.->  p1=" << iniLine << std::endl;
-    std::cout << "ObjReco.->  p2=" << endLine << std::endl;
+    std::cout << "ObjReco.->Executing srvFindLines (Jebusian method)." << std::endl;
+    cv::Mat img, cloud;
+    transform_cloud_wrt_base(req.point_cloud, img, cloud);
+    cv::Mat normals = PlaneExtractor::get_horizontal_normals(cloud);
+    cv::imshow("Filtered Img", img);
+    cv::imshow("Filtered Cloud", cloud);
+    cv::imshow("Normals", normals);
     return true;
 }
 
 bool callback_recog_objs(vision_msgs::RecognizeObjects::Request& req, vision_msgs::RecognizeObjects::Response& resp)
 {
-    std::cout << "ObjReco.->Recognizing objects by Jebug's method..." << std::endl;
-    if(req.point_cloud.header.frame_id != "base_link")
-    {
-        std::cout << "ObjReco.->Transforming point cloud to robot reference" << std::endl;
-        pcl_ros::transformPointCloud("base_link", req.point_cloud, req.point_cloud, *tf_listener);
-    }
-    cv::Mat bgrImg;
-    cv::Mat xyzCloud;
-    JustinaTools::PointCloud2Msg_ToCvMat(req.point_cloud, bgrImg, xyzCloud);
-    ObjExtractor::DebugMode = debug_mode;
-    std::vector<DetectedObject> detected_objs = ObjExtractor::GetObjectsInHorizontalPlanes(xyzCloud);
-    std::vector<std::string>    objs_names;
-    for(int i=0; i < detected_objs.size(); i++)
-    {
-        std::string obj_name = object_recognizer.RecognizeObject(detected_objs[i], bgrImg);
-        objs_names.push_back(obj_name);
-        vision_msgs::VisionObject obj;
-        obj.header.frame_id = "base_link";
-        obj.header.stamp    = ros::Time::now();
-        obj.id              = obj_name == "" ? "unknown" : obj_name;
-        obj.confidence      = 0.5; //A temporal value, since ObjRecognizer does not return a confidence value
-        obj.pose.position.x = detected_objs[i].centroid.x;
-        obj.pose.position.y = detected_objs[i].centroid.y;
-        obj.pose.position.z = detected_objs[i].centroid.z;
-        obj.pose.orientation.w = 1.0;
-        resp.recog_objects.push_back(obj);
-        cv::rectangle(bgrImg, detected_objs[i].boundBox, cv::Scalar(0,0,255));
-        cv::putText(bgrImg, obj_name, detected_objs[i].boundBox.tl(), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0,0,255));
-    }
-    std::cout << "ObjReco.->Detected " << detected_objs.size() << " objects." << std::endl;
-    cv::imshow("Recognized Objects", bgrImg);
-    return resp.recog_objects.size() > 0;
+    std::cout << "ObjReco.->Recognizing objects by Jebug's method." << std::endl;
+    cv::Mat img, cloud;
+    transform_cloud_wrt_base(req.point_cloud, img, cloud);
+    return false;
 }
 
 bool callback_recog_obj(vision_msgs::RecognizeObject::Request& req, vision_msgs::RecognizeObject::Response& resp)
 {
-    std::cout << "ObjReco.->Trying to recognize " << req.name << " by Jebug's method..." << std::endl;
-    if(req.point_cloud.header.frame_id != "base_link")
-    {
-        std::cout << "ObjReco.->Transforming point cloud to robot reference" << std::endl;
-        pcl_ros::transformPointCloud("base_link", req.point_cloud, req.point_cloud, *tf_listener);
-    }
-    cv::Mat bgrImg;
-    cv::Mat xyzCloud;
-    JustinaTools::PointCloud2Msg_ToCvMat(req.point_cloud, bgrImg, xyzCloud);
-    ObjExtractor::DebugMode = debug_mode;
-    std::vector<DetectedObject> detected_objs = ObjExtractor::GetObjectsInHorizontalPlanes(xyzCloud);
-    bool obj_found = false;
-    for(int i=0; i < detected_objs.size() && !obj_found; i++)
-    {
-        std::string obj_name = object_recognizer.RecognizeObject(detected_objs[i], bgrImg);
-        if(!(obj_found = obj_name == req.name)) continue;
-        vision_msgs::VisionObject obj;
-        obj.header.frame_id = "base_link";
-        obj.header.stamp    = ros::Time::now();
-        obj.id              = obj_name == "" ? "unknown" : obj_name;
-        obj.confidence      = 0.5; //A temporal value, since ObjRecognizer does not return a confidence value
-        obj.pose.position.x = detected_objs[i].centroid.x;
-        obj.pose.position.y = detected_objs[i].centroid.y;
-        obj.pose.position.z = detected_objs[i].centroid.z;
-        obj.pose.orientation.w = 1.0;
-        resp.recog_object = obj;
-        cv::rectangle(bgrImg, detected_objs[i].boundBox, cv::Scalar(0,0,255));
-        cv::putText(bgrImg, obj_name, detected_objs[i].boundBox.tl(), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(0,0,255));
-    }
-    std::cout << "ObjReco.->" << (obj_found ? "Recognized " : "Cannot recognize ") << req.name << std::endl;
-    cv::imshow("Recognized Object", bgrImg);
-    return obj_found;
+    std::cout << "ObjReco.->Trying to recognize " << req.name << " by Jebug's method." << std::endl;
+    cv::Mat img, cloud;
+    transform_cloud_wrt_base(req.point_cloud, img, cloud);
 }
 
 bool callback_train_object(vision_msgs::TrainObject::Request& req, vision_msgs::TrainObject::Response& resp)
@@ -164,32 +63,14 @@ bool callback_train_object(vision_msgs::TrainObject::Request& req, vision_msgs::
      	std::cout << "ObjReco.->ERROR!: objects must have a name to be trained" << std::endl;
         return false;
     }
-    if(req.point_cloud.header.frame_id != "base_link")
-    {
-        std::cout << "ObjReco.->Transforming point cloud to robot reference" << std::endl;
-        pcl_ros::transformPointCloud("base_link", req.point_cloud, req.point_cloud, *tf_listener);
-    }
-    cv::Mat bgrImg;
-    cv::Mat xyzCloud;
-    JustinaTools::PointCloud2Msg_ToCvMat(req.point_cloud, bgrImg, xyzCloud);
-    ObjExtractor::DebugMode = debug_mode;
-    std::vector<DetectedObject> detected_objs = ObjExtractor::GetObjectsInHorizontalPlanes(xyzCloud);
-    std::sort(detected_objs.begin(), detected_objs.end(), DetectedObject::CompareByEuclidean);
-    if(detected_objs.size() == 0)
-    {
-        std::cout << "ObjReco.->Cannot train object " << req.name << ". No objects detected on plane" << std::endl;
-        return false;
-    }
-    object_recognizer.TrainObject(detected_objs[0], bgrImg, req.name);
-    //cv::bitwise_and(bgrImg, detected_objs[0].oriMask, bgrImg);
-    cv::imshow("Trained Object", bgrImg);
-    std::cout << "ObjReco.->Object " << req.name << " trained succesfully in a Jebusly manner" << std::endl;
+    cv::Mat img, cloud;
+    transform_cloud_wrt_base(req.point_cloud, img, cloud);
     return true;
 }
 
 int main(int argc, char** argv)
 {
-    std::cout << "INITIALIZING OBJECT RECOGNIZER BY MR. YISUS" << std::endl;
+    std::cout << "INITIALIZING OBJECT RECOGNIZER BY MR. YISUS (CORRECTED AND IMPROVED BY MARCOSOFT)" << std::endl;
     ros::init(argc, argv, "obj_reco_node");
     ros::NodeHandle n;
     ros::ServiceServer srvFindLines = n.advertiseService("/vision/line_finder/find_lines_ransac", callback_find_lines);
@@ -202,15 +83,25 @@ int main(int argc, char** argv)
 
     std::string training_dir = ros::package::getPath("obj_reco") + std::string("/training_dir");
     if(ros::param::has("~debug"))
-        ros::param::get("~debug", debug_mode);
+        ros::param::get("~debug", PlaneExtractor::debug);
     if(ros::param::has("~training_dir"))
         ros::param::get("~training_dir", training_dir);
-    object_recognizer = ObjRecognizer(18);
-    object_recognizer.TrainingDir = training_dir;
-    if(!object_recognizer.LoadTrainingDir(training_dir))
-        return -1;
+    if(ros::param::has("~min_x"))
+        ros::param::get("~min_x", PlaneExtractor::min_x);
+    if(ros::param::has("~max_x"))
+        ros::param::get("~max_x", PlaneExtractor::max_x);
+    if(ros::param::has("~min_y"))
+        ros::param::get("~min_y", PlaneExtractor::min_y);
+    if(ros::param::has("~max_y"))
+        ros::param::get("~max_y", PlaneExtractor::max_y);
+    if(ros::param::has("~min_z"))
+        ros::param::get("~min_z", PlaneExtractor::min_z);
+    if(ros::param::has("~max_z"))
+        ros::param::get("~max_z", PlaneExtractor::max_z);
+    if(ros::param::has("~normals_tol"))
+        ros::param::get("~normals_tol", PlaneExtractor::normals_tol);
 
-    while(ros::ok())
+    while(ros::ok() && cv::waitKey(10) != 27)
     {
         cv::waitKey(10);
         ros::spinOnce();
