@@ -42,8 +42,8 @@ bool JustinaNavigation::setNodeHandle(ros::NodeHandle* nh)
 
     is_node_set = true;
     _stop = false;
-    _navigation_status.status  = actionlib_msgs::GoalStatus::ABORTED;
-    _simple_move_status.status = actionlib_msgs::GoalStatus::ABORTED;
+    _navigation_status.status  = actionlib_msgs::GoalStatus::PENDING;
+    _simple_move_status.status = actionlib_msgs::GoalStatus::PENDING;
     return true;
 }
 
@@ -61,10 +61,17 @@ bool JustinaNavigation::isGlobalGoalReached()
 bool JustinaNavigation::waitForLocalGoalReached(int timeOut_ms)
 {
     JustinaNavigation::_stop = false;
-    JustinaNavigation::_simple_move_status.status = actionlib_msgs::GoalStatus::ABORTED;
+    JustinaNavigation::_simple_move_status.status = actionlib_msgs::GoalStatus::PENDING;
     int attempts = timeOut_ms/100;
     ros::Rate loop(10);
-    while(ros::ok() && JustinaNavigation::_simple_move_status.status != actionlib_msgs::GoalStatus::SUCCEEDED &&
+    while(ros::ok() && JustinaNavigation::_simple_move_status.status == actionlib_msgs::GoalStatus::PENDING &&
+          !JustinaNavigation::_stop && attempts-- >= 0)
+    {
+        loop.sleep();
+        ros::spinOnce();
+    }
+    
+    while(ros::ok() && JustinaNavigation::_simple_move_status.status == actionlib_msgs::GoalStatus::ACTIVE &&
           !JustinaNavigation::_stop && attempts-- >= 0)
     {
         loop.sleep();
@@ -77,10 +84,16 @@ bool JustinaNavigation::waitForLocalGoalReached(int timeOut_ms)
 bool JustinaNavigation::waitForGlobalGoalReached(int timeOut_ms)
 {
     JustinaNavigation::_stop = false;
-    JustinaNavigation::_navigation_status.status = actionlib_msgs::GoalStatus::ABORTED;
+    JustinaNavigation::_navigation_status.status = actionlib_msgs::GoalStatus::PENDING;
     int attempts = timeOut_ms/100;
     ros::Rate loop(10);
-    while(ros::ok() && JustinaNavigation::_navigation_status.status != actionlib_msgs::GoalStatus::SUCCEEDED &&
+    while(ros::ok() && JustinaNavigation::_navigation_status.status == actionlib_msgs::GoalStatus::PENDING &&
+          !JustinaNavigation::_stop && attempts-- >= 0)
+    {
+        loop.sleep();
+        ros::spinOnce();
+    }
+    while(ros::ok() && JustinaNavigation::_navigation_status.status == actionlib_msgs::GoalStatus::ACTIVE &&
           !JustinaNavigation::_stop && attempts-- >= 0)
     {
         loop.sleep();
@@ -118,7 +131,7 @@ void JustinaNavigation::startMoveDist(float distance)
 {
     std_msgs::Float32 msg;
     msg.data = distance;
-    JustinaNavigation::_simple_move_status.status = actionlib_msgs::GoalStatus::ABORTED;
+    JustinaNavigation::_simple_move_status.status = actionlib_msgs::GoalStatus::PENDING;
     pubSimpleMoveDist.publish(msg);
     ros::spinOnce();
     ros::Duration(0.0333333).sleep();
@@ -129,7 +142,7 @@ void JustinaNavigation::startMoveDistAngle(float distance, float angle)
     std_msgs::Float32MultiArray msg;
     msg.data.push_back(distance);
     msg.data.push_back(angle);
-    JustinaNavigation::_simple_move_status.status = actionlib_msgs::GoalStatus::ABORTED;
+    JustinaNavigation::_simple_move_status.status = actionlib_msgs::GoalStatus::PENDING;
     pubSimpleMoveDistAngle.publish(msg);
     ros::spinOnce();
     ros::Duration(0.0333333).sleep();
@@ -139,7 +152,7 @@ void JustinaNavigation::startMoveLateral(float distance)
 {
     std_msgs::Float32 msg;
     msg.data = distance;
-    JustinaNavigation::_simple_move_status.status = actionlib_msgs::GoalStatus::ABORTED;
+    JustinaNavigation::_simple_move_status.status = actionlib_msgs::GoalStatus::PENDING;
     pubSimpleMoveLateral.publish(msg);
     ros::spinOnce();
     ros::Duration(0.0333333).sleep();
@@ -175,7 +188,7 @@ void JustinaNavigation::startGetClose(float x, float y, float angle)
     msg.pose.orientation.y = 0;
     msg.pose.orientation.z = sin(angle/2);
     msg.pose.orientation.w = cos(angle/2);
-    JustinaNavigation::_navigation_status.status = actionlib_msgs::GoalStatus::ABORTED;
+    JustinaNavigation::_navigation_status.status = actionlib_msgs::GoalStatus::PENDING;
     pubMvnPlnGetCloseXYA.publish(msg);
     ros::spinOnce();
     ros::Duration(0.0333333).sleep();

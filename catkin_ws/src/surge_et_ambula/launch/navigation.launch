@@ -56,7 +56,7 @@
 
   <node name="mvn_pln"  pkg="mvn_pln"  type="mvn_pln_node"  output="screen">
     <remap from="/nav_control/goal" to="/move_base_simple/goal"/>
-    <param name="patience" value="True"/>
+    <param name="patience" value="False"/>
   </node>
 
   <node name="prohibition_map_server" pkg="map_server" type="map_server" output="screen" args="$(arg prohibition_map_file)">

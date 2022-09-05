@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   vision_msgs
   visualization_msgs
   actionlib_msgs
+  justina_tools
 )
 
 ## System dependencies are found with CMake's conventions
@@ -159,9 +160,9 @@ include_directories(
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-add_executable(random_navigation_node src/practice_navegation.cpp)
- add_dependencies(random_navigation_node ${random_navigation_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
- target_link_libraries(random_navigation_node
+add_executable(random_navigation src/random_navigation.cpp)
+add_dependencies(random_navigation ${random_navigation_node_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(random_navigation
    ${catkin_LIBRARIES}
  )
 
