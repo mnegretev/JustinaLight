@@ -21,6 +21,7 @@
 #include "vision_msgs/TrainObject.h"
 #include "vision_msgs/RecognizeObjects.h"
 #include "vision_msgs/RecognizeObject.h"
+#include "hri_msgs/RecognizedSpeech.h"
 
 class QtRosNode : public QThread
 {
@@ -40,10 +41,12 @@ public:
     ros::Publisher pubLaGoalGrip;
     ros::Publisher pubRaGoalGrip;
     ros::Publisher pubSpeechGen;
+    ros::Publisher pubFakeSpeechRecog;
     ros::Subscriber subLaCurrentQ;
     ros::Subscriber subLaVoltage;
     ros::Subscriber subRaCurrentQ;
     ros::Subscriber subRaVoltage;
+    ros::Subscriber subRecogSpeech;
     ros::ServiceClient cltLaIKPose2Pose;
     ros::ServiceClient cltRaIKPose2Pose;
     ros::ServiceClient cltLaIKPose2Traj;
@@ -66,6 +69,7 @@ public:
     std::vector<double> ra_current_cartesian;
     double la_voltage;
     double ra_voltage;
+    std::string spr_recognized;
     
     void run();
     void setNodeHandle(ros::NodeHandle* nh);
@@ -96,6 +100,8 @@ public:
     bool call_get_polynomial_traj(std::vector<double>& p1, std::vector<double>& p2, trajectory_msgs::JointTrajectory& trajectory);
 
     void say(std::string text_to_say);
+    void publish_fake_speech_recog(std::string text_to_say);
+    void callback_recognized_speech(const hri_msgs::RecognizedSpeech::ConstPtr& msg);
 
     bool call_find_lines();
     bool call_train_object(std::string name);

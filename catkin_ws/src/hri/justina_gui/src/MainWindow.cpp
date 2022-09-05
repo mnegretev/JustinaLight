@@ -91,7 +91,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->hdTxtPan, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
     QObject::connect(ui->hdTxtTilt, SIGNAL(valueChanged(double)), this, SLOT(hdSbHeadValueChanged(double)));
 
-    QObject::connect(ui->spgTxtSay, SIGNAL(returnPressed()), this, SLOT(spgTxtSayReturntPressed()));
+    QObject::connect(ui->spgTxtSay, SIGNAL(returnPressed()), this, SLOT(spgTxtSayReturnPressed()));
+    QObject::connect(ui->sprTxtFakeRecog, SIGNAL(returnPressed()), this, SLOT(sprTxtFakeRecogReturnPressed()));
 
     QObject::connect(ui->visBtnFindLines, SIGNAL(clicked()), this, SLOT(visFindLinesClicked()));
     QObject::connect(ui->visTxtTrainObject, SIGNAL(returnPressed()), this, SLOT(visTrainObjectReturnPressed()));
@@ -193,26 +194,16 @@ void MainWindow::updateGraphicsReceived()
     ui->raLblVoltage->setText(QString::number(qtRosNode->ra_voltage,'f',1));
     ui->laPbVoltage ->setValue(qtRosNode->la_voltage*10);
     ui->raPbVoltage ->setValue(qtRosNode->ra_voltage*10);
-   /*if(ui->laPbVoltage->value()<100)
-        ui->laPbVoltage->setStyleSheet(danger);
-     else
-        ui->laPbVoltage->setStyleSheet(safe);*/
-    ui->laLblVoltage->setStyleSheet("QLabel{font: 24pt;}");
-    ui->raLblVoltage->setStyleSheet("QLabel{font: 24pt;}");
-     if(qtRosNode->la_voltage*10<105)
-   {
-       ui->laLblVoltage->setStyleSheet("QLabel{ color: red; font: 24pt;}");
-   }else
-     {
-       ui->laLblVoltage->setStyleSheet("QLabel{ color : black; font: 24pt;}");
-   }
-if(qtRosNode->ra_voltage*10<105)
-   {
-       ui->raLblVoltage->setStyleSheet("QLabel{ color: red; font: 24pt;}");
-   }else
-   {
-       ui->raLblVoltage->setStyleSheet("QLabel{ color: black; font: 24pt;}");
-   }
+    if(qtRosNode->la_voltage<10.5)
+        ui->laLblVoltage->setStyleSheet("QLabel{ color: red; font: 24pt;}");
+    else
+        ui->laLblVoltage->setStyleSheet("QLabel{ color : black; font: 24pt;}");
+    if(qtRosNode->ra_voltage<10.5)
+        ui->raLblVoltage->setStyleSheet("QLabel{ color: red; font: 24pt;}");
+    else
+        ui->raLblVoltage->setStyleSheet("QLabel{ color: black; font: 24pt;}");
+
+    ui->sprLblLastRecog->setText(QString::fromStdString(qtRosNode->spr_recognized));
 }
 
 void MainWindow::btnFwdPressed()
@@ -842,9 +833,14 @@ void MainWindow::hdSbHeadValueChanged(double d)
     qtRosNode->publish_head_angles(ui->hdTxtPan->value(), ui->hdTxtTilt->value());
 }
 
-void MainWindow::spgTxtSayReturntPressed()
+void MainWindow::spgTxtSayReturnPressed()
 {
     qtRosNode->say(ui->spgTxtSay->text().toStdString());
+}
+
+void MainWindow::sprTxtFakeRecogReturnPressed()
+{
+    qtRosNode->publish_fake_speech_recog(ui->sprTxtFakeRecog->text().toStdString());
 }
 
 void MainWindow::visFindLinesClicked()

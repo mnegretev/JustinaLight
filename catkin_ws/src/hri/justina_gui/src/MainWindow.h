@@ -95,7 +95,8 @@ public slots:
 
     void hdSbHeadValueChanged(double d);
 
-    void spgTxtSayReturntPressed();
+    void spgTxtSayReturnPressed();
+    void sprTxtFakeRecogReturnPressed();
 
     void visFindLinesClicked();
     void visTrainObjectReturnPressed();

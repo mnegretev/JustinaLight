@@ -28,6 +28,7 @@ QtRosNode::QtRosNode()
             background-color: rgb(204, 0, 0);
             width: 20px;
          }*/
+    spr_recognized = "";
 }
 QtRosNode::~QtRosNode()
 {
@@ -58,8 +59,10 @@ void QtRosNode::run()
     cltRaForwardKinematics=n->serviceClient<manip_msgs::ForwardKinematics>("/manipulation/ra_forward_kinematics");
     cltGetPolynomialTraj  =n->serviceClient<manip_msgs::GetPolynomialTrajectory>("/manipulation/polynomial_trajectory");
 
-    pubSpeechGen = n->advertise<sound_play::SoundRequest>("/hri/speech_generator", 1);
-    
+    pubSpeechGen       = n->advertise<sound_play::SoundRequest>("/hri/speech_generator", 1);
+    pubFakeSpeechRecog = n->advertise<hri_msgs::RecognizedSpeech>("/hri/sp_rec/recognized", 1);
+    subRecogSpeech     = n->subscribe("/hri/sp_rec/recognized",1, &QtRosNode::callback_recognized_speech, this);
+        
     cltFindLines     = n->serviceClient<vision_msgs::FindLines>       ("/vision/line_finder/find_lines_ransac");
     cltTrainObject   = n->serviceClient<vision_msgs::TrainObject>     ("/vision/obj_reco/train_object");
     cltRecogObjects  = n->serviceClient<vision_msgs::RecognizeObjects>("/vision/obj_reco/recognize_objects");
@@ -204,7 +207,6 @@ void QtRosNode::callback_la_current_q(const std_msgs::Float64MultiArray::ConstPt
 void QtRosNode::callback_la_voltage(const std_msgs::Float64::ConstPtr& msg)
 {
     la_voltage = msg->data;
-//    la_voltage_bar= (10*(msg->data));
 }
 void QtRosNode::callback_ra_current_q(const std_msgs::Float64MultiArray::ConstPtr& msg)
 {
@@ -215,7 +217,6 @@ void QtRosNode::callback_ra_current_q(const std_msgs::Float64MultiArray::ConstPt
 void QtRosNode::callback_ra_voltage(const std_msgs::Float64::ConstPtr& msg)
 {
     ra_voltage = msg->data;
-//    ra_voltage_bar = (10*(msg->data));
 }
 
 bool QtRosNode::call_la_ik_trajectory(std::vector<double>& cartesian, trajectory_msgs::JointTrajectory& trajectory)
@@ -339,6 +340,21 @@ void QtRosNode::say(std::string text_to_say)
     msg.arg     = text_to_say;
     msg.arg2    = "voice_cmu_us_slt_arctic_hts";
     pubSpeechGen.publish(msg);
+}
+
+void QtRosNode::publish_fake_speech_recog(std::string text_to_say)
+{
+    hri_msgs::RecognizedSpeech msg;
+    msg.hypothesis.push_back(text_to_say);
+    msg.confidences.push_back(0.9);
+    pubFakeSpeechRecog.publish(msg);
+}
+
+void QtRosNode::callback_recognized_speech(const hri_msgs::RecognizedSpeech::ConstPtr& msg)
+{
+    if(msg->hypothesis.size() < 1)
+        return;
+    spr_recognized = msg->hypothesis[0];
 }
 
 bool QtRosNode::call_find_lines()
