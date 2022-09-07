@@ -1,31 +1,7 @@
 #include "PlaneExtractor.h"
+#include "Utils.h"
 
-bool  PlaneExtractor::debug = false;
-float PlaneExtractor::min_x =  0.3;
-float PlaneExtractor::min_y = -2.0;
-float PlaneExtractor::min_z =  0.3;
-float PlaneExtractor::max_x =  2.0;
-float PlaneExtractor::max_y =  2.0;
-float PlaneExtractor::max_z =  2.0;
 float PlaneExtractor::normals_tol = 0.8;
-
-void PlaneExtractor::filter_by_distance(cv::Mat& cloud, cv::Mat& img, cv::Mat& filtered_cloud, cv::Mat& filtered_img)
-{
-    // This function is intended to keep point only in a given bounding box, e.g., to remove floot and distant walls
-    // The function DOES NOT return a smaller point cloud. It returns a cloud with all non valid points set to zero. 
-    cv::Mat valid_points;
-    cv::inRange(cloud, cv::Scalar(PlaneExtractor::min_x, PlaneExtractor::min_y, PlaneExtractor::min_z),
-                cv::Scalar(PlaneExtractor::max_x, PlaneExtractor::max_y, PlaneExtractor::max_z), valid_points);
-    filtered_cloud = cloud.clone();
-    filtered_img   = img.clone();
-    for(size_t i=0; i<img.rows; i++)
-        for(size_t j=0; j<img.cols; j++)
-            if(!valid_points.data[i*img.cols + j])
-            {
-                filtered_cloud.at<cv::Vec3f>(i,j) = cv::Vec3f(0,0,0);
-                filtered_img.at<cv::Vec3b>(i,j)   = cv::Vec3b(0,0,0);
-            }
-}
 
 cv::Mat PlaneExtractor::get_horizontal_normals(cv::Mat& cloud)
 {
@@ -51,5 +27,22 @@ cv::Mat PlaneExtractor::get_horizontal_normals(cv::Mat& cloud)
                 continue;
             normals.at<cv::Vec3f>(i,j) = normal;
         }
+    cv::imshow("Normals", normals);
     return normals;
+}
+
+std::vector<cv::Vec4i> PlaneExtractor::find_lines(cv::Mat& cloud)
+{
+    std::vector<cv::Vec4i> lines;
+    cv::Mat grayscale_cloud, borders;
+    cv::cvtColor(cloud, grayscale_cloud, cv::COLOR_BGR2GRAY);
+    grayscale_cloud.convertTo(grayscale_cloud, CV_8UC1, 255);
+    cv::imshow("Gray normals", grayscale_cloud);
+    cv::Canny(grayscale_cloud, borders, 30, 100, 3);
+    cv::imshow("Canny", borders);
+    cv::HoughLinesP(borders, lines, 1, CV_PI/180, 30, 30, 10);
+    for(size_t i=0; i<lines.size(); i++)
+        cv::line(cloud, cv::Point(lines[i][0], lines[i][1]), cv::Point(lines[i][2], lines[i][3]), cv::Scalar(255,0,0), 3, 8);
+    cv::imshow("Lines", cloud);
+    return lines;
 }
