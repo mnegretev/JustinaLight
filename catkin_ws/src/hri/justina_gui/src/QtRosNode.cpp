@@ -368,7 +368,9 @@ bool QtRosNode::call_find_lines()
         return false;
     }
     srv.request.point_cloud = *ptr;
-    return cltFindLines.call(srv);
+    bool success = cltFindLines.call(srv);
+    if(!success) std::cout << "JustinaGUI.->Cannot find any lines :'(" << std::endl;
+    return success;
 }
 
 bool QtRosNode::call_train_object(std::string name)
