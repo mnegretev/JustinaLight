@@ -9,6 +9,7 @@
 #include "Utils.h"
 
 tf::TransformListener* tf_listener;
+visualization_msgs::Marker table_border_marker;
 
 visualization_msgs::MarkerArray get_detected_objs_markers()
 {
@@ -18,11 +19,9 @@ visualization_msgs::MarkerArray get_detected_objs_markers()
 bool callback_find_lines(vision_msgs::FindLines::Request& req, vision_msgs::FindLines::Response& resp)
 {
     std::cout << "ObjReco.->Executing srvFindLines (Jebusian method)." << std::endl;
-    cv::Mat img, cloud;
-    Utils::transform_cloud_wrt_base(req.point_cloud, img, cloud, tf_listener);
-    cv::Mat normals = PlaneExtractor::get_horizontal_normals(cloud);
-    PlaneExtractor::find_lines(normals);
-    return true;
+    resp.lines = PlaneExtractor::find_table_border(req.point_cloud, tf_listener);
+    //table_border_marker = Utils::get_lines_marker(resp.lines);
+    return resp.lines.size() > 0;
 }
 
 bool callback_recog_objs(vision_msgs::RecognizeObjects::Request& req, vision_msgs::RecognizeObjects::Response& resp)
@@ -62,9 +61,9 @@ int main(int argc, char** argv)
     ros::ServiceServer srvRecogObjs = n.advertiseService("/vision/obj_reco/recognize_objects", callback_recog_objs);
     ros::ServiceServer srvRecogObj  = n.advertiseService("/vision/obj_reco/recognize_object" , callback_recog_obj );
     ros::ServiceServer srvTrainObj  = n.advertiseService("/vision/obj_reco/train_object", callback_train_object);
+    ros::Publisher     pubMarkers   = n.advertise<visualization_msgs::Marker>("/vision/obj_reco/markers", 1);
     ros::Rate loop(30);
     tf_listener = new tf::TransformListener();
-
 
     std::string training_dir = ros::package::getPath("obj_reco") + std::string("/training_dir");
     if(ros::param::has("~debug"))
@@ -88,7 +87,7 @@ int main(int argc, char** argv)
 
     while(ros::ok() && cv::waitKey(10) != 27)
     {
-        cv::waitKey(10);
+        //pubMarkers.publish(table_border_marker);
         ros::spinOnce();
         loop.sleep();
     }
