@@ -22,5 +22,7 @@ public:
     static void transform_cloud_wrt_base(sensor_msgs::PointCloud2& , cv::Mat& , cv::Mat& , tf::TransformListener* );
     static float dist_point_to_segment(float px, float py, float pz, float x1, float y1, float z1, float x2, float y2, float z2);
     static float dist_point_to_segment(float px, float py, float x1, float y1, float x2, float y2);
-    static visualization_msgs::Marker get_lines_marker(std::vector<geometry_msgs::Point> lines);
+    static visualization_msgs::Marker get_line_marker(cv::Vec3f p1, cv::Vec3f p2);
+    static visualization_msgs::Marker get_line_marker(std::vector<geometry_msgs::Point> line_points);
+    static std::vector<geometry_msgs::Point> get_line_msg(cv::Vec3f p1, cv::Vec3f p2);
 };

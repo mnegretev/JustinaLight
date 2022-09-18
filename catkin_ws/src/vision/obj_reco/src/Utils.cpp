@@ -37,8 +37,11 @@ void Utils::filter_by_distance(cv::Mat& cloud, cv::Mat& img, cv::Mat& filtered_c
                 filtered_cloud.at<cv::Vec3f>(i,j) = cv::Vec3f(0,0,0);
                 filtered_img.at<cv::Vec3b>(i,j)   = cv::Vec3b(0,0,0);
             }
-    cv::imshow("Filtered Img", filtered_img);
-    cv::imshow("Filtered Cloud", filtered_cloud);
+    if(Utils::debug)
+    {
+        cv::imshow("Filtered Img", filtered_img);
+        cv::imshow("Filtered Cloud", filtered_cloud);
+    }
 }
 
 float Utils::dist_point_to_segment(float px, float py, float pz, float x1, float y1, float z1, float x2, float y2, float z2)
@@ -76,7 +79,11 @@ float Utils::dist_point_to_segment(float px, float py, float x1, float y1, float
     return sqrt(ax*ax + ay*ay - projection);
 }
 
-visualization_msgs::Marker Utils::get_lines_marker(std::vector<geometry_msgs::Point> lines)
+visualization_msgs::Marker Utils::get_line_marker(cv::Vec3f p1, cv::Vec3f p2)
+{
+}
+
+visualization_msgs::Marker Utils::get_line_marker(std::vector<geometry_msgs::Point> line_points)
 {
     visualization_msgs::Marker marker;
     marker.header.frame_id = "base_link";
@@ -92,10 +99,25 @@ visualization_msgs::Marker Utils::get_lines_marker(std::vector<geometry_msgs::Po
     marker.color.b = 0.0;
     marker.lifetime = ros::Duration(10.0);
     geometry_msgs::Point p1, p2;
-    for(int i=0; i<lines.size(); i+=2)
+    for(int i=0; i<line_points.size(); i+=2)
     {
-        marker.points.push_back(lines[i]);
-        marker.points.push_back(lines[i+1]);
+        marker.points.push_back(line_points[i]);
+        marker.points.push_back(line_points[i+1]);
     }
     return marker;
+}
+
+std::vector<geometry_msgs::Point> Utils::get_line_msg(cv::Vec3f p1, cv::Vec3f p2)
+{
+    std::vector<geometry_msgs::Point> msg;
+    geometry_msgs::Point msg_p1, msg_p2;
+    msg_p1.x = p1[0];
+    msg_p1.y = p1[1];
+    msg_p1.z = p1[2];
+    msg_p2.x = p2[0];
+    msg_p2.y = p2[1];
+    msg_p2.z = p2[2];
+    msg.push_back(msg_p1);
+    msg.push_back(msg_p2);
+    return msg;
 }

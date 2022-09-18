@@ -13,14 +13,14 @@ visualization_msgs::Marker table_border_marker;
 
 visualization_msgs::MarkerArray get_detected_objs_markers()
 {
-
+    
 }
 
 bool callback_find_lines(vision_msgs::FindLines::Request& req, vision_msgs::FindLines::Response& resp)
 {
     std::cout << "ObjReco.->Executing srvFindLines (Jebusian method)." << std::endl;
     resp.lines = PlaneExtractor::find_table_border(req.point_cloud, tf_listener);
-    //table_border_marker = Utils::get_lines_marker(resp.lines);
+    table_border_marker = Utils::get_line_marker(resp.lines);
     return resp.lines.size() > 0;
 }
 
@@ -84,10 +84,22 @@ int main(int argc, char** argv)
         ros::param::get("~max_z", Utils::max_z);
     if(ros::param::has("~normals_tol"))
         ros::param::get("~normals_tol", PlaneExtractor::normals_tol);
+    if(ros::param::has("~canny_threshold1"))
+        ros::param::get("~canny_threshold1", PlaneExtractor::canny_threshold1);
+    if(ros::param::has("~canny_threshold2"))
+        ros::param::get("~canny_threshold2", PlaneExtractor::canny_threshold2);
+    if(ros::param::has("~canny_window_size"))
+        ros::param::get("~canny_window_size", PlaneExtractor::canny_window_size);
+    if(ros::param::has("~hough_threshold"))
+        ros::param::get("~hough_threshold", PlaneExtractor::hough_threshold);
+    if(ros::param::has("~hough_min_line_length"))
+        ros::param::get("~hough_min_lines_length", PlaneExtractor::hough_min_lines_length);
+    if(ros::param::has("~hough_max_lines_gap"))
+        ros::param::get("~hough_max_lines_gap", PlaneExtractor::hough_max_lines_gap);
 
     while(ros::ok() && cv::waitKey(10) != 27)
     {
-        //pubMarkers.publish(table_border_marker);
+        pubMarkers.publish(table_border_marker);
         ros::spinOnce();
         loop.sleep();
     }
