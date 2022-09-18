@@ -1,0 +1,10 @@
+Add the following line to /etc/security/limits.conf
+
+@audio           -       rtprio          99
+
+Add the user to the audio group:
+
+sudo usermod -a -G audio <username>
+
+Open QjackClt and add to on start script:
+pulseaudio -k
