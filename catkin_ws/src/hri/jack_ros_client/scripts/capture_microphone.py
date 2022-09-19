@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import matplotlib.pyplot as plt
 import rospy
 from std_msgs.msg import Float32MultiArray
 
@@ -18,6 +19,8 @@ def main():
     for x in captured_data:
         f.write(str(x) + "\n")
     f.close()
+    plt.plot(captured_data)
+    plt.show()
 
 if __name__ == "__main__":
     main()
