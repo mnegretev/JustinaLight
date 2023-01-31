@@ -14,6 +14,8 @@ public:
     static int   canny_threshold1;
     static int   canny_threshold2;
     static int   canny_window_size;
+    static int   hough_rho;
+    static float hough_theta;
     static int   hough_threshold;
     static int   hough_min_lines_length;
     static int   hough_max_lines_gap;

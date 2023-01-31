@@ -5,6 +5,8 @@ float PlaneExtractor::normals_tol = 0.8;
 int   PlaneExtractor::canny_threshold1 = 30;
 int   PlaneExtractor::canny_threshold2 = 100;
 int   PlaneExtractor::canny_window_size = 3;
+int   PlaneExtractor::hough_rho = 1;
+float PlaneExtractor::hough_theta = 3.1415/180.0;
 int   PlaneExtractor::hough_threshold = 40;
 int   PlaneExtractor::hough_min_lines_length = 30;
 int   PlaneExtractor::hough_max_lines_gap = 10;
@@ -54,21 +56,21 @@ std::vector<cv::Vec4i> PlaneExtractor::find_horizontal_lines(cv::Mat& cloud)
     cv::cvtColor(cloud, grayscale_cloud, cv::COLOR_BGR2GRAY);
     grayscale_cloud.convertTo(grayscale_cloud, CV_8UC1, 255);
     cv::Canny(grayscale_cloud, borders, PlaneExtractor::canny_threshold1, PlaneExtractor::canny_threshold2, PlaneExtractor::canny_window_size);
-    cv::HoughLinesP(borders, lines, 1, CV_PI/180, PlaneExtractor::hough_threshold, PlaneExtractor::hough_min_lines_length,
-                    PlaneExtractor::hough_max_lines_gap);
+    cv::HoughLinesP(borders, lines, PlaneExtractor::hough_rho, PlaneExtractor::hough_theta, PlaneExtractor::hough_threshold,
+                    PlaneExtractor::hough_min_lines_length, PlaneExtractor::hough_max_lines_gap);
 
     cv::Vec3f p1, p2;
     for(int i=0; i<lines.size(); i++)
     {
         p1 = cloud.at<cv::Vec3f>(lines[i][1], lines[i][0]);
         p2 = cloud.at<cv::Vec3f>(lines[i][3], lines[i][2]);
-        if(fabs(p1[2] - p2[2]) > 0.08 || p1[0] == 0 || p1[1] == 0 || p1[2] == 0 ||
-           p2[0] == 0 || p2[1] == 0 || p2[2] == 0) //Horizontal lines have similar Z
-            continue;
+        //if(fabs(p1[2] - p2[2]) > 0.08 || p1[0] == 0 || p1[1] == 0 || p1[2] == 0 ||
+        //   p2[0] == 0 || p2[1] == 0 || p2[2] == 0) //Horizontal lines have similar Z
+        //    continue;
         filtered_lines.push_back(lines[i]);
         if(Utils::debug)
         {
-            cv::line(cloud, cv::Point(lines[i][0], lines[i][1]), cv::Point(lines[i][2], lines[i][3]), cv::Scalar(0, 10*i/255.0,(255 - 10*i)/255.0), 3, 8);
+            cv::line(cloud, cv::Point(lines[i][0], lines[i][1]), cv::Point(lines[i][2], lines[i][3]), cv::Scalar((255 - 10*i)/255.0, 10*i/255.0), 3, 8);
             cv::putText(cloud, std::to_string(i), cv::Point(lines[i][0], lines[i][1]), cv::FONT_HERSHEY_DUPLEX, 1.0, cv::Scalar(255,255,255), 2);
         }
     }

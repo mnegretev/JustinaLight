@@ -39,8 +39,8 @@ void Utils::filter_by_distance(cv::Mat& cloud, cv::Mat& img, cv::Mat& filtered_c
             }
     if(Utils::debug)
     {
-        cv::imshow("Filtered Img", filtered_img);
-        cv::imshow("Filtered Cloud", filtered_cloud);
+        cv::imshow("Filtered by distance RGB", filtered_img);
+        cv::imshow("Filtered by distance XYZ", filtered_cloud);
     }
 }
 
@@ -60,7 +60,7 @@ float Utils::dist_point_to_segment(float px, float py, float pz, float x1, float
     float projection = ax*bx + ay*by + az*bz;
     if(projection < 0) return sqrt(ax*ax + ay*ay + az*az);
     if(projection > 1) return sqrt((px-x2)*(px-x2) + (py-y2)*(py-y2) + (pz-z2)*(pz-z2));
-    return sqrt(ax*ax + ay*ay + az*az - projection*projection);
+    return sqrt(ax*ax + ay*ay + az*az - projection*projection*bm*bm);
 }
 
 float Utils::dist_point_to_segment(float px, float py, float x1, float y1, float x2, float y2)
@@ -76,7 +76,7 @@ float Utils::dist_point_to_segment(float px, float py, float x1, float y1, float
     float projection = ax*bx + ay*by;
     if(projection < 0) return sqrt(ax*ax + ay*ay);
     if(projection > 1) return sqrt((px-x2)*(px-x2) + (py-y2)*(py-y2));
-    return sqrt(ax*ax + ay*ay - projection);
+    return sqrt(ax*ax + ay*ay - projection*projection*bm*bm);
 }
 
 visualization_msgs::Marker Utils::get_line_marker(cv::Vec3f p1, cv::Vec3f p2)

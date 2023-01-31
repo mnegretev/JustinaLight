@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import rospy
 from std_msgs.msg import Float32MultiArray
+from scipy.io.wavfile import write
 
 def callback_mic(msg):
     global captured_data
