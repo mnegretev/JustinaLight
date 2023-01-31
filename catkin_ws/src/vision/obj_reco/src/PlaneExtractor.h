@@ -14,15 +14,17 @@ public:
     static int   canny_threshold1;
     static int   canny_threshold2;
     static int   canny_window_size;
-    static int   hough_rho;
-    static float hough_theta;
     static int   hough_threshold;
-    static int   hough_min_lines_length;
-    static int   hough_max_lines_gap;
+    static int   hough_min_rho;
+    static int   hough_max_rho;
+    static int   hough_step_rho;
+    static float hough_min_theta;
+    static float hough_max_theta;
+    static float hough_step_theta;
     
     static std::vector<cv::Point> extract_horizontal_planes(sensor_msgs::PointCloud2& point_cloud_msg, tf::TransformListener* tf_listener);
     static cv::Mat get_horizontal_normals(cv::Mat& cloud);
-    static std::vector<cv::Vec4i> find_horizontal_lines(cv::Mat& cloud);
-    static cv::Vec4i find_nearest_horizontal_line(std::vector<cv::Vec4i>& lines, cv::Mat& cloud);
+    static std::vector<cv::Vec3f> find_horizontal_lines(cv::Mat& normals, cv::Mat& cloud, cv::Mat& output_bgr);
+    static std::vector<cv::Vec3f> find_nearest_horizontal_line(std::vector<cv::Vec3f>& lines);
     static std::vector<geometry_msgs::Point> find_table_border(sensor_msgs::PointCloud2& point_cloud_msg, tf::TransformListener* tf_listener);
 };
