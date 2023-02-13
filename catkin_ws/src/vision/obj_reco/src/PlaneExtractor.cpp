@@ -2,12 +2,12 @@
 #include "Utils.h"
 
 float PlaneExtractor::normals_tol = 0.8;
-int   PlaneExtractor::canny_threshold1 = 30;
-int   PlaneExtractor::canny_threshold2 = 100;
+int   PlaneExtractor::canny_threshold1 = 50;
+int   PlaneExtractor::canny_threshold2 = 200;
 int   PlaneExtractor::canny_window_size = 3;
-int   PlaneExtractor::hough_threshold = 40;
-int   PlaneExtractor::hough_min_lines_length = 30;
-int   PlaneExtractor::hough_max_lines_gap = 10;
+int   PlaneExtractor::hough_threshold = 2;
+int   PlaneExtractor::hough_min_lines_length = 0;
+int   PlaneExtractor::hough_max_lines_gap = 0;
 
 std::vector<cv::Point> PlaneExtractor::extract_horizontal_planes(sensor_msgs::PointCloud2& point_cloud_msg, tf::TransformListener* tf_listener)
 {
@@ -107,9 +107,14 @@ std::vector<geometry_msgs::Point> PlaneExtractor::find_table_border(sensor_msgs:
     Utils::transform_cloud_wrt_base(point_cloud_msg, img, cloud, tf_listener);
     Utils::filter_by_distance(cloud, img, cloud, img);
     cv::Mat normals = PlaneExtractor::get_horizontal_normals(cloud);
-    std::vector<cv::Vec4i> lines = PlaneExtractor::find_horizontal_lines(normals);
-    cv::Vec4i nearest_line = find_nearest_horizontal_line(lines, cloud);
-    cv::line(img, cv::Point(nearest_line[0], nearest_line[1]), cv::Point(nearest_line[2], nearest_line[3]), cv::Scalar(255,0,0), 3, 8);
+    std::vector<cv::Vec4i> lines = PlaneExtractor::find_horizontal_lines(normals); 
+    cv::Vec4i nearest_line = find_nearest_horizontal_line(lines, cloud);   
+    for(int i=0; i<lines.size(); i++)
+    {
+        //cv::Vec4i nearest_line = find_nearest_horizontal_line(lines, cloud);
+        cv::Vec4i l = lines[i];
+        cv::line(img, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(255,0,0), 3, 8);    
+    }
     cv::imshow("Found border", img);
     return Utils::get_line_msg(cloud.at<cv::Vec3f>(nearest_line[1], nearest_line[0]), cloud.at<cv::Vec3f>(nearest_line[3], nearest_line[2]));
 }
