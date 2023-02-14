@@ -18,9 +18,11 @@ visualization_msgs::MarkerArray get_detected_objs_markers()
 
 bool callback_find_lines(vision_msgs::FindLines::Request& req, vision_msgs::FindLines::Response& resp)
 {
-    std::cout << "ObjReco.->Executing srvFindLines (Jebusian method)." << std::endl;
+    std::cout << std::endl << "ObjReco.->Executing srvFindLines (Jebusian method)." << std::endl;
     resp.lines = PlaneExtractor::find_table_border(req.point_cloud, tf_listener);
-    table_border_marker = Utils::get_line_marker(resp.lines);
+    table_border_marker = Utils::get_lines_marker(resp.lines);
+    if(resp.lines.size() > 0) std::cout << "ObjReco.->Found line: " << resp.lines[0] << " - " <<resp.lines[1] <<std::endl;
+    else std::cout << "ObjReco.->Cannot find lines. " << std::endl;
     return resp.lines.size() > 0;
 }
 
@@ -92,10 +94,18 @@ int main(int argc, char** argv)
         ros::param::get("~canny_window_size", PlaneExtractor::canny_window_size);
     if(ros::param::has("~hough_threshold"))
         ros::param::get("~hough_threshold", PlaneExtractor::hough_threshold);
-    if(ros::param::has("~hough_min_line_length"))
-        ros::param::get("~hough_min_lines_length", PlaneExtractor::hough_min_lines_length);
-    if(ros::param::has("~hough_max_lines_gap"))
-        ros::param::get("~hough_max_lines_gap", PlaneExtractor::hough_max_lines_gap);
+    if(ros::param::has("~hough_min_rho"))
+        ros::param::get("~hough_min_rho", PlaneExtractor::hough_min_rho);
+    if(ros::param::has("~hough_max_rho"))
+        ros::param::get("~hough_max_rho", PlaneExtractor::hough_max_rho);
+    if(ros::param::has("~hough_step_rho"))
+        ros::param::get("~hough_step_rho", PlaneExtractor::hough_step_rho);
+    if(ros::param::has("~hough_min_theta"))
+        ros::param::get("~hough_min_theta", PlaneExtractor::hough_min_theta);
+    if(ros::param::has("~hough_max_theta"))
+        ros::param::get("~hough_max_theta", PlaneExtractor::hough_max_theta);
+    if(ros::param::has("~hough_step_theta"))
+        ros::param::get("~hough_step_theta", PlaneExtractor::hough_step_theta);
 
     while(ros::ok() && cv::waitKey(10) != 27)
     {

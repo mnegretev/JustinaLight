@@ -120,14 +120,14 @@ bool callback_find_lines(vision_msgs::FindLines::Request& req, vision_msgs::Find
     cv::Mat bgrImg;
     cv::Mat xyzCloud;
     JustinaTools::PointCloud2Msg_ToCvMat(req.point_cloud, bgrImg, xyzCloud);
-
+    cv::Vec4i find_line(xyzCloud);
     
     return true;
 }
 
 int main(int argc, char** argv)
 {
-    std::cout << "INITIALIZING OBJECT RECOGNIZER BY MR. YISUS" << std::endl;
+    std::cout << "INITIALIZING LINE FINDER BY MR. YISUS (improved by Marcosoft)" << std::endl;
     ros::init(argc, argv, "obj_reco_node");
     ros::NodeHandle n;
     ros::ServiceServer srvFindLines = n.advertiseService("/vision/line_finder/find_lines_ransac", callback_find_lines);
@@ -139,6 +139,7 @@ int main(int argc, char** argv)
 
     while(ros::ok())
     {
+        ros::spinOnce();
         loop.sleep();
     }
 }
